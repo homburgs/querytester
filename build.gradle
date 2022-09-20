@@ -34,12 +34,18 @@ intellij {
     pluginName = "QueryTester"
     version = "${ideaVersion}"
     updateSinceUntilBuild = false
+    buildSearchableOptions.enabled = false
     downloadSources = false
     patchPluginXml {
         changeNotes.set(provider { changelog.getLatest().toHTML() })
     }
 }
 
+signPlugin {
+    certificateChain = System.getenv("CERTIFICATE_CHAIN")
+    privateKey = System.getenv("PRIVATE_KEY")
+    password = System.getenv("PRIVATE_KEY_PASSWORD")
+}
 
 changelog {
     path = "${project.projectDir}/CHANGELOG.md"
@@ -65,4 +71,8 @@ dependencies {
 
     testCompileOnly 'org.projectlombok:lombok:1.18.24'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+}
+
+publishPlugin {
+    token = "${jetbrains_marketplace_token_querytester}"
 }
