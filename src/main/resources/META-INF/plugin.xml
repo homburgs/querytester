@@ -1,0 +1,43 @@
+<!-- Copyright 2000-2022 JetBrains s.r.o. and other contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file. -->
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+
+<idea-plugin>
+    <id>com.hsofttec.intellij.querytester</id>
+    <name>nscale Query Tester</name>
+    <depends>com.intellij.modules.platform</depends>
+
+    <description>
+        <![CDATA[
+      simple Query Tester for nscale Application Layer (<a href="https://www.ceyoniq.com/">Ceyoniq Technology GmbH</a>)
+    ]]>
+    </description>
+
+    <vendor email="Sven.Homburg@hsofttec.com">S.Homburg</vendor>
+
+    <idea-version since-build="IC-221.6008.13" until-build="IC-222.*"/>
+
+    <depends>com.intellij.modules.lang</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="nscale QueryTester"
+                    secondary="false"
+                    icon="PluginIcons.PLUGIN_ICON"
+                    anchor="bottom"
+                    factoryClass="com.hsofttec.intellij.querytester.QueryTesterToolWindowFactory"/>
+
+        <applicationService serviceImplementation="com.hsofttec.intellij.querytester.services.ConnectionSettingsService"/>
+        <applicationService serviceImplementation="com.hsofttec.intellij.querytester.services.SettingsService"/>
+        <projectService serviceImplementation="com.hsofttec.intellij.querytester.services.QueryService"/>
+        <projectService serviceImplementation="com.hsofttec.intellij.querytester.services.HistorySettingsService"/>
+
+        <!--        <notificationGroup id="QueryTester Notification Group" displayType="TOOL_WINDOW" key="notification.group.name"/>-->
+        <!--        <preloadingActivity implementation="com.hsofttec.intellij.querytester.ui.EventBusLoader"/>-->
+
+        <applicationConfigurable
+                parentId="tools"
+                instance="com.hsofttec.intellij.querytester.ui.AppSettingsConfigurable"
+                id="com.hsofttec.intellij.querytester.ui.AppSettingsConfigurable"
+                displayName="nscale QueryTester Settings"/>
+    </extensions>
+
+</idea-plugin>
