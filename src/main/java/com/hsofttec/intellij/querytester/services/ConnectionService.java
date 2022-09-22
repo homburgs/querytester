@@ -35,6 +35,9 @@ import com.ceyoniq.nscale.al.core.repository.ResourceKeyInfo;
 import com.hsofttec.intellij.querytester.models.BaseResource;
 import com.hsofttec.intellij.querytester.ui.Notifier;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -42,6 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ConnectionService {
+    private static final Logger logger = LoggerFactory.getLogger( ConnectionService.class );
     private static ConnectionService instance = null;
     private Session session = null;
     private String connectionId = null;
@@ -52,7 +56,7 @@ public class ConnectionService {
     public static ConnectionService getInstance( ) {
         if ( instance == null ) {
             synchronized ( ConnectionService.class ) {
-                System.err.println( "ConnectionService created" );
+                logger.info( "{} created", ConnectionService.class.getSimpleName( ) );
                 instance = new ConnectionService( );
             }
         }
@@ -93,8 +97,13 @@ public class ConnectionService {
                 Principal principal = new Principal( username, connectionSettings.getPassword( ), domain );
                 session = advancedConnector.login( principal );
             } catch ( Exception exception ) {
-                Notifier.error( exception.getLocalizedMessage( ) );
-                throw new RuntimeException( exception );
+                Throwable rootCause = ExceptionUtils.getRootCause( exception );
+                String localizedMessage = rootCause.getLocalizedMessage( );
+//                logger.error( localizedMessage, rootCause );
+                Notifier.error( String.format( "%s: %s", connectionSettings.getConnectionName( ), localizedMessage ) );
+                session = null;
+                connectionId = null;
+                throw exception;
             } finally {
                 Thread.currentThread( ).setContextClassLoader( current );
             }
@@ -102,9 +111,6 @@ public class ConnectionService {
     }
 
     public Session getSession( ) {
-        if ( session == null ) {
-            Notifier.warning( "no application layer session exists" );
-        }
         return session;
     }
 
@@ -138,6 +144,9 @@ public class ConnectionService {
         if ( localSession != null && localSession.isOpen( ) ) {
             ResourceKeyInfo resourceKeyInfo = ResourceKeyInfo.get( resourceId );
             List<PropertyName> propertyNames = new ArrayList<>( );
+            propertyNames.add( new IndexingPropertyName( "displayname", resourceKeyInfo.getDocumentAreaName( ) ) );
+            propertyNames.add( new IndexingPropertyName( "resourceid", resourceKeyInfo.getDocumentAreaName( ) ) );
+            propertyNames.add( new IndexingPropertyName( "parentresourceid", resourceKeyInfo.getDocumentAreaName( ) ) );
             propertyNames.add( new IndexingPropertyName( "objectclass", resourceKeyInfo.getDocumentAreaName( ) ) );
             propertyNames.add( new IndexingPropertyName( "resourcetype", resourceKeyInfo.getDocumentAreaName( ) ) );
             propertyNames.add( new IndexingPropertyName( "lockdate", resourceKeyInfo.getDocumentAreaName( ) ) );
@@ -156,5 +165,17 @@ public class ConnectionService {
             }
         }
         return baseResource;
+    }
+
+    public List<BaseResource> getParentsUntilRootFolder( String childResourceId ) {
+        List<BaseResource> list = new ArrayList<>( );
+
+        do {
+            BaseResource baseResource = getBaseResource( childResourceId );
+            list.add( baseResource );
+            childResourceId = baseResource.getParentresourceid( );
+        } while ( childResourceId != null );
+
+        return list;
     }
 }

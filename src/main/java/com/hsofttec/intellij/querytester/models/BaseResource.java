@@ -34,11 +34,23 @@ public class BaseResource {
     @Setter
     private Integer resourcetype;
 
+    @Getter
+    @Setter
+    private String displayname;
+
     private ObjectclassName objectclassName;
 
     @Getter
     @Setter
     private DateTime lockdate;
+
+    @Getter
+    @Setter
+    private String resourceid;
+
+    @Getter
+    @Setter
+    private String parentresourceid;
 
     public ObjectclassName getObjectclass( ) {
         return objectclassName;
