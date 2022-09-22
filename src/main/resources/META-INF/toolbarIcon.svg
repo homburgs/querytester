@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   - The MIT License (MIT)
   -
@@ -23,29 +22,29 @@
   - THE SOFTWARE.
   -->
 
-<svg id="Ebene_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+<svg id="Ebene_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" height="13" width="13">
     <defs>
         <style>.cls-1{fill:url(#Verlauf_Bumerang_hinten);}.cls-2{fill:url(#Unbenannter_Verlauf_5);}</style>
         <linearGradient id="Unbenannter_Verlauf_5" x1="0" y1="41.95" x2="80" y2="41.95" gradientTransform="matrix(1, 0, 0, 1, 0, 0)" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stop-color="#11a53c"/>
-            <stop offset=".44" stop-color="#12a53c"/>
-            <stop offset=".6" stop-color="#19a63f"/>
-            <stop offset=".71" stop-color="#25a945"/>
-            <stop offset=".8" stop-color="#36ad4c"/>
-            <stop offset=".88" stop-color="#4cb256"/>
-            <stop offset=".95" stop-color="#66b862"/>
-            <stop offset="1" stop-color="#82bf6e"/>
+            <stop offset="0" stop-color="#11a53c"></stop>
+            <stop offset=".44" stop-color="#12a53c"></stop>
+            <stop offset=".6" stop-color="#19a63f"></stop>
+            <stop offset=".71" stop-color="#25a945"></stop>
+            <stop offset=".8" stop-color="#36ad4c"></stop>
+            <stop offset=".88" stop-color="#4cb256"></stop>
+            <stop offset=".95" stop-color="#66b862"></stop>
+            <stop offset="1" stop-color="#82bf6e"></stop>
         </linearGradient>
         <linearGradient id="Verlauf_Bumerang_hinten" x1="9.38" y1="21.22" x2="49.2" y2="21.22" gradientTransform="matrix(1, 0, 0, 1, 0, 0)" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stop-color="#6ab54c"/>
-            <stop offset=".34" stop-color="#67b34b"/>
-            <stop offset=".52" stop-color="#5fae4b"/>
-            <stop offset=".67" stop-color="#52a44b"/>
-            <stop offset=".79" stop-color="#3e974a"/>
-            <stop offset=".91" stop-color="#258749"/>
-            <stop offset="1" stop-color="#0b7549"/>
+            <stop offset="0" stop-color="#6ab54c"></stop>
+            <stop offset=".34" stop-color="#67b34b"></stop>
+            <stop offset=".52" stop-color="#5fae4b"></stop>
+            <stop offset=".67" stop-color="#52a44b"></stop>
+            <stop offset=".79" stop-color="#3e974a"></stop>
+            <stop offset=".91" stop-color="#258749"></stop>
+            <stop offset="1" stop-color="#0b7549"></stop>
         </linearGradient>
     </defs>
-    <path class="cls-2" d="M77.14,31.14l-34.6-13.82c1.45,.62,6.66,3.18,6.66,8.37s-4.06,7.94-7.03,9.41c-.42,.24-3.05,1.21-3.06,1.21L3.13,48.86,0,66.58l75.53-26.3h0c2.33-.82,4.05-2.6,4.4-4.57,.35-1.97-.75-3.76-2.79-4.57Z"/>
-    <path class="cls-1" d="M49.2,25.69c0-5.18-5.2-7.75-6.66-8.37l-9.78-3.9H9.38l39.16,15.61c.42-.99,.67-2.1,.67-3.34Z"/>
+    <path class="cls-2" d="M77.14,31.14l-34.6-13.82c1.45,.62,6.66,3.18,6.66,8.37s-4.06,7.94-7.03,9.41c-.42,.24-3.05,1.21-3.06,1.21L3.13,48.86,0,66.58l75.53-26.3h0c2.33-.82,4.05-2.6,4.4-4.57,.35-1.97-.75-3.76-2.79-4.57Z"></path>
+    <path class="cls-1" d="M49.2,25.69c0-5.18-5.2-7.75-6.66-8.37l-9.78-3.9H9.38l39.16,15.61c.42-.99,.67-2.1,.67-3.34Z"></path>
 </svg>
