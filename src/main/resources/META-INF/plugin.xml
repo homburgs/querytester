@@ -40,7 +40,7 @@
     <depends>com.intellij.modules.lang</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="nscale QueryTester"
+        <toolWindow id="QueryTester"
                     secondary="false"
                     icon="PluginIcons.PLUGIN_ICON"
                     anchor="bottom"
@@ -58,7 +58,7 @@
                 parentId="tools"
                 instance="com.hsofttec.intellij.querytester.ui.AppSettingsConfigurable"
                 id="com.hsofttec.intellij.querytester.ui.AppSettingsConfigurable"
-                displayName="nscale QueryTester Settings"/>
+                displayName="QueryTester"/>
     </extensions>
 
 </idea-plugin>

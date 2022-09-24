@@ -22,33 +22,16 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.models;
+package com.hsofttec.intellij.querytester.events;
 
-import lombok.Getter;
-import lombok.Setter;
+public class RootResourceIdChangedEvent {
+    private final String rootResourceId;
 
-@Getter
-@Setter
-public class SettingsState {
-    private boolean showIdColumn;
-    private boolean showKeyColumn;
-    private int maxResultSize;
-    private boolean showDelete;
-    private int maxHistorySize;
-    private String fontFace;
-    private int fontSize;
-    private int lastMainDividerPosition;
-    private int lastLeftDividerPosition;
+    public RootResourceIdChangedEvent( String rootResourceId ) {
+        this.rootResourceId = rootResourceId;
+    }
 
-    public SettingsState( ) {
-        showKeyColumn = true;
-        showIdColumn = true;
-        showDelete = false;
-        maxHistorySize = 25;
-        maxResultSize = 100;
-        fontFace = "JetBrains Mono";
-        fontSize = 14;
-        lastMainDividerPosition = 500;
-        lastLeftDividerPosition = 0;
+    public String getRootResourceId( ) {
+        return rootResourceId;
     }
 }

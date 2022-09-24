@@ -27,21 +27,33 @@ package com.hsofttec.intellij.querytester.services;
 import com.ceyoniq.nscale.al.connector.AdvancedConnector;
 import com.ceyoniq.nscale.al.core.Principal;
 import com.ceyoniq.nscale.al.core.Session;
+import com.ceyoniq.nscale.al.core.cfg.FolderObjectclass;
 import com.ceyoniq.nscale.al.core.cfg.IndexingPropertyName;
+import com.ceyoniq.nscale.al.core.common.ObjectclassName;
 import com.ceyoniq.nscale.al.core.common.Property;
 import com.ceyoniq.nscale.al.core.common.PropertyName;
+import com.ceyoniq.nscale.al.core.content.*;
 import com.ceyoniq.nscale.al.core.repository.ResourceKey;
 import com.ceyoniq.nscale.al.core.repository.ResourceKeyInfo;
 import com.hsofttec.intellij.querytester.models.BaseResource;
-import com.hsofttec.intellij.querytester.ui.Notifier;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ConnectionService {
+    private static final Logger logger = LoggerFactory.getLogger( ConnectionService.class );
     private static ConnectionService instance = null;
     private Session session = null;
     private String connectionId = null;
@@ -52,7 +64,7 @@ public class ConnectionService {
     public static ConnectionService getInstance( ) {
         if ( instance == null ) {
             synchronized ( ConnectionService.class ) {
-                System.err.println( "ConnectionService created" );
+                logger.info( "{} created", ConnectionService.class.getSimpleName( ) );
                 instance = new ConnectionService( );
             }
         }
@@ -93,8 +105,12 @@ public class ConnectionService {
                 Principal principal = new Principal( username, connectionSettings.getPassword( ), domain );
                 session = advancedConnector.login( principal );
             } catch ( Exception exception ) {
-                Notifier.error( exception.getLocalizedMessage( ) );
-                throw new RuntimeException( exception );
+                String localizedMessage = exception.getLocalizedMessage( );
+//                logger.error( localizedMessage, rootCause );
+//                Notifier.error( String.format( "%s: %s", connectionSettings.getConnectionName( ), localizedMessage ) );
+                session = null;
+                connectionId = null;
+                throw exception;
             } finally {
                 Thread.currentThread( ).setContextClassLoader( current );
             }
@@ -102,9 +118,6 @@ public class ConnectionService {
     }
 
     public Session getSession( ) {
-        if ( session == null ) {
-            Notifier.warning( "no application layer session exists" );
-        }
         return session;
     }
 
@@ -138,6 +151,9 @@ public class ConnectionService {
         if ( localSession != null && localSession.isOpen( ) ) {
             ResourceKeyInfo resourceKeyInfo = ResourceKeyInfo.get( resourceId );
             List<PropertyName> propertyNames = new ArrayList<>( );
+            propertyNames.add( new IndexingPropertyName( "displayname", resourceKeyInfo.getDocumentAreaName( ) ) );
+            propertyNames.add( new IndexingPropertyName( "resourceid", resourceKeyInfo.getDocumentAreaName( ) ) );
+            propertyNames.add( new IndexingPropertyName( "parentresourceid", resourceKeyInfo.getDocumentAreaName( ) ) );
             propertyNames.add( new IndexingPropertyName( "objectclass", resourceKeyInfo.getDocumentAreaName( ) ) );
             propertyNames.add( new IndexingPropertyName( "resourcetype", resourceKeyInfo.getDocumentAreaName( ) ) );
             propertyNames.add( new IndexingPropertyName( "lockdate", resourceKeyInfo.getDocumentAreaName( ) ) );
@@ -156,5 +172,127 @@ public class ConnectionService {
             }
         }
         return baseResource;
+    }
+
+    public List<BaseResource> getParentsUntilRootFolder( String childResourceId ) {
+        List<BaseResource> list = new ArrayList<>( );
+
+        do {
+            BaseResource baseResource = getBaseResource( childResourceId );
+            list.add( baseResource );
+            childResourceId = baseResource.getParentresourceid( );
+        } while ( childResourceId != null );
+
+        return list;
+    }
+
+    public List<ObjectclassName> getPossibleObjectclassesForFolderCreation( BaseResource parentFolder ) {
+        Session localSession = getSession( );
+        List<ObjectclassName> allowedFolderObjectclassNames = new ArrayList<>( );
+
+        if ( localSession != null ) {
+            List<FolderObjectclass> folderObjectclasses = localSession.getConfigurationService( ).getFolderObjectclasses( parentFolder.getObjectclass( ).getAreaName( ) );
+            for ( FolderObjectclass folderObjectclass : folderObjectclasses ) {
+                if ( folderObjectclass.getName( ).getName( ).equals( parentFolder.getObjectclass( ).getName( ) ) ) {
+                    allowedFolderObjectclassNames.addAll( folderObjectclass.getAllowedFolderObjectclassNames( ) );
+                    break;
+                }
+            }
+        }
+
+        return allowedFolderObjectclassNames;
+    }
+
+    public List<ObjectclassName> getPossibleObjectclassesForDocumentCreation( BaseResource parentFolder ) {
+        Session localSession = getSession( );
+        List<ObjectclassName> allowedDocumentObjectclassNames = new ArrayList<>( );
+
+        if ( localSession != null ) {
+            List<FolderObjectclass> objectclasses = localSession.getConfigurationService( ).getFolderObjectclasses( parentFolder.getObjectclass( ).getAreaName( ) );
+            for ( FolderObjectclass objectclass : objectclasses ) {
+                if ( objectclass.getName( ).getName( ).equals( parentFolder.getObjectclass( ).getName( ) ) ) {
+                    allowedDocumentObjectclassNames.addAll( objectclass.getAllowedDocumentObjectclassNames( ) );
+                    break;
+                }
+            }
+        }
+
+        return allowedDocumentObjectclassNames;
+    }
+
+    public ResourceKey createFolder( BaseResource parentResource, ObjectclassName objectclassName, String displayname ) {
+        Session localSession = getSession( );
+        ResourceKey resourceKey = null;
+
+        if ( localSession != null ) {
+            List<Property> properties = Collections.singletonList( new Property( new IndexingPropertyName( "displayname", parentResource.getObjectclass( ).getAreaName( ) ), displayname ) );
+            resourceKey = localSession.getRepositoryService( ).createFolder( objectclassName, new ResourceKey( parentResource.getResourceid( ) ), properties, false );
+        }
+
+        return resourceKey;
+    }
+
+    /**
+     * // create document as child of a folder
+     * <p>
+     * // build properties
+     * List props = new ArrayList ();
+     * IndexingPropertyName ipn = new IndexingPropertyName ( "displayname", "myDocumentAreaName" );
+     * Property prop = new Property ( ipn, "Hello world!" );
+     * props.add ( prop );
+     * <p>
+     * ObjectclassName docOcnD1 = new ObjectclassName ( "D1", "myDocumentAreaName" );
+     * <p>
+     * // build extended content item and its properties
+     * ContentItemProperties cips = new ContentItemProperties();
+     * cips.setProperty ( ContentItemBaseProperty.name, "my_name" );
+     * cips.setProperty ( ContentItemBaseProperty.displayName, "my_displayname" );
+     * cips.setProperty ( ContentItemBaseProperty.contentType, "text/plain; charset=\"iso-8859-1\"" );
+     * DefaultExtendedContentItem deci = new DefaultExtendedContentItem ( cips, "TestCreateDocument text." );
+     * List items = new ArrayList();
+     * items.add ( deci );
+     * <p>
+     * // build extended content and its properties
+     * ContentProperties cps = new ContentProperties();
+     * cps.setProperty ( ContentBaseProperty.contentType, "text/plain; charset=\"iso-8859-1\"" );
+     * ExtendedContent content = new DefaultExtendedContent ( cps, items );
+     * <p>
+     * // create document
+     * ResourceKey newDocumentRk = repositoryService.createDocument ( docOcnD1, existingFolderRk, props, false, content );
+     *
+     * @param parentResource
+     * @param objectclassName
+     * @param displayname
+     * @param selectedFileName
+     * @return
+     */
+    public ResourceKey createDocument( BaseResource parentResource, ObjectclassName objectclassName, String displayname, String selectedFileName ) {
+        Session localSession = getSession( );
+        ResourceKey resourceKey = null;
+        String contentType = null;
+
+        if ( localSession != null ) {
+            List<Property> properties = Collections.singletonList( new Property( new IndexingPropertyName( "displayname", parentResource.getObjectclass( ).getAreaName( ) ), displayname ) );
+
+            Path file = Paths.get( selectedFileName );
+            try ( InputStream inputStream = new FileInputStream( file.toFile( ) ) ) {
+                contentType = Files.probeContentType( file );
+                ContentItemProperties cips = new ContentItemProperties( );
+                cips.setProperty( ContentItemBaseProperty.name, displayname );
+                cips.setProperty( ContentItemBaseProperty.displayName, displayname );
+                cips.setProperty( ContentItemBaseProperty.contentType, contentType );
+
+                ExtendedContentItem extendedContentItem = new DefaultExtendedContentItem( cips, inputStream );
+                ContentProperties cps = new ContentProperties( );
+                cps.setProperty( ContentBaseProperty.contentType, contentType );
+                ExtendedContent extendedContent = new DefaultExtendedContent( cps, Collections.singletonList( extendedContentItem ) );
+                resourceKey = localSession.getRepositoryService( ).createDocument( objectclassName, new ResourceKey( parentResource.getResourceid( ) ), properties, false, extendedContent );
+
+            } catch ( IOException e ) {
+                throw new RuntimeException( e );
+            }
+        }
+
+        return resourceKey;
     }
 }

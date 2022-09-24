@@ -1,3 +1,27 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the “Software”), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 package com.hsofttec.intellij.querytester.ui.components;
 
 import com.google.common.eventbus.EventBus;
@@ -13,9 +37,14 @@ import com.hsofttec.intellij.querytester.services.HistorySettingsService;
 import com.hsofttec.intellij.querytester.services.QueryService;
 import com.hsofttec.intellij.querytester.services.SettingsService;
 import com.hsofttec.intellij.querytester.ui.EventBusFactory;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.table.JBTable;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
@@ -26,20 +55,17 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class NscaleTable extends JBTable {
-
-    private static final Project project = ProjectManager.getInstance( ).getOpenProjects( )[ 0 ];
-
+    private static final Logger logger = LoggerFactory.getLogger( NscaleTable.class );
+    private static final Project OPEN_PROJECT = ProjectManager.getInstance( ).getOpenProjects( )[ 0 ];
     private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
-
-    private static final QueryService QUERY_SERVICE = project.getService( QueryService.class );
-
-    private static final HistorySettingsService HISTORY_SETTINGS_SERVICE = HistorySettingsService.getSettings( project );
-
+    private static final QueryService QUERY_SERVICE = OPEN_PROJECT.getService( QueryService.class );
+    private static final HistorySettingsService HISTORY_SETTINGS_SERVICE = HistorySettingsService.getSettings( OPEN_PROJECT );
     private static final SettingsState SETTINGS = SettingsService.getSettings( );
 
     public NscaleTable( ) {
         EVENT_BUS.register( this );
         setFont( new Font( SETTINGS.getFontFace( ), Font.PLAIN, SETTINGS.getFontSize( ) ) );
+//        setBorder( BorderFactory.createEmptyBorder(  ) );
         setAutoResizeMode( JBTable.AUTO_RESIZE_OFF );
         setDefaultRenderer( Object.class, new DynaPropertyTableCellRenderer( ) );
         addMouseListener( new MouseAdapter( ) {
@@ -48,7 +74,11 @@ public class NscaleTable extends JBTable {
                 // selects the row at which point the mouse is clicked
                 Point point = mouseEvent.getPoint( );
                 int currentRow = rowAtPoint( point );
-                setRowSelectionInterval( currentRow, currentRow );
+                try {
+                    setRowSelectionInterval( currentRow, currentRow );
+                } catch ( Exception e ) {
+                    logger.warn( ExceptionUtils.getRootCause( e ).getLocalizedMessage( ) );
+                }
             }
         } );
     }
@@ -60,26 +90,36 @@ public class NscaleTable extends JBTable {
 
     @Subscribe
     public void startQueryExecution( StartQueryExecutionEvent event ) {
-        StartQueryExecutionEvent.QueryExecutionParameters queryExecutionParameters = event.getData( );
-        NscaleResult nscaleResult = QUERY_SERVICE.proccessQuery( queryExecutionParameters.getConnectionSettings( ),
-                queryExecutionParameters.getQueryMode( ),
-                queryExecutionParameters.getDocumentAreaName( ),
-                queryExecutionParameters.getMasterdataScope( ),
-                queryExecutionParameters.getRootResourceId( ),
-                queryExecutionParameters.getNqlQuery( ) );
 
-        if ( nscaleResult != null ) {
-            setModel( new DynaClassTableModel( nscaleResult ) );
-            if ( !SETTINGS.isShowIdColumn( ) ) {
-                getColumnModel( ).getColumn( 0 ).setMinWidth( 0 );
-                getColumnModel( ).getColumn( 0 ).setMaxWidth( 0 );
+        ProgressManager.getInstance( ).runProcessWithProgressSynchronously( ( ) -> {
+            ProgressIndicator progressIndicator = ProgressManager.getInstance( ).getProgressIndicator( );
+            progressIndicator.setFraction( 0.1 );
+            StartQueryExecutionEvent.QueryExecutionParameters queryExecutionParameters = event.getData( );
+
+            progressIndicator.setFraction( 0.8 );
+            NscaleResult nscaleResult = QUERY_SERVICE.proccessQuery( queryExecutionParameters.getConnectionSettings( ),
+                    queryExecutionParameters.getQueryMode( ),
+                    queryExecutionParameters.getDocumentAreaName( ),
+                    queryExecutionParameters.getMasterdataScope( ),
+                    queryExecutionParameters.getRootResourceId( ),
+                    queryExecutionParameters.getNqlQuery( ),
+                    queryExecutionParameters.isAggregate( ) );
+
+            if ( nscaleResult != null ) {
+                setModel( new DynaClassTableModel( nscaleResult ) );
+                if ( !SETTINGS.isShowIdColumn( ) ) {
+                    getColumnModel( ).getColumn( 0 ).setMinWidth( 0 );
+                    getColumnModel( ).getColumn( 0 ).setMaxWidth( 0 );
+                }
+                if ( !SETTINGS.isShowKeyColumn( ) || queryExecutionParameters.isAggregate( ) ) {
+                    getColumnModel( ).getColumn( 1 ).setMinWidth( 0 );
+                    getColumnModel( ).getColumn( 1 ).setMaxWidth( 0 );
+                }
+                HISTORY_SETTINGS_SERVICE.addQuery( event.getData( ).getNqlQuery( ) );
             }
-            if ( !SETTINGS.isShowKeyColumn( ) ) {
-                getColumnModel( ).getColumn( 1 ).setMinWidth( 0 );
-                getColumnModel( ).getColumn( 1 ).setMaxWidth( 0 );
-            }
-            HISTORY_SETTINGS_SERVICE.addQuery( event.getData( ).getNqlQuery( ) );
-        }
+            progressIndicator.setFraction( 1.0 );
+        }, "Executing query", true, OPEN_PROJECT );
+
     }
 
     /**
