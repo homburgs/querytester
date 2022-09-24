@@ -22,33 +22,22 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.models;
+package com.hsofttec.intellij.querytester.ui.components;
 
+import com.ceyoniq.nscale.al.core.common.ObjectclassName;
 import lombok.Getter;
-import lombok.Setter;
+
+import javax.swing.*;
 
 @Getter
-@Setter
-public class SettingsState {
-    private boolean showIdColumn;
-    private boolean showKeyColumn;
-    private int maxResultSize;
-    private boolean showDelete;
-    private int maxHistorySize;
-    private String fontFace;
-    private int fontSize;
-    private int lastMainDividerPosition;
-    private int lastLeftDividerPosition;
-
-    public SettingsState( ) {
-        showKeyColumn = true;
-        showIdColumn = true;
-        showDelete = false;
-        maxHistorySize = 25;
-        maxResultSize = 100;
-        fontFace = "JetBrains Mono";
-        fontSize = 14;
-        lastMainDividerPosition = 500;
-        lastLeftDividerPosition = 0;
-    }
+public class CreateResourceComponent {
+    private JComboBox<ObjectclassName> inputObjectclass;
+    private JTextField inputDisplayname;
+    private JTextField inputParentFolder;
+    private JPanel mainPanel;
+    private JLabel labelObjectclass;
+    private JLabel labelDisplayname;
+    private JLabel labelParentFolder;
+    private JLabel labelContent;
+    private com.intellij.openapi.ui.TextFieldWithBrowseButton inputContent;
 }

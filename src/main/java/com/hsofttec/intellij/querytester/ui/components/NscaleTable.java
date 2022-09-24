@@ -37,6 +37,8 @@ import com.hsofttec.intellij.querytester.services.HistorySettingsService;
 import com.hsofttec.intellij.querytester.services.QueryService;
 import com.hsofttec.intellij.querytester.services.SettingsService;
 import com.hsofttec.intellij.querytester.ui.EventBusFactory;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.table.JBTable;
@@ -54,15 +56,16 @@ import java.awt.event.MouseEvent;
 
 public class NscaleTable extends JBTable {
     private static final Logger logger = LoggerFactory.getLogger( NscaleTable.class );
-    private static final Project project = ProjectManager.getInstance( ).getOpenProjects( )[ 0 ];
+    private static final Project OPEN_PROJECT = ProjectManager.getInstance( ).getOpenProjects( )[ 0 ];
     private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
-    private static final QueryService QUERY_SERVICE = project.getService( QueryService.class );
-    private static final HistorySettingsService HISTORY_SETTINGS_SERVICE = HistorySettingsService.getSettings( project );
+    private static final QueryService QUERY_SERVICE = OPEN_PROJECT.getService( QueryService.class );
+    private static final HistorySettingsService HISTORY_SETTINGS_SERVICE = HistorySettingsService.getSettings( OPEN_PROJECT );
     private static final SettingsState SETTINGS = SettingsService.getSettings( );
 
     public NscaleTable( ) {
         EVENT_BUS.register( this );
         setFont( new Font( SETTINGS.getFontFace( ), Font.PLAIN, SETTINGS.getFontSize( ) ) );
+//        setBorder( BorderFactory.createEmptyBorder(  ) );
         setAutoResizeMode( JBTable.AUTO_RESIZE_OFF );
         setDefaultRenderer( Object.class, new DynaPropertyTableCellRenderer( ) );
         addMouseListener( new MouseAdapter( ) {
@@ -87,26 +90,36 @@ public class NscaleTable extends JBTable {
 
     @Subscribe
     public void startQueryExecution( StartQueryExecutionEvent event ) {
-        StartQueryExecutionEvent.QueryExecutionParameters queryExecutionParameters = event.getData( );
-        NscaleResult nscaleResult = QUERY_SERVICE.proccessQuery( queryExecutionParameters.getConnectionSettings( ),
-                queryExecutionParameters.getQueryMode( ),
-                queryExecutionParameters.getDocumentAreaName( ),
-                queryExecutionParameters.getMasterdataScope( ),
-                queryExecutionParameters.getRootResourceId( ),
-                queryExecutionParameters.getNqlQuery( ) );
 
-        if ( nscaleResult != null ) {
-            setModel( new DynaClassTableModel( nscaleResult ) );
-            if ( !SETTINGS.isShowIdColumn( ) ) {
-                getColumnModel( ).getColumn( 0 ).setMinWidth( 0 );
-                getColumnModel( ).getColumn( 0 ).setMaxWidth( 0 );
+        ProgressManager.getInstance( ).runProcessWithProgressSynchronously( ( ) -> {
+            ProgressIndicator progressIndicator = ProgressManager.getInstance( ).getProgressIndicator( );
+            progressIndicator.setFraction( 0.1 );
+            StartQueryExecutionEvent.QueryExecutionParameters queryExecutionParameters = event.getData( );
+
+            progressIndicator.setFraction( 0.8 );
+            NscaleResult nscaleResult = QUERY_SERVICE.proccessQuery( queryExecutionParameters.getConnectionSettings( ),
+                    queryExecutionParameters.getQueryMode( ),
+                    queryExecutionParameters.getDocumentAreaName( ),
+                    queryExecutionParameters.getMasterdataScope( ),
+                    queryExecutionParameters.getRootResourceId( ),
+                    queryExecutionParameters.getNqlQuery( ),
+                    queryExecutionParameters.isAggregate( ) );
+
+            if ( nscaleResult != null ) {
+                setModel( new DynaClassTableModel( nscaleResult ) );
+                if ( !SETTINGS.isShowIdColumn( ) ) {
+                    getColumnModel( ).getColumn( 0 ).setMinWidth( 0 );
+                    getColumnModel( ).getColumn( 0 ).setMaxWidth( 0 );
+                }
+                if ( !SETTINGS.isShowKeyColumn( ) || queryExecutionParameters.isAggregate( ) ) {
+                    getColumnModel( ).getColumn( 1 ).setMinWidth( 0 );
+                    getColumnModel( ).getColumn( 1 ).setMaxWidth( 0 );
+                }
+                HISTORY_SETTINGS_SERVICE.addQuery( event.getData( ).getNqlQuery( ) );
             }
-            if ( !SETTINGS.isShowKeyColumn( ) ) {
-                getColumnModel( ).getColumn( 1 ).setMinWidth( 0 );
-                getColumnModel( ).getColumn( 1 ).setMaxWidth( 0 );
-            }
-            HISTORY_SETTINGS_SERVICE.addQuery( event.getData( ).getNqlQuery( ) );
-        }
+            progressIndicator.setFraction( 1.0 );
+        }, "Executing query", true, OPEN_PROJECT );
+
     }
 
     /**

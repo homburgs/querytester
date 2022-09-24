@@ -32,16 +32,16 @@ import com.hsofttec.intellij.querytester.events.ConnectionSelectionChangedEvent;
 import com.hsofttec.intellij.querytester.events.DocumentAreaChangedEvent;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.ui.EventBusFactory;
+import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
 
-import javax.swing.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class DocumentAreaSelect extends JComboBox<String> implements ItemListener {
+public class DocumentAreaSelect extends ComboBox<String> implements ItemListener {
     private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
     private static final ConnectionService connectionService = ConnectionService.getInstance( );
     private List<String> docAreaNames = new ArrayList<>( );
