@@ -58,7 +58,7 @@
                 parentId="tools"
                 instance="com.hsofttec.intellij.querytester.ui.AppSettingsConfigurable"
                 id="com.hsofttec.intellij.querytester.ui.AppSettingsConfigurable"
-                displayName="nscale QueryTester Settings"/>
+                displayName="QueryTester"/>
     </extensions>
 
 </idea-plugin>

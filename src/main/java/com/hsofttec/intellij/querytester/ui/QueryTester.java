@@ -28,7 +28,6 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
-import com.hsofttec.intellij.querytester.completion.NqlCompletionProvider;
 import com.hsofttec.intellij.querytester.events.ConnectionAddedEvent;
 import com.hsofttec.intellij.querytester.events.PrepareQueryExecutionEvent;
 import com.hsofttec.intellij.querytester.events.RootResourceIdChangedEvent;
@@ -67,7 +66,6 @@ public class QueryTester extends SimpleToolWindowPanel {
     private ConnectionSelect inputSelectedConnection;
     private NscaleTable queryResultTable;
     private NqlQueryTextbox inputNqlQuery;
-    private JButton executeButton;
     private JComboBox<String> inputHistory;
     private RepositoryRootTextField inputRepositoryRoot;
     private JLabel labelDocumentArea;
@@ -81,6 +79,9 @@ public class QueryTester extends SimpleToolWindowPanel {
     private JCheckBox inputeAggregate;
     private JComboBox inputMasterdataScope;
     private JSplitPane mainSplitter;
+    private JSplitPane leftSplitPane;
+    private JPanel rightPanel;
+    private JPanel leftPanel;
 
     public QueryTester( ) {
         super( false, true );
@@ -89,15 +90,21 @@ public class QueryTester extends SimpleToolWindowPanel {
 
         setToolbar( createToolBar( ) );
         setContent( mainPanel );
-        executeButton.setIcon( AllIcons.Actions.Run_anything );
-        mainSplitter.setOneTouchExpandable( true );
+        mainSplitter.setOneTouchExpandable( false );
+        leftSplitPane.setOneTouchExpandable( false );
         mainSplitter.setDividerLocation( settings.getLastMainDividerPosition( ) );
-        mainSplitter.setContinuousLayout( true );
-        mainSplitter.setResizeWeight( .5 );
-        mainSplitter.setDividerSize( 3 );
-        mainSplitter.setBorder( BorderFactory.createEmptyBorder( ) );
+        if ( settings.getLastLeftDividerPosition( ) > 0 ) {
+            leftSplitPane.setDividerLocation( settings.getLastLeftDividerPosition( ) );
+        }
+//        mainSplitter.setContinuousLayout( true );
+//        mainSplitter.setResizeWeight( .5 );
+//        mainSplitter.setDividerSize( 3 );
+//        mainSplitter.setBorder( BorderFactory.createEmptyBorder(  ) );
         mainSplitter.addPropertyChangeListener( JSplitPane.DIVIDER_LOCATION_PROPERTY, propertyChangeEvent -> {
             settings.setLastMainDividerPosition( ( Integer ) propertyChangeEvent.getNewValue( ) );
+        } );
+        leftSplitPane.addPropertyChangeListener( JSplitPane.DIVIDER_LOCATION_PROPERTY, propertyChangeEvent -> {
+            settings.setLastLeftDividerPosition( ( Integer ) propertyChangeEvent.getNewValue( ) );
         } );
 
         ResultTableContextMenu resultTableContextMenu = new ResultTableContextMenu( );
@@ -120,13 +127,6 @@ public class QueryTester extends SimpleToolWindowPanel {
                 String resourceId = ( String ) basicDynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY );
                 BaseResource baseResource = connectionService.getBaseResource( resourceId );
                 inputRepositoryRoot.setText( baseResource.getParentresourceid( ) );
-                EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
-            }
-        } );
-
-        executeButton.addActionListener( new AbstractAction( ) {
-            @Override
-            public void actionPerformed( ActionEvent actionEvent ) {
                 EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
             }
         } );
@@ -161,6 +161,7 @@ public class QueryTester extends SimpleToolWindowPanel {
     @Subscribe
     public void prepareQueryExecution( PrepareQueryExecutionEvent event ) {
         QueryMode queryMode = QueryMode.REPOSITORY;
+
         if ( inputDocumentArea.getSelectedIndex( ) == -1 || inputSelectedConnection.getSelectedIndex( ) == -1 ) {
             Notifier.warning( "no connection or/and no document area selected" );
             return;
@@ -171,6 +172,7 @@ public class QueryTester extends SimpleToolWindowPanel {
         String masterdataScope = ( String ) inputMasterdataScope.getSelectedItem( );
         String repositoryRoot = inputRepositoryRoot.getText( );
         String nqlQuery = inputNqlQuery.getText( );
+        boolean aggregate = inputeAggregate.isSelected( );
 
         String tabTitle = tabbedPane.getTitleAt( tabbedPane.getSelectedIndex( ) );
         switch ( tabTitle ) {
@@ -195,7 +197,7 @@ public class QueryTester extends SimpleToolWindowPanel {
                 break;
         }
 
-        EVENT_BUS.post( new StartQueryExecutionEvent( connectionSettings, queryMode, documentAreaName, masterdataScope, repositoryRoot, nqlQuery ) );
+        EVENT_BUS.post( new StartQueryExecutionEvent( connectionSettings, queryMode, documentAreaName, masterdataScope, repositoryRoot, nqlQuery, aggregate ) );
     }
 
     @Subscribe
@@ -206,6 +208,14 @@ public class QueryTester extends SimpleToolWindowPanel {
 
     private JComponent createToolBar( ) {
         DefaultActionGroup actionGroup = new DefaultActionGroup( );
+
+        actionGroup.add( new AnAction( "Execute Query", "Start query execution", AllIcons.RunConfigurations.TestState.Run ) {
+            @Override
+            public void actionPerformed( @NotNull AnActionEvent e ) {
+                EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
+            }
+        } );
+
         actionGroup.add( new AnAction( "Add Connection", "Show the connection settings dialog", AllIcons.General.Add ) {
             @Override
             public void actionPerformed( AnActionEvent actionEvent ) {
@@ -214,7 +224,7 @@ public class QueryTester extends SimpleToolWindowPanel {
                 ConnectionSetupDialog connectionSetupDialog = new ConnectionSetupDialog( currentProject );
                 connectionSetupDialog.setData( connectionSettings );
                 if ( connectionSetupDialog.showAndGet( ) ) {
-                    connectionSetupDialog.getData( connectionSettings );
+                    connectionSettings = connectionSetupDialog.getData( );
                     connectionSettingsService.connectionSettingsState.connectionSettings.add( connectionSettings );
                     EVENT_BUS.post( new ConnectionAddedEvent( connectionSettings ) );
                 }
@@ -235,11 +245,9 @@ public class QueryTester extends SimpleToolWindowPanel {
     }
 
     private void createUIComponents( ) {
-        inputNqlQuery = new NqlQueryTextbox( projectManager.getOpenProjects( )[ 0 ], new NqlCompletionProvider( ), "" );
+        inputNqlQuery = new NqlQueryTextbox( );
         inputMasterdataScope = new MasterdataScopeSelect( );
         inputDocumentArea = new DocumentAreaSelect( );
-        inputRepositoryRoot = new RepositoryRootTextField( );
         inputSelectedConnection = new ConnectionSelect( );
-        queryResultTable = new NscaleTable( );
     }
 }

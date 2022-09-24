@@ -26,16 +26,15 @@ package com.hsofttec.intellij.querytester.ui.components;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.hsofttec.intellij.querytester.completion.NqlCompletionProvider;
 import com.hsofttec.intellij.querytester.events.FontSettingsChangedEvent;
 import com.hsofttec.intellij.querytester.events.PrepareQueryExecutionEvent;
 import com.hsofttec.intellij.querytester.models.SettingsState;
 import com.hsofttec.intellij.querytester.services.SettingsService;
 import com.hsofttec.intellij.querytester.ui.EventBusFactory;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.textCompletion.TextCompletionProvider;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.util.textCompletion.TextFieldWithCompletion;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -45,11 +44,12 @@ import java.awt.event.KeyEvent;
 
 public class NqlQueryTextbox extends TextFieldWithCompletion {
     private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
-
+    private static final ProjectManager PROJECT_MANAGER = ProjectManager.getInstance( );
+    private static final Project PROJECT = PROJECT_MANAGER.getOpenProjects( )[ 0 ];
     private static final SettingsState SETTINGS_STATE = SettingsService.getSettings( );
 
-    public NqlQueryTextbox( @Nullable Project project, @NotNull TextCompletionProvider provider, @NotNull String value ) {
-        super( project, provider, value, false, true, true );
+    public NqlQueryTextbox( ) {
+        super( PROJECT, new NqlCompletionProvider( ), "", false, true, true );
         EVENT_BUS.register( this );
         setFont( new Font( SETTINGS_STATE.getFontFace( ), Font.PLAIN, SETTINGS_STATE.getFontSize( ) ) );
         getInputMap( ).put( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK ), "CTRL_ENTER" );

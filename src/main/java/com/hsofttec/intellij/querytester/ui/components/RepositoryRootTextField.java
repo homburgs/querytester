@@ -41,9 +41,11 @@ public class RepositoryRootTextField extends ExtendableTextField implements KeyL
         EVENT_BUS.register( this );
         addKeyListener( this );
         ExtendableTextComponent.Extension browseExtension =
-                ExtendableTextComponent.Extension.create( AllIcons.Actions.Close, "Clear input", ( ) -> setText( "" ) );
+                ExtendableTextComponent.Extension.create( AllIcons.Actions.Close, "Clear input", ( ) -> {
+                    setText( "" );
+                    EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
+                } );
         addExtension( browseExtension );
-//        AllIcons.Actions.Rerun
     }
 
     @Override

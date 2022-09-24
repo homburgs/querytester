@@ -24,16 +24,21 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
+import com.ceyoniq.nscale.al.core.repository.ResourceKey;
 import com.ceyoniq.nscale.al.core.repository.ResourceType;
 import com.google.common.eventbus.EventBus;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
 import com.hsofttec.intellij.querytester.events.OptimizeTableHeaderWidthEvent;
+import com.hsofttec.intellij.querytester.events.PrepareQueryExecutionEvent;
 import com.hsofttec.intellij.querytester.events.RootResourceIdChangedEvent;
 import com.hsofttec.intellij.querytester.models.BaseResource;
+import com.hsofttec.intellij.querytester.models.ResourceDialogModel;
 import com.hsofttec.intellij.querytester.models.SettingsState;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.SettingsService;
+import com.hsofttec.intellij.querytester.ui.CreateResourceDialog;
 import com.hsofttec.intellij.querytester.ui.EventBusFactory;
+import com.hsofttec.intellij.querytester.ui.Notifier;
 import com.hsofttec.intellij.querytester.ui.ResourcePathDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -122,9 +127,35 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
 
         addDocumentMenuItem = new JBMenuItem( "Add Document" );
         addDocumentMenuItem.setEnabled( false );
+        addDocumentMenuItem.addActionListener( actionEvent -> {
+            BaseResource baseResource = CONNECTION_SERVICE.getBaseResource( selectedResourceId );
+            CreateResourceDialog createResourceDialog = new CreateResourceDialog( project, CreateResourceDialog.CreationMode.DOCUMENT );
+            createResourceDialog.setData( baseResource );
+            if ( createResourceDialog.showAndGet( ) ) {
+                ResourceDialogModel data = createResourceDialog.getData( );
+                ResourceKey resourceKey = CONNECTION_SERVICE.createDocument( data.getParentResource( ), data.getObjectclassName( ), data.getDisplayname( ), data.getSelectedFileName( ) );
+                if ( resourceKey != null ) {
+                    Notifier.information( "folder successful created" );
+                    EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
+                }
+            }
+        } );
 
         addFolderMenuItem = new JBMenuItem( "Add Folder" );
         addFolderMenuItem.setEnabled( false );
+        addFolderMenuItem.addActionListener( actionEvent -> {
+            BaseResource baseResource = CONNECTION_SERVICE.getBaseResource( selectedResourceId );
+            CreateResourceDialog createResourceDialog = new CreateResourceDialog( project, CreateResourceDialog.CreationMode.FOLDER );
+            createResourceDialog.setData( baseResource );
+            if ( createResourceDialog.showAndGet( ) ) {
+                ResourceDialogModel data = createResourceDialog.getData( );
+                ResourceKey resourceKey = CONNECTION_SERVICE.createFolder( data.getParentResource( ), data.getObjectclassName( ), data.getDisplayname( ) );
+                if ( resourceKey != null ) {
+                    Notifier.information( "folder successful created" );
+                    EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
+                }
+            }
+        } );
 
         addLinkMenuItem = new JBMenuItem( "Add Link" );
         addLinkMenuItem.setEnabled( false );
@@ -213,6 +244,12 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
             } else {
                 lockMenuItem.setEnabled( false );
                 unlockMenuItem.setEnabled( true );
+            }
+
+            if ( baseResource.getResourcetype( ) == ResourceType.FOLDER.getId( ) ) {
+                addFolderMenuItem.setEnabled( true );
+                addDocumentMenuItem.setEnabled( true );
+                addLinkMenuItem.setEnabled( true );
             }
 
             showPathMenuItem.setEnabled( true );

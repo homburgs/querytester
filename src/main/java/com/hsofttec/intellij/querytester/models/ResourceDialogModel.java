@@ -24,31 +24,17 @@
 
 package com.hsofttec.intellij.querytester.models;
 
+import com.ceyoniq.nscale.al.core.common.ObjectclassName;
+import com.hsofttec.intellij.querytester.ui.CreateResourceDialog;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class SettingsState {
-    private boolean showIdColumn;
-    private boolean showKeyColumn;
-    private int maxResultSize;
-    private boolean showDelete;
-    private int maxHistorySize;
-    private String fontFace;
-    private int fontSize;
-    private int lastMainDividerPosition;
-    private int lastLeftDividerPosition;
-
-    public SettingsState( ) {
-        showKeyColumn = true;
-        showIdColumn = true;
-        showDelete = false;
-        maxHistorySize = 25;
-        maxResultSize = 100;
-        fontFace = "JetBrains Mono";
-        fontSize = 14;
-        lastMainDividerPosition = 500;
-        lastLeftDividerPosition = 0;
-    }
+public class ResourceDialogModel {
+    private CreateResourceDialog.CreationMode creationMode;
+    private BaseResource parentResource;
+    private ObjectclassName objectclassName;
+    private String displayname;
+    private String selectedFileName;
 }
