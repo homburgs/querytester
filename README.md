@@ -49,4 +49,4 @@ This plugin is under the [MIT license](https://en.wikipedia.org/wiki/MIT_License
 
 [4]: https://github.com/homburgs/querytester/issues
 
-[5]: https://github.com/homburgs/querytester/blob/develop/docs/img/screenshot_small.png
+[5]: https://github.com/homburgs/querytester/blob/develop/docs/screenshot_small.png
