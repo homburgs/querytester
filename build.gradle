@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "com.hsofttec.intellij"
-version = "${version}"
+version = "${pluginVersion}"
 
 sourceCompatibility = javaSourceVersion
 targetCompatibility = javaTargetVersion
@@ -52,9 +52,9 @@ changelog {
     header = "[${-> version.get()}] - ${new SimpleDateFormat("yyyy-MM-dd").format(new Date())}"
     headerParserRegex = ~/(\d+\.\d+\.\d+)/
     itemPrefix = "-"
-    keepUnreleasedSection = false
+    keepUnreleasedSection = true
     unreleasedTerm = "[Unreleased]"
-    groups = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"]
+    groups = ["Added", "Changed", "Fixed", "Security"]
 }
 
 dependencies {

@@ -29,9 +29,28 @@
 
     <description>
         <![CDATA[
-      simple Query Tester for nscale Application Layer (<a href="https://www.ceyoniq.com/">Ceyoniq Technology GmbH</a>)
+        <a href="https://plugins.jetbrains.com/plugin/19985-nscale-query-tester">Homepage</a> | <a href="https://github.com/homburgs/querytester/">Github</a> | <a href="https://github.com/homburgs/querytester/issues">Issues</a>
+        <br/>
+        <br/>
+        <h2>simple query tool for <a href="https://www.ceyoniq.com/">Ceyoniq's</a> <em>nscale application layer</em></h2>
+        <p>
+        with this plugin you can connect to the application layer of the company <a href="https://www.ceyoniq.com/">Ceyoniq</a> and send repository and masterdata queries.
+        the result is displayed in a table and can be edited.
+        </p>
+        <strong>features</strong>
+        <ul>
+            <li>NQL (nscale Query Language) completions support</li>
+        </ul>
+        <br/>
+        <small>
+        the nscale application layer is the core component for <a href="https://www.ceyoniq.com/">Ceyoniq's</a> enterprise information management system
+        </small>
     ]]>
     </description>
+
+    <change-notes>
+        <![CDATA[ ---- ]]>
+    </change-notes>
 
     <vendor email="Sven.Homburg@hsofttec.com">S.Homburg</vendor>
 
