@@ -25,6 +25,7 @@
 package com.hsofttec.intellij.querytester.events;
 
 import com.hsofttec.intellij.querytester.QueryMode;
+import com.hsofttec.intellij.querytester.QueryType;
 import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 
 public class StartQueryExecutionEvent {
@@ -36,8 +37,8 @@ public class StartQueryExecutionEvent {
                                      String masterdataScope,
                                      String rootResourceId,
                                      String nqlQuery,
-                                     boolean aggregate ) {
-        parameters = new QueryExecutionParameters( connectionSettings, queryMode, documentAreaName, masterdataScope, rootResourceId, nqlQuery, aggregate );
+                                     QueryType queryType ) {
+        parameters = new QueryExecutionParameters( connectionSettings, queryMode, documentAreaName, masterdataScope, rootResourceId, nqlQuery, queryType );
     }
 
     public QueryExecutionParameters getData( ) {
@@ -51,7 +52,7 @@ public class StartQueryExecutionEvent {
         private final String masterdataScope;
         private final String rootResourceId;
         private final String nqlQuery;
-        private final boolean aggregate;
+        private final QueryType queryType;
 
         public QueryExecutionParameters( ConnectionSettings connectionSettings,
                                          QueryMode queryMode,
@@ -59,14 +60,14 @@ public class StartQueryExecutionEvent {
                                          String masterdataScope,
                                          String rootResourceId,
                                          String nqlQuery,
-                                         boolean aggregate ) {
+                                         QueryType queryType ) {
             this.connectionSettings = connectionSettings;
             this.queryMode = queryMode;
             this.documentAreaName = documentAreaName;
             this.masterdataScope = masterdataScope;
             this.rootResourceId = rootResourceId;
             this.nqlQuery = nqlQuery;
-            this.aggregate = aggregate;
+            this.queryType = queryType;
         }
 
         public ConnectionSettings getConnectionSettings( ) {
@@ -93,8 +94,8 @@ public class StartQueryExecutionEvent {
             return masterdataScope;
         }
 
-        public boolean isAggregate( ) {
-            return aggregate;
+        public QueryType getQueryType( ) {
+            return queryType;
         }
     }
 }

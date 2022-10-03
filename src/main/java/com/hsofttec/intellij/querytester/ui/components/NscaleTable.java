@@ -26,6 +26,7 @@ package com.hsofttec.intellij.querytester.ui.components;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
+import com.hsofttec.intellij.querytester.QueryType;
 import com.hsofttec.intellij.querytester.events.FontSettingsChangedEvent;
 import com.hsofttec.intellij.querytester.events.OptimizeTableHeaderWidthEvent;
 import com.hsofttec.intellij.querytester.events.StartQueryExecutionEvent;
@@ -107,7 +108,7 @@ public class NscaleTable extends JBTable {
                     queryExecutionParameters.getMasterdataScope( ),
                     queryExecutionParameters.getRootResourceId( ),
                     queryExecutionParameters.getNqlQuery( ),
-                    queryExecutionParameters.isAggregate( ) );
+                    queryExecutionParameters.getQueryType( ) );
 
             if ( nscaleResult != null ) {
                 setModel( new DynaClassTableModel( nscaleResult ) );
@@ -115,7 +116,7 @@ public class NscaleTable extends JBTable {
                     getColumnModel( ).getColumn( 0 ).setMinWidth( 0 );
                     getColumnModel( ).getColumn( 0 ).setMaxWidth( 0 );
                 }
-                if ( !SETTINGS.isShowKeyColumn( ) || queryExecutionParameters.isAggregate( ) ) {
+                if ( !SETTINGS.isShowKeyColumn( ) || queryExecutionParameters.getQueryType( ) == QueryType.AGGREGATE ) {
                     getColumnModel( ).getColumn( 1 ).setMinWidth( 0 );
                     getColumnModel( ).getColumn( 1 ).setMaxWidth( 0 );
                 }

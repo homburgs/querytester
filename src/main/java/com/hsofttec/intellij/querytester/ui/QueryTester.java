@@ -28,6 +28,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
+import com.hsofttec.intellij.querytester.QueryType;
 import com.hsofttec.intellij.querytester.events.*;
 import com.hsofttec.intellij.querytester.listeners.HistoryModifiedEventListener;
 import com.hsofttec.intellij.querytester.models.BaseResource;
@@ -74,7 +75,8 @@ public class QueryTester extends SimpleToolWindowPanel {
     private RepositoryRootTextField inputRepositoryRoot;
     private DocumentAreaSelect inputDocumentArea;
     private JBTabbedPane tabbedPane;
-    private JCheckBox inputeAggregate;
+    private JCheckBox inputAggregate;
+    private JCheckBox inputVersion;
     private MasterdataScopeSelect inputMasterdataScope;
     private ReconnectIcon iconReconnect;
 
@@ -149,7 +151,7 @@ public class QueryTester extends SimpleToolWindowPanel {
             inputHistory.setEnabled( false );
             inputDocumentArea.setEnabled( false );
             iconReconnect.setEnabled( false );
-            inputeAggregate.setEnabled( false );
+            inputAggregate.setEnabled( false );
             inputMasterdataScope.setEnabled( false );
             inputRepositoryRoot.setEnabled( false );
         } );
@@ -164,7 +166,7 @@ public class QueryTester extends SimpleToolWindowPanel {
             inputHistory.setEnabled( true );
             inputDocumentArea.setEnabled( true );
             iconReconnect.setEnabled( true );
-            inputeAggregate.setEnabled( true );
+            inputAggregate.setEnabled( true );
             inputMasterdataScope.setEnabled( true );
             inputRepositoryRoot.setEnabled( true );
         } );
@@ -181,7 +183,7 @@ public class QueryTester extends SimpleToolWindowPanel {
                 inputHistory.setEnabled( true );
                 inputDocumentArea.setEnabled( true );
                 iconReconnect.setEnabled( true );
-                inputeAggregate.setEnabled( true );
+                inputAggregate.setEnabled( true );
                 inputMasterdataScope.setEnabled( true );
                 inputRepositoryRoot.setEnabled( true );
             } );
@@ -202,7 +204,17 @@ public class QueryTester extends SimpleToolWindowPanel {
         String masterdataScope = ( String ) inputMasterdataScope.getSelectedItem( );
         String repositoryRoot = inputRepositoryRoot.getText( );
         String nqlQuery = inputNqlQuery.getText( );
-        boolean aggregate = inputeAggregate.isSelected( );
+        QueryType queryType = QueryType.DEFAULT;
+        boolean aggregate = inputAggregate.isSelected( );
+        boolean version = inputVersion.isSelected( );
+
+        if ( aggregate && version ) {
+            queryType = QueryType.AGGREGATE_AND_VERSION;
+        } else if ( aggregate ) {
+            queryType = QueryType.AGGREGATE;
+        } else if ( version ) {
+            queryType = QueryType.VERSION;
+        }
 
         String tabTitle = tabbedPane.getTitleAt( tabbedPane.getSelectedIndex( ) );
         switch ( tabTitle ) {
@@ -227,7 +239,7 @@ public class QueryTester extends SimpleToolWindowPanel {
                 break;
         }
 
-        EVENT_BUS.post( new StartQueryExecutionEvent( connectionSettings, queryMode, documentAreaName, masterdataScope, repositoryRoot, nqlQuery, aggregate ) );
+        EVENT_BUS.post( new StartQueryExecutionEvent( connectionSettings, queryMode, documentAreaName, masterdataScope, repositoryRoot, nqlQuery, queryType ) );
     }
 
     @Subscribe
@@ -285,8 +297,8 @@ public class QueryTester extends SimpleToolWindowPanel {
         leftPaneSplitter.setHonorComponentsMinimumSize( true );
         leftPaneSplitter.setSplitterProportionKey( "query.splitter.key" );
 
-        JBPanel leftPanel = new JBPanel<>( new BorderLayout( 3, 3 ) );
-        JBPanel rightPanel = new JBPanel<>( new BorderLayout( 3, 3 ) );
+        JPanel leftPanel = new JBPanel<>( new BorderLayout( 3, 3 ) );
+        JPanel rightPanel = new JBPanel<>( new BorderLayout( 3, 3 ) );
         rightPanel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
         leftPanel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
         leftPanel.add( leftPaneSplitter );
@@ -329,8 +341,19 @@ public class QueryTester extends SimpleToolWindowPanel {
         repositoryPanel.add( new JBLabel( "Root resource" ), cc.xy( 2, 1 ) );
         repositoryPanel.add( inputRepositoryRoot, cc.xy( 4, 1 ) );
 
-        inputeAggregate = new JBCheckBox( "Aggregate" );
-        repositoryPanel.add( inputeAggregate, cc.xy( 4, 3 ) );
+        inputAggregate = new JBCheckBox( "Aggregate" );
+        repositoryPanel.add( inputAggregate, cc.xy( 4, 3 ) );
+
+        inputVersion = new JBCheckBox( "Version" );
+        repositoryPanel.add( inputVersion, cc.xy( 4, 5 ) );
+//        inputVersion.addItemListener( itemEvent -> {
+//            if ( itemEvent.getStateChange( ) == ItemEvent.SELECTED ) {
+//                inputAggregate.setSelected( false );
+//                inputAggregate.setEnabled( false );
+//            } else {
+//                inputAggregate.setEnabled( true );
+//            }
+//        } );
 
         inputMasterdataScope = new MasterdataScopeSelect( project );
         masterdataPanel.add( new JBLabel( "Scope" ), cc.xy( 2, 1 ) );

@@ -29,17 +29,22 @@
 
     <description>
         <![CDATA[
+        <h3>simple query tool for <a href="https://www.ceyoniq.com/">Ceyoniq's</a> <em>nscale application layer</em></h3>
+        <br/>
         <a href="https://plugins.jetbrains.com/plugin/19985-nscale-query-tester">Homepage</a> | <a href="https://github.com/homburgs/querytester/">Github</a> | <a href="https://github.com/homburgs/querytester/issues">Issues</a>
         <br/>
         <br/>
-        <h2>simple query tool for <a href="https://www.ceyoniq.com/">Ceyoniq's</a> <em>nscale application layer</em></h2>
         <p>
         with this plugin you can connect to the application layer of the company <a href="https://www.ceyoniq.com/">Ceyoniq</a> and send repository and masterdata queries.
         the result is displayed in a table and can be edited.
         </p>
         <strong>features</strong>
         <ul>
-            <li>NQL (nscale Query Language) completions support</li>
+            <li>NQL (nscale Query Language) completion support</li>
+            <li>selection of repository- and masterdata-entries</li>
+            <li>create folder and documents</li>
+            <li>show path of documents/folders</li>
+            <li>lock and unlock documents/folders</li>
         </ul>
         <br/>
         <small>

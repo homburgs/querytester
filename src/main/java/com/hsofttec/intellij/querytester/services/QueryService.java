@@ -29,7 +29,6 @@ import com.ceyoniq.nscale.al.core.RepositoryService;
 import com.ceyoniq.nscale.al.core.ServerException;
 import com.ceyoniq.nscale.al.core.Session;
 import com.ceyoniq.nscale.al.core.cfg.MasterdataPropertyName;
-import com.ceyoniq.nscale.al.core.common.AggregateResults;
 import com.ceyoniq.nscale.al.core.common.PropertyName;
 import com.ceyoniq.nscale.al.core.common.ResultTable;
 import com.ceyoniq.nscale.al.core.masterdata.MasterdataKey;
@@ -39,6 +38,7 @@ import com.ceyoniq.nscale.al.core.repository.ResourceResultTable;
 import com.ceyoniq.nscale.al.core.repository.ResourceResults;
 import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
+import com.hsofttec.intellij.querytester.QueryType;
 import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.models.NscaleResult;
 import com.hsofttec.intellij.querytester.models.SettingsState;
@@ -62,7 +62,7 @@ public class QueryService {
                                        String masterdataScope,
                                        String repositoryRoot,
                                        String nqlQuery,
-                                       boolean aggregate ) {
+                                       QueryType queryType ) {
         NscaleResult nscaleResult = null;
 
         if ( StringUtils.isBlank( nqlQuery ) ) {
@@ -74,10 +74,10 @@ public class QueryService {
 
             switch ( queryMode ) {
                 case REPOSITORY:
-                    nscaleResult = proccessRepositoryQuery( documentAreaName, repositoryRoot, nqlQuery, aggregate );
+                    nscaleResult = proccessRepositoryQuery( documentAreaName, repositoryRoot, nqlQuery, queryType );
                     break;
                 case MASTERDATA:
-                    nscaleResult = proccessMasterdatQuery( documentAreaName, masterdataScope, nqlQuery, aggregate );
+                    nscaleResult = proccessMasterdatQuery( documentAreaName, masterdataScope, nqlQuery );
                     break;
             }
 
@@ -87,32 +87,37 @@ public class QueryService {
         }
     }
 
-    private NscaleResult proccessMasterdatQuery( String documentAreaName, String masterdataScope, String nqlQuery, boolean aggregate ) throws IllegalAccessException, InstantiationException {
-        Session session = connectionService.getSession( );
-        MasterdataService masterdataService = session.getMasterdataService( );
-        List<DynaBean> dynaBeans = new ArrayList<>( );
+    private NscaleResult proccessMasterdatQuery( String documentAreaName, String masterdataScope, String nqlQuery ) throws IllegalAccessException, InstantiationException {
+        try {
+            Session session = connectionService.getSession( );
+            MasterdataService masterdataService = session.getMasterdataService( );
+            List<DynaBean> dynaBeans = new ArrayList<>( );
 
-        MasterdataResults masterdataResults = masterdataService.search( masterdataScope, documentAreaName, prepareQuery( nqlQuery ) );
-        BasicDynaClass dynaClass = createDynaClass( masterdataResults.getResultTable( ).getPropertyNames( ) );
+            MasterdataResults masterdataResults = masterdataService.search( masterdataScope, documentAreaName, prepareQuery( nqlQuery ) );
+            BasicDynaClass dynaClass = createDynaClass( masterdataResults.getResultTable( ).getPropertyNames( ) );
 
-        int counter = 0;
-        for ( MasterdataKey masterdataKey : masterdataResults.getResultTable( ).getMasterdataKeys( ) ) {
-            DynaBean dynaBean = dynaClass.newInstance( );
-            dynaBean.set( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY, masterdataKey.getMasterdataId( ) );
-            dynaBean.set( QueryTesterConstants.DBEAN_PROPERTY_NAME_LINENO, ++counter );
-            for ( PropertyName propertyName : masterdataResults.getResultTable( ).getPropertyNames( ) ) {
-                if ( dynaBean.getDynaClass( ).getDynaProperty( propertyName.getName( ) ) != null ) {
-                    Object value = masterdataResults.getResultTable( ).getCell( ( MasterdataPropertyName ) propertyName, masterdataKey.getValue( ) );
-                    dynaBean.set( propertyName.getName( ), value );
+            int counter = 0;
+            for ( MasterdataKey masterdataKey : masterdataResults.getResultTable( ).getMasterdataKeys( ) ) {
+                DynaBean dynaBean = dynaClass.newInstance( );
+                dynaBean.set( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY, masterdataKey.getMasterdataId( ) );
+                dynaBean.set( QueryTesterConstants.DBEAN_PROPERTY_NAME_LINENO, ++counter );
+                for ( PropertyName propertyName : masterdataResults.getResultTable( ).getPropertyNames( ) ) {
+                    if ( dynaBean.getDynaClass( ).getDynaProperty( propertyName.getName( ) ) != null ) {
+                        Object value = masterdataResults.getResultTable( ).getCell( ( MasterdataPropertyName ) propertyName, masterdataKey.getValue( ) );
+                        dynaBean.set( propertyName.getName( ), value );
+                    }
                 }
+                dynaBeans.add( dynaBean );
             }
-            dynaBeans.add( dynaBean );
-        }
 
-        return new NscaleResult( dynaClass, dynaBeans );
+            return new NscaleResult( dynaClass, dynaBeans );
+        } catch ( ServerException | IllegalAccessException | InstantiationException exception ) {
+            Notifier.error( String.format( "%s: %s", exception.getClass( ).getSimpleName( ), exception.getLocalizedMessage( ) ) );
+            return null;
+        }
     }
 
-    private NscaleResult proccessRepositoryQuery( String documentAreaName, String repositoryRoot, String nqlQuery, boolean aggregate ) throws IllegalAccessException, InstantiationException {
+    private NscaleResult proccessRepositoryQuery( String documentAreaName, String repositoryRoot, String nqlQuery, QueryType queryType ) throws IllegalAccessException, InstantiationException {
         Session session = connectionService.getSession( );
         RepositoryService repositoryService = session.getRepositoryService( );
         ResourceKey rootFolder;
@@ -135,12 +140,21 @@ public class QueryService {
 
         ResultTable resultTable = null;
         try {
-            if ( !aggregate ) {
-                ResourceResults results = repositoryService.search( rootFolder, prepareQuery( nqlQuery ) );
-                resultTable = results.getResultTable( );
-            } else {
-                AggregateResults results = repositoryService.searchAggregate( rootFolder, prepareQuery( nqlQuery ) );
-                resultTable = results;
+            switch ( queryType ) {
+                case DEFAULT:
+                    ResourceResults results = repositoryService.search( rootFolder, prepareQuery( nqlQuery ) );
+                    resultTable = results.getResultTable( );
+                    break;
+                case AGGREGATE:
+                    resultTable = repositoryService.searchAggregate( rootFolder, prepareQuery( nqlQuery ) );
+                    break;
+                case VERSION:
+                    ResourceResults versionResult = repositoryService.searchVersions( rootFolder, prepareQuery( nqlQuery ) );
+                    resultTable = versionResult.getResultTable( );
+                    break;
+                case AGGREGATE_AND_VERSION:
+                    resultTable = repositoryService.searchVersionsAggregate( rootFolder, prepareQuery( nqlQuery ) );
+                    break;
             }
         } catch ( ServerException serverException ) {
             Notifier.error( serverException.getLocalizedMessage( ) );
