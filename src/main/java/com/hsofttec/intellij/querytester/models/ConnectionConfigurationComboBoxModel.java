@@ -24,25 +24,25 @@
 
 package com.hsofttec.intellij.querytester.models;
 
-import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
-
 import javax.swing.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Vector;
 
-public class ConnectionConfigurationComboBoxModel extends DefaultComboBoxModel<ConnectionSettingsService.ConnectionSettings> {
-    public ConnectionConfigurationComboBoxModel( ConnectionSettingsService.ConnectionSettings[] items ) {
-        super( items );
+public class ConnectionConfigurationComboBoxModel extends DefaultComboBoxModel<ConnectionSettings> {
+    public ConnectionConfigurationComboBoxModel( Collection<ConnectionSettings> items ) {
+        super( new Vector<>( items ) );
     }
 
     @Override
-    public ConnectionSettingsService.ConnectionSettings getSelectedItem( ) {
-        return ( ConnectionSettingsService.ConnectionSettings ) super.getSelectedItem( );
+    public ConnectionSettings getSelectedItem( ) {
+        return ( ConnectionSettings ) super.getSelectedItem( );
     }
 
-    public List<ConnectionSettingsService.ConnectionSettings> getItems( ) {
+    public List<ConnectionSettings> getItems( ) {
         int size = getSize( );
-        List<ConnectionSettingsService.ConnectionSettings> list = new ArrayList<>( size );
+        List<ConnectionSettings> list = new ArrayList<>( size );
         for ( int i = 0; i < size; i++ ) {
             list.add( getElementAt( i ) );
         }

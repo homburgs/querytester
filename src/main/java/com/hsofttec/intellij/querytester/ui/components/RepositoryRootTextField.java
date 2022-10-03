@@ -28,6 +28,7 @@ import com.google.common.eventbus.EventBus;
 import com.hsofttec.intellij.querytester.events.PrepareQueryExecutionEvent;
 import com.hsofttec.intellij.querytester.ui.EventBusFactory;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.intellij.ui.components.fields.ExtendableTextField;
 
@@ -37,7 +38,10 @@ import java.awt.event.KeyListener;
 public class RepositoryRootTextField extends ExtendableTextField implements KeyListener {
     private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
 
-    public RepositoryRootTextField( ) {
+    private final Project project;
+
+    public RepositoryRootTextField( Project project ) {
+        this.project = project;
         EVENT_BUS.register( this );
         addKeyListener( this );
         ExtendableTextComponent.Extension browseExtension =

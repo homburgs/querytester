@@ -24,13 +24,12 @@
 
 package com.hsofttec.intellij.querytester.services;
 
+import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -87,105 +86,6 @@ public class ConnectionSettingsService implements PersistentStateComponent<Conne
 
     public static class ConnectionSettingsState {
         public List<ConnectionSettings> connectionSettings = new ArrayList<>( );
-    }
-
-    public static class ConnectionSettings {
-        private String id;
-        private boolean active;
-        private String connectionName;
-        private boolean ssl;
-        private String server;
-        private int port;
-        private int timeout;
-        private String instance;
-        private String username;
-        private String password;
-
-        public ConnectionSettings( ) {
-        }
-
-        public String getId( ) {
-            if ( StringUtils.isBlank( id ) ) {
-                id = RandomStringUtils.randomAlphanumeric( 20 );
-            }
-            return id;
-        }
-
-        public void setId( String id ) {
-            this.id = id;
-        }
-
-        public String getConnectionName( ) {
-            return connectionName;
-        }
-
-        public void setConnectionName( final String connectionName ) {
-            this.connectionName = connectionName;
-        }
-
-        public boolean isSsl( ) {
-            return ssl;
-        }
-
-        public void setSsl( final boolean ssl ) {
-            this.ssl = ssl;
-        }
-
-        public String getServer( ) {
-            return server;
-        }
-
-        public void setServer( final String server ) {
-            this.server = server;
-        }
-
-        public int getPort( ) {
-            return port;
-        }
-
-        public void setPort( final int port ) {
-            this.port = port;
-        }
-
-        public String getInstance( ) {
-            return instance;
-        }
-
-        public void setInstance( final String instance ) {
-            this.instance = instance;
-        }
-
-        public String getUsername( ) {
-            return username;
-        }
-
-        public void setUsername( final String username ) {
-            this.username = username;
-        }
-
-        public String getPassword( ) {
-            return password;
-        }
-
-        public void setPassword( final String password ) {
-            this.password = password;
-        }
-
-        public int getTimeout( ) {
-            return timeout;
-        }
-
-        public void setTimeout( int timeout ) {
-            this.timeout = timeout;
-        }
-
-        public boolean isActive( ) {
-            return active;
-        }
-
-        public void setActive( boolean active ) {
-            this.active = active;
-        }
     }
 
 }

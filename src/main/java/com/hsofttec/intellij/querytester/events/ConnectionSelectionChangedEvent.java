@@ -24,16 +24,16 @@
 
 package com.hsofttec.intellij.querytester.events;
 
-import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
+import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 
 public class ConnectionSelectionChangedEvent {
-    private final ConnectionSettingsService.ConnectionSettings connectionSettings;
+    private final ConnectionSettings connectionSettings;
 
-    public ConnectionSelectionChangedEvent( ConnectionSettingsService.ConnectionSettings connectionSettings ) {
+    public ConnectionSelectionChangedEvent( ConnectionSettings connectionSettings ) {
         this.connectionSettings = connectionSettings;
     }
 
-    public ConnectionSettingsService.ConnectionSettings getConnectionSettings( ) {
+    public ConnectionSettings getConnectionSettings( ) {
         return connectionSettings;
     }
 }

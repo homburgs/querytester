@@ -30,8 +30,10 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.hsofttec.intellij.querytester.events.ConnectionSelectionChangedEvent;
 import com.hsofttec.intellij.querytester.events.DocumentAreaChangedEvent;
+import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.ui.EventBusFactory;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
 
@@ -43,10 +45,13 @@ import java.util.stream.Collectors;
 
 public class DocumentAreaSelect extends ComboBox<String> implements ItemListener {
     private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
-    private static final ConnectionService connectionService = ConnectionService.getInstance( );
-    private List<String> docAreaNames = new ArrayList<>( );
+    private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
 
-    public DocumentAreaSelect( ) {
+    private final Project project;
+    private final List<String> docAreaNames = new ArrayList<>( );
+
+    public DocumentAreaSelect( Project project ) {
+        this.project = project;
         EVENT_BUS.register( this );
         setModel( new CollectionComboBoxModel<>( docAreaNames ) );
         addItemListener( this );
@@ -59,15 +64,20 @@ public class DocumentAreaSelect extends ComboBox<String> implements ItemListener
     }
 
     @Subscribe
-    public void connectionSelectionChanged( ConnectionSelectionChangedEvent event ) {
-        Session session = connectionService.getSession( );
+    public void connectionSelectionChangedEventHandler( ConnectionSelectionChangedEvent event ) {
+        final ConnectionSettings selectedItem = event.getConnectionSettings( );
+
         docAreaNames.clear( );
         setSelectedIndex( -1 );
-        if ( session != null ) {
-            List<DocumentArea> documentAreas = connectionService.getSession( ).getConfigurationService( ).getDocumentAreas( );
-            docAreaNames.addAll( documentAreas.stream( ).map( DocumentArea::getAreaName ).collect( Collectors.toList( ) ) );
-            if ( !documentAreas.isEmpty( ) ) {
-                setSelectedIndex( 0 );
+
+        if ( selectedItem != null ) {
+            Session session = CONNECTION_SERVICE.getSession( );
+            if ( session != null ) {
+                List<DocumentArea> documentAreas = CONNECTION_SERVICE.getSession( ).getConfigurationService( ).getDocumentAreas( );
+                docAreaNames.addAll( documentAreas.stream( ).map( DocumentArea::getAreaName ).collect( Collectors.toList( ) ) );
+                if ( !documentAreas.isEmpty( ) ) {
+                    setSelectedIndex( 0 );
+                }
             }
         }
     }

@@ -24,14 +24,13 @@
 
 package com.hsofttec.intellij.querytester.ui;
 
+import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
-import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
 import com.hsofttec.intellij.querytester.ui.components.ConnectionSetupComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -65,7 +64,8 @@ public class ConnectionSetupDialog extends DialogWrapper {
         String server = connectionSetupComponent.getInputServer( ).getText( );
         String port = connectionSetupComponent.getInputPort( ).getText( );
         boolean ssl = connectionSetupComponent.getInputUseSSL( ).isSelected( );
-        String timeout = connectionSetupComponent.getInputPort( ).getText( );
+        String timeout = connectionSetupComponent.getInputTimeout( ).getText( );
+        String connectTimeout = connectionSetupComponent.getInputConnectTimeout( ).getText( );
         String username = connectionSetupComponent.getInputUsername( ).getText( );
         String instance = connectionSetupComponent.getInputInstance( ).getText( );
         char[] password = connectionSetupComponent.getInputPassword( ).getPassword( );
@@ -90,6 +90,10 @@ public class ConnectionSetupDialog extends DialogWrapper {
             return new ValidationInfo( "Timeout is mandatory and must be an integer value", connectionSetupComponent.getInputTimeout( ) );
         }
 
+        if ( !StringUtils.isNumeric( connectTimeout ) ) {
+            return new ValidationInfo( "Connect-Timeout is mandatory and must be an integer value", connectionSetupComponent.getInputConnectTimeout( ) );
+        }
+
         if ( StringUtils.isBlank( instance ) ) {
             return new ValidationInfo( "Instance is mandatory and must be an integer value", connectionSetupComponent.getInputInstance( ) );
         }
@@ -103,30 +107,26 @@ public class ConnectionSetupDialog extends DialogWrapper {
         }
 
         if ( activated ) {
-            ConnectionSettingsService.ConnectionSettings settings = new ConnectionSettingsService.ConnectionSettings( );
+            ConnectionSettings settings = new ConnectionSettings( );
             settings.setConnectionName( connectioName );
             settings.setServer( server );
             settings.setPort( Integer.parseInt( port ) );
             settings.setInstance( instance );
             settings.setSsl( ssl );
             settings.setTimeout( Integer.parseInt( timeout ) );
+            settings.setConnectTimeout( Integer.parseInt( connectTimeout ) * 1000 );
             settings.setUsername( username );
             settings.setPassword( new String( password ) );
-            try {
-                CONNECTION_SERVICE.createConnection( settings );
-            } catch ( Exception e ) {
-                return new ValidationInfo( String.format( "connection '%s' not usable: %s", settings.getConnectionName( ), ExceptionUtils.getRootCauseMessage( e ) ) );
-            }
         }
 
         return null;
     }
 
-    public ConnectionSettingsService.ConnectionSettings getData( ) {
+    public ConnectionSettings getData( ) {
         return connectionSetupComponent.getData( );
     }
 
-    public void setData( ConnectionSettingsService.ConnectionSettings settings ) {
+    public void setData( ConnectionSettings settings ) {
 
         if ( StringUtils.isBlank( settings.getConnectionName( ) ) ) {
             setTitle( "Add New Connection Settings" );

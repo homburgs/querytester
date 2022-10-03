@@ -22,18 +22,30 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.events;
+package com.hsofttec.intellij.querytester.ui.components;
 
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import com.google.common.eventbus.EventBus;
+import com.hsofttec.intellij.querytester.renderer.ComboBoxToolTipRenderer;
+import com.hsofttec.intellij.querytester.ui.EventBusFactory;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.ComboBox;
 
-public class ConnectionAddedEvent {
-    private final ConnectionSettings connectionSettings;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
-    public ConnectionAddedEvent( ConnectionSettings connectionSettings ) {
-        this.connectionSettings = connectionSettings;
+public class HistorySelect extends ComboBox<String> implements ItemListener {
+    private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
+
+    private final Project project;
+
+    public HistorySelect( Project project ) {
+        EVENT_BUS.register( this );
+        this.project = project;
+        setRenderer( new ComboBoxToolTipRenderer( ) );
     }
 
-    public ConnectionSettings getData( ) {
-        return connectionSettings;
+    @Override
+    public void itemStateChanged( ItemEvent e ) {
+
     }
 }

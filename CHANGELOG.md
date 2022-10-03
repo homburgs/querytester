@@ -1,7 +1,6 @@
 # Changelog
 
 ## [Unreleased]
-
 ### Added
 
 ### Changed
@@ -10,20 +9,22 @@
 
 ### Security
 
-## [1.0.1] - 2022-09-25
+## [1.0.1] - 2022-10-03
 
 ### Added
 
-- ui redesign
-
 ### Changed
+
+- ui redesign
 
 ### Fixed
 
 ### Security
 
 ## [1.0.0] - 2022-09-20
+
 ### Added
+
 - first release
 
 ### Changed

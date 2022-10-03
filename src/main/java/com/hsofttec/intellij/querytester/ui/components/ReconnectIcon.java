@@ -22,18 +22,18 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.events;
+package com.hsofttec.intellij.querytester.ui.components;
 
 import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import com.intellij.icons.AllIcons;
+import com.intellij.ui.roots.IconActionComponent;
 
-public class ConnectionAddedEvent {
-    private final ConnectionSettings connectionSettings;
-
-    public ConnectionAddedEvent( ConnectionSettings connectionSettings ) {
-        this.connectionSettings = connectionSettings;
-    }
-
-    public ConnectionSettings getData( ) {
-        return connectionSettings;
+public class ReconnectIcon extends IconActionComponent {
+    public ReconnectIcon( ConnectionSelect connectionSelect ) {
+        super( AllIcons.Actions.Refresh, null, "Re-connect", ( ) -> {
+            if ( connectionSelect.getSelectedIndex( ) > -1 ) {
+                connectionSelect.checkOnlineState( ( ConnectionSettings ) connectionSelect.getSelectedItem( ) );
+            }
+        } );
     }
 }

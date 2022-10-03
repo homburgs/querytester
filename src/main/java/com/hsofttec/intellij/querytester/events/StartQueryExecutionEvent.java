@@ -25,12 +25,12 @@
 package com.hsofttec.intellij.querytester.events;
 
 import com.hsofttec.intellij.querytester.QueryMode;
-import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
+import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 
 public class StartQueryExecutionEvent {
     private final QueryExecutionParameters parameters;
 
-    public StartQueryExecutionEvent( ConnectionSettingsService.ConnectionSettings connectionSettings,
+    public StartQueryExecutionEvent( ConnectionSettings connectionSettings,
                                      QueryMode queryMode,
                                      String documentAreaName,
                                      String masterdataScope,
@@ -45,7 +45,7 @@ public class StartQueryExecutionEvent {
     }
 
     public static class QueryExecutionParameters {
-        private final ConnectionSettingsService.ConnectionSettings connectionSettings;
+        private final ConnectionSettings connectionSettings;
         private final QueryMode queryMode;
         private final String documentAreaName;
         private final String masterdataScope;
@@ -53,7 +53,7 @@ public class StartQueryExecutionEvent {
         private final String nqlQuery;
         private final boolean aggregate;
 
-        public QueryExecutionParameters( ConnectionSettingsService.ConnectionSettings connectionSettings,
+        public QueryExecutionParameters( ConnectionSettings connectionSettings,
                                          QueryMode queryMode,
                                          String documentAreaName,
                                          String masterdataScope,
@@ -69,7 +69,7 @@ public class StartQueryExecutionEvent {
             this.aggregate = aggregate;
         }
 
-        public ConnectionSettingsService.ConnectionSettings getConnectionSettings( ) {
+        public ConnectionSettings getConnectionSettings( ) {
             return connectionSettings;
         }
 

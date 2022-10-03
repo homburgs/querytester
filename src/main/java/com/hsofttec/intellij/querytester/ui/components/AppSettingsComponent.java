@@ -28,6 +28,7 @@ import com.google.common.eventbus.EventBus;
 import com.hsofttec.intellij.querytester.events.ConnectionAddedEvent;
 import com.hsofttec.intellij.querytester.events.ConnectionChangedEvent;
 import com.hsofttec.intellij.querytester.events.ConnectionRemovedEvent;
+import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.models.FontFaceComboBoxModel;
 import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
 import com.hsofttec.intellij.querytester.ui.ConnectionSetupDialog;
@@ -147,7 +148,7 @@ public class AppSettingsComponent {
         ToolbarDecorator decorationToolbar = ToolbarDecorator.createDecorator( listConnections );
         decorationToolbar.setAddAction( anActionButton -> {
             Project currentProject = projectManager.getOpenProjects( )[ 0 ];
-            ConnectionSettingsService.ConnectionSettings connectionSettings = new ConnectionSettingsService.ConnectionSettings( );
+            ConnectionSettings connectionSettings = new ConnectionSettings( );
             ConnectionSetupDialog connectionSetupDialog = new ConnectionSetupDialog( currentProject );
             connectionSetupDialog.setData( connectionSettings );
             if ( connectionSetupDialog.showAndGet( ) ) {
@@ -158,13 +159,13 @@ public class AppSettingsComponent {
             }
         } );
         decorationToolbar.setRemoveAction( anActionButton -> {
-            ConnectionSettingsService.ConnectionSettings selectedValue = listConnections.getSelectedValue( );
+            ConnectionSettings selectedValue = listConnections.getSelectedValue( );
             listConnections.removeElement( selectedValue );
             connectionSettingsService.removeConnection( selectedValue.getId( ) );
             EVENT_BUS.post( new ConnectionRemovedEvent( selectedValue ) );
         } );
         decorationToolbar.setEditAction( anActionButton -> {
-            ConnectionSettingsService.ConnectionSettings selectedValue = listConnections.getSelectedValue( );
+            ConnectionSettings selectedValue = listConnections.getSelectedValue( );
             Project currentProject = projectManager.getOpenProjects( )[ 0 ];
             ConnectionSetupDialog connectionSetupDialog = new ConnectionSetupDialog( currentProject );
             connectionSetupDialog.setData( selectedValue );

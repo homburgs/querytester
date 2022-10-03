@@ -61,11 +61,12 @@ public class NscaleTable extends JBTable {
     private static final QueryService QUERY_SERVICE = OPEN_PROJECT.getService( QueryService.class );
     private static final HistorySettingsService HISTORY_SETTINGS_SERVICE = HistorySettingsService.getSettings( OPEN_PROJECT );
     private static final SettingsState SETTINGS = SettingsService.getSettings( );
+    private final Project project;
 
-    public NscaleTable( ) {
+    public NscaleTable( Project project ) {
+        this.project = project;
         EVENT_BUS.register( this );
         setFont( new Font( SETTINGS.getFontFace( ), Font.PLAIN, SETTINGS.getFontSize( ) ) );
-//        setBorder( BorderFactory.createEmptyBorder(  ) );
         setAutoResizeMode( JBTable.AUTO_RESIZE_OFF );
         setDefaultRenderer( Object.class, new DynaPropertyTableCellRenderer( ) );
         addMouseListener( new MouseAdapter( ) {
@@ -74,10 +75,12 @@ public class NscaleTable extends JBTable {
                 // selects the row at which point the mouse is clicked
                 Point point = mouseEvent.getPoint( );
                 int currentRow = rowAtPoint( point );
-                try {
-                    setRowSelectionInterval( currentRow, currentRow );
-                } catch ( Exception e ) {
-                    logger.warn( ExceptionUtils.getRootCause( e ).getLocalizedMessage( ) );
+                if ( currentRow > -1 ) {
+                    try {
+                        setRowSelectionInterval( currentRow, currentRow );
+                    } catch ( Exception e ) {
+                        logger.warn( ExceptionUtils.getRootCause( e ).getLocalizedMessage( ) );
+                    }
                 }
             }
         } );
@@ -91,12 +94,13 @@ public class NscaleTable extends JBTable {
     @Subscribe
     public void startQueryExecution( StartQueryExecutionEvent event ) {
 
-        ProgressManager.getInstance( ).runProcessWithProgressSynchronously( ( ) -> {
-            ProgressIndicator progressIndicator = ProgressManager.getInstance( ).getProgressIndicator( );
-            progressIndicator.setFraction( 0.1 );
+        ProgressManager progressManager = ProgressManager.getInstance( );
+        progressManager.runProcessWithProgressSynchronously( ( ) -> {
+            final ProgressIndicator progressIndicator = progressManager.getProgressIndicator( );
+            progressIndicator.setText( "Execute query ..." );
+
             StartQueryExecutionEvent.QueryExecutionParameters queryExecutionParameters = event.getData( );
 
-            progressIndicator.setFraction( 0.8 );
             NscaleResult nscaleResult = QUERY_SERVICE.proccessQuery( queryExecutionParameters.getConnectionSettings( ),
                     queryExecutionParameters.getQueryMode( ),
                     queryExecutionParameters.getDocumentAreaName( ),
@@ -117,8 +121,7 @@ public class NscaleTable extends JBTable {
                 }
                 HISTORY_SETTINGS_SERVICE.addQuery( event.getData( ).getNqlQuery( ) );
             }
-            progressIndicator.setFraction( 1.0 );
-        }, "Executing query", true, OPEN_PROJECT );
+        }, "Executing query", true, project );
 
     }
 

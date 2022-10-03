@@ -22,18 +22,18 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.events;
+package com.hsofttec.intellij.querytester.utils;
 
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import com.hsofttec.intellij.querytester.services.ConnectionService;
 
-public class ConnectionAddedEvent {
-    private final ConnectionSettings connectionSettings;
+public class ConnectionTestTask implements Runnable {
+    private final static ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
+    public boolean useable = false;
 
-    public ConnectionAddedEvent( ConnectionSettings connectionSettings ) {
-        this.connectionSettings = connectionSettings;
+    @Override
+    public void run( ) {
+//        if (CONNECTION_SERVICE.isConnectionUsable(  )
     }
 
-    public ConnectionSettings getData( ) {
-        return connectionSettings;
-    }
+
 }

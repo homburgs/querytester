@@ -39,6 +39,7 @@ import com.ceyoniq.nscale.al.core.repository.ResourceResultTable;
 import com.ceyoniq.nscale.al.core.repository.ResourceResults;
 import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
+import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.models.NscaleResult;
 import com.hsofttec.intellij.querytester.models.SettingsState;
 import com.hsofttec.intellij.querytester.ui.Notifier;
@@ -55,7 +56,7 @@ public class QueryService {
     private static final ConnectionService connectionService = ConnectionService.getInstance( );
     private static final SettingsState SETTINGS = SettingsService.getSettings( );
 
-    public NscaleResult proccessQuery( ConnectionSettingsService.ConnectionSettings configuration,
+    public NscaleResult proccessQuery( ConnectionSettings configuration,
                                        QueryMode queryMode,
                                        String documentAreaName,
                                        String masterdataScope,
@@ -161,44 +162,12 @@ public class QueryService {
                 String propertyName = resultTable.getPropertyNames( )[ columnCounter ].getName( );
                 if ( propertyName.equals( "*" ) ) {
                     propertyName = createFieldFunctionPropertyName( functionFieldPosition );
+                    functionFieldPosition++;
                 }
                 dynaBean.set( propertyName, resultTable.getCell( columnCounter, rowCounter ) );
             }
             dynaBeans.add( dynaBean );
         }
-
-//        for ( ResourceKey resourceKey : resultTable.getResourceKeys( ) ) {
-//            Map<Integer, Integer> functionFieldPositions = new HashMap<>( );
-//            int functionFieldPosition = 0;
-//            DynaBean dynaBean = dynaClass.newInstance( );
-//            dynaBean.set( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY, resourceKey.getResourceId( ) );
-//            dynaBean.set( QueryTesterConstants.DBEAN_PROPERTY_NAME_LINENO, ++counter );
-//            int fieldPositionInRow = 0;
-//
-//            for ( PropertyName propertyName : resultTable.getPropertyNames( ) ) {
-//                String name = propertyName.getName( );
-//                if ( name.equals( "*" ) ) {
-//                    functionFieldPositions.put( fieldPositionInRow, functionFieldPosition );
-//                    functionFieldPosition++;
-//                } else {
-//                    if ( dynaBean.getDynaClass( ).getDynaProperty( name ) != null ) {
-//                        Object value = resultTable.getCell( propertyName, resourceKey );
-//                        dynaBean.set( name, value );
-//                    }
-//                }
-//                fieldPositionInRow++;
-//            }
-//
-//            if ( !functionFieldPositions.isEmpty( ) ) {
-//                for ( Map.Entry<Integer, Integer> entry : functionFieldPositions.entrySet( ) ) {
-//                    String fieldFunctionPropertyName = createFieldFunctionPropertyName( entry.getValue( ) );
-//                    Object value = resultTable.getCell( entry.getKey( ), counter - 1 );
-//                    dynaBean.set( fieldFunctionPropertyName, value );
-//                }
-//            }
-//
-//            dynaBeans.add( dynaBean );
-//        }
 
         return new NscaleResult( dynaClass, dynaBeans );
     }
@@ -247,6 +216,6 @@ public class QueryService {
     }
 
     public String createFieldFunctionPropertyName( int counter ) {
-        return String.format( "%s%d", QueryTesterConstants.DBEAN_PROPERTY_PRE_NAME_FOR_SQL_FUNC, counter );
+        return String.format( "%s%d", QueryTesterConstants.DBEAN_PROPERTY_PRE_NAME_FOR_NQL_FUNC, counter );
     }
 }
