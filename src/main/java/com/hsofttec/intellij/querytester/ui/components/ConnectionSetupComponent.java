@@ -24,15 +24,26 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
+import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
+import com.hsofttec.intellij.querytester.ui.Notifier;
+import com.intellij.ide.plugins.newui.LinkComponent;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.ui.AnimatedIcon;
+import lombok.SneakyThrows;
 
 import javax.swing.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class ConnectionSetupComponent {
-    private ConnectionSettingsService.ConnectionSettings settings;
-    private JTextField inputConnectioName;
+    private final static ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
+
+    private ConnectionSettings settings;
+    private JTextField inputConnectionName;
     private JPanel mainPanel;
-    private JLabel labelConnectioName;
+    private JLabel labelConnectionName;
     private JLabel labelServer;
     private JLabel labelPort;
     private JCheckBox inputUseSSL;
@@ -45,12 +56,37 @@ public class ConnectionSetupComponent {
     private JPasswordField inputPassword;
     private JLabel labelPassword;
     private JTextField inputTimeout;
+    private JTextField inputConnectTimeout;
     private JLabel labelTimeout;
     private JCheckBox inputConnectionActivated;
+    private JLabel labelConnectTimeout;
+    private LinkComponent linkTestConnection;
     private JTextField inputSourceFolder;
     private JTextArea inputScriptTemplate;
 
     public ConnectionSetupComponent( ) {
+        linkTestConnection.addMouseListener( new MouseAdapter( ) {
+            @Override
+            public void mouseClicked( MouseEvent mouseEvent ) {
+                linkTestConnection.setIcon( new AnimatedIcon.Default( ) );
+                linkTestConnection.setEnabled( false );
+
+                ApplicationManager.getApplication( ).invokeLaterOnWriteThread( new Runnable( ) {
+                    @SneakyThrows
+                    @Override
+                    public void run( ) {
+                        ConnectionSettings data = getData( );
+                        CONNECTION_SERVICE.checkConnection( data,
+                                ( ) -> Notifier.information( "Connection tested successfully" ),
+                                ( ) -> Notifier.warning( "Connection not successfully" ),
+                                ( ) -> {
+                                    linkTestConnection.setEnabled( true );
+                                    linkTestConnection.setIcon( null );
+                                } );
+                    }
+                } );
+            }
+        } );
     }
 
     public JPanel getMainPanel( ) {
@@ -58,11 +94,15 @@ public class ConnectionSetupComponent {
     }
 
     public JTextField getInputConnectioName( ) {
-        return inputConnectioName;
+        return inputConnectionName;
     }
 
     public JTextField getInputTimeout( ) {
         return inputTimeout;
+    }
+
+    public JTextField getInputConnectTimeout( ) {
+        return inputConnectTimeout;
     }
 
     public JCheckBox getInputUseSSL( ) {
@@ -93,36 +133,39 @@ public class ConnectionSetupComponent {
         return inputConnectionActivated;
     }
 
-    public void setData( ConnectionSettingsService.ConnectionSettings data ) {
+    public void setData( ConnectionSettings data ) {
         settings = data;
-        if ( settings != null ) {
-            inputConnectionActivated.setSelected( settings.isActive( ) );
-            inputConnectioName.setText( settings.getConnectionName( ) );
-            inputUseSSL.setSelected( settings.isSsl( ) );
-            inputServer.setText( settings.getServer( ) );
-            inputPort.setText( String.valueOf( settings.getPort( ) ) );
-            inputTimeout.setText( String.valueOf( settings.getTimeout( ) ) );
-            inputInstance.setText( settings.getInstance( ) );
-            inputUsername.setText( settings.getUsername( ) );
-            inputPassword.setText( settings.getPassword( ) );
-        } else {
+        if ( settings == null ) {
             settings.setActive( true );
             settings.setServer( "127.0.0.1" );
             settings.setPort( 8080 );
             settings.setSsl( false );
             settings.setInstance( "nscalealinst1" );
             settings.setUsername( "admin@nscale" );
-            settings.setTimeout( 0 );
+            settings.setTimeout( 10 );
+            settings.setConnectTimeout( 10000 );
         }
+
+        inputConnectionActivated.setSelected( settings.isActive( ) );
+        inputConnectionName.setText( settings.getConnectionName( ) );
+        inputUseSSL.setSelected( settings.isSsl( ) );
+        inputServer.setText( settings.getServer( ) );
+        inputPort.setText( String.valueOf( settings.getPort( ) ) );
+        inputTimeout.setText( String.valueOf( settings.getTimeout( ) ) );
+        inputConnectTimeout.setText( String.valueOf( settings.getConnectTimeout( ) / 1000 ) );
+        inputInstance.setText( settings.getInstance( ) );
+        inputUsername.setText( settings.getUsername( ) );
+        inputPassword.setText( settings.getPassword( ) );
     }
 
-    public ConnectionSettingsService.ConnectionSettings getData( ) {
+    public ConnectionSettings getData( ) {
         settings.setActive( inputConnectionActivated.isSelected( ) );
-        settings.setConnectionName( inputConnectioName.getText( ) );
+        settings.setConnectionName( inputConnectionName.getText( ) );
         settings.setSsl( inputUseSSL.isSelected( ) );
         settings.setServer( inputServer.getText( ) );
         settings.setPort( Integer.parseInt( inputPort.getText( ) ) );
         settings.setTimeout( Integer.parseInt( inputTimeout.getText( ) ) );
+        settings.setConnectTimeout( Integer.parseInt( inputConnectTimeout.getText( ) ) * 1000 );
         settings.setInstance( inputInstance.getText( ) );
         settings.setUsername( inputUsername.getText( ) );
         settings.setPassword( inputPassword.getText( ) );

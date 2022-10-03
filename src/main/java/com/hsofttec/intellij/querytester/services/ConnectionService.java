@@ -36,7 +36,10 @@ import com.ceyoniq.nscale.al.core.content.*;
 import com.ceyoniq.nscale.al.core.repository.ResourceKey;
 import com.ceyoniq.nscale.al.core.repository.ResourceKeyInfo;
 import com.hsofttec.intellij.querytester.models.BaseResource;
+import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import com.hsofttec.intellij.querytester.ui.Notifier;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +74,7 @@ public class ConnectionService {
         return instance;
     }
 
-    public void createConnection( ConnectionSettingsService.ConnectionSettings connectionSettings ) {
+    public void createConnection( ConnectionSettings connectionSettings ) {
 
         if ( !connectionSettings.getId( ).equals( connectionId ) ) {
             if ( session != null ) {
@@ -92,6 +95,7 @@ public class ConnectionService {
                 advancedConnector.setInstanceName( connectionSettings.getInstance( ) );
                 advancedConnector.setSsl( connectionSettings.isSsl( ) );
                 advancedConnector.setTimeout( connectionSettings.getTimeout( ) );
+                advancedConnector.setConnectTimeout( connectionSettings.getConnectTimeout( ) );
                 connectionId = connectionSettings.getId( );
 
                 String[] usernameParts = StringUtils.split( connectionSettings.getUsername( ), "@" );
@@ -295,4 +299,49 @@ public class ConnectionService {
 
         return resourceKey;
     }
+
+    public boolean isConnectionUsable( ConnectionSettings settings ) {
+        boolean usable = false;
+
+        if ( settings != null ) {
+            try {
+                createConnection( settings );
+                usable = true;
+            } catch ( Exception e ) {
+                Notifier.warning( String.format( "connection '%s' not usable: %s", settings.getConnectionName( ), ExceptionUtils.getRootCauseMessage( e ) ) );
+            }
+        }
+
+        return usable;
+    }
+
+    public Thread checkConnection( ConnectionSettings settings, Runnable successCallback ) {
+        return checkConnection( settings, successCallback, null, null );
+    }
+
+    public Thread checkConnection( ConnectionSettings settings, Runnable successCallback, Runnable finalCallback ) {
+        return checkConnection( settings, successCallback, null, finalCallback );
+    }
+
+    public Thread checkConnection( ConnectionSettings settings, Runnable successCallback, Runnable errorCallback, Runnable finalCallback ) {
+        Thread thread = new Thread( ( ) -> {
+
+            boolean connectionUsable = isConnectionUsable( settings );
+            if ( connectionUsable ) {
+                if ( successCallback != null ) {
+                    successCallback.run( );
+                }
+            } else {
+                if ( errorCallback != null ) {
+                    errorCallback.run( );
+                }
+            }
+            if ( finalCallback != null ) {
+                finalCallback.run( );
+            }
+        } );
+        thread.start( );
+        return thread;
+    }
+
 }

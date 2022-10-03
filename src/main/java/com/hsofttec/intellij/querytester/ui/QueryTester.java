@@ -28,18 +28,14 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
-import com.hsofttec.intellij.querytester.events.ConnectionAddedEvent;
-import com.hsofttec.intellij.querytester.events.PrepareQueryExecutionEvent;
-import com.hsofttec.intellij.querytester.events.RootResourceIdChangedEvent;
-import com.hsofttec.intellij.querytester.events.StartQueryExecutionEvent;
+import com.hsofttec.intellij.querytester.events.*;
 import com.hsofttec.intellij.querytester.listeners.HistoryModifiedEventListener;
 import com.hsofttec.intellij.querytester.models.BaseResource;
+import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.models.HistoryComboBoxModel;
-import com.hsofttec.intellij.querytester.models.SettingsState;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
 import com.hsofttec.intellij.querytester.services.HistorySettingsService;
-import com.hsofttec.intellij.querytester.services.SettingsService;
 import com.hsofttec.intellij.querytester.ui.components.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
@@ -47,20 +43,28 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
+import com.intellij.ui.JBSplitter;
+import com.intellij.ui.OnePixelSplitter;
+import com.intellij.ui.components.*;
+import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import org.apache.commons.beanutils.BasicDynaBean;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 
 public class QueryTester extends SimpleToolWindowPanel {
     private static final ConnectionSettingsService connectionSettingsService = ConnectionSettingsService.getSettings( );
-    private static final ConnectionService connectionService = ConnectionService.getInstance( );
+    private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
     private static final ProjectManager projectManager = ProjectManager.getInstance( );
-    private static final HistorySettingsService HISTORY_SETTINGS_SERVICE = HistorySettingsService.getSettings( ProjectManager.getInstance( ).getOpenProjects( )[ 0 ] );
+    private static final HistorySettingsService HISTORY_SETTINGS_SERVICE = HistorySettingsService.getSettings( projectManager.getOpenProjects( )[ 0 ] );
     private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
-    private static final SettingsState settings = SettingsService.getSettings( );
+    private final Project project;
 
     private JPanel mainPanel;
     private ConnectionSelect inputSelectedConnection;
@@ -68,44 +72,22 @@ public class QueryTester extends SimpleToolWindowPanel {
     private NqlQueryTextbox inputNqlQuery;
     private JComboBox<String> inputHistory;
     private RepositoryRootTextField inputRepositoryRoot;
-    private JLabel labelDocumentArea;
     private DocumentAreaSelect inputDocumentArea;
-    private JTabbedPane tabbedPane;
-    private JPanel tabRepository;
-    private JPanel tabMasterdata;
-    private JPanel tabBPMN;
-    private JPanel tabPrinicipals;
-    private JPanel tabWorkflow;
+    private JBTabbedPane tabbedPane;
     private JCheckBox inputeAggregate;
-    private JComboBox inputMasterdataScope;
-    private JSplitPane mainSplitter;
-    private JSplitPane leftSplitPane;
-    private JPanel rightPanel;
-    private JPanel leftPanel;
+    private MasterdataScopeSelect inputMasterdataScope;
+    private ReconnectIcon iconReconnect;
 
-    public QueryTester( ) {
+    public QueryTester( Project project ) {
         super( false, true );
+        this.project = project;
 
         EVENT_BUS.register( this );
 
         setToolbar( createToolBar( ) );
-        setContent( mainPanel );
-        mainSplitter.setOneTouchExpandable( false );
-        leftSplitPane.setOneTouchExpandable( false );
-        mainSplitter.setDividerLocation( settings.getLastMainDividerPosition( ) );
-        if ( settings.getLastLeftDividerPosition( ) > 0 ) {
-            leftSplitPane.setDividerLocation( settings.getLastLeftDividerPosition( ) );
-        }
-//        mainSplitter.setContinuousLayout( true );
-//        mainSplitter.setResizeWeight( .5 );
-//        mainSplitter.setDividerSize( 3 );
-//        mainSplitter.setBorder( BorderFactory.createEmptyBorder(  ) );
-        mainSplitter.addPropertyChangeListener( JSplitPane.DIVIDER_LOCATION_PROPERTY, propertyChangeEvent -> {
-            settings.setLastMainDividerPosition( ( Integer ) propertyChangeEvent.getNewValue( ) );
-        } );
-        leftSplitPane.addPropertyChangeListener( JSplitPane.DIVIDER_LOCATION_PROPERTY, propertyChangeEvent -> {
-            settings.setLastLeftDividerPosition( ( Integer ) propertyChangeEvent.getNewValue( ) );
-        } );
+        setContent( createUIComponents( ) );
+
+        inputSelectedConnection.reloadItems( );
 
         ResultTableContextMenu resultTableContextMenu = new ResultTableContextMenu( );
         queryResultTable.setComponentPopupMenu( resultTableContextMenu );
@@ -125,7 +107,7 @@ public class QueryTester extends SimpleToolWindowPanel {
             public void actionPerformed( ActionEvent actionEvent ) {
                 BasicDynaBean basicDynaBean = ( BasicDynaBean ) queryResultTable.getValueAt( queryResultTable.getSelectedRow( ), queryResultTable.getSelectedColumn( ) );
                 String resourceId = ( String ) basicDynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY );
-                BaseResource baseResource = connectionService.getBaseResource( resourceId );
+                BaseResource baseResource = CONNECTION_SERVICE.getBaseResource( resourceId );
                 inputRepositoryRoot.setText( baseResource.getParentresourceid( ) );
                 EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
             }
@@ -159,7 +141,55 @@ public class QueryTester extends SimpleToolWindowPanel {
      * @param event empty event
      */
     @Subscribe
-    public void prepareQueryExecution( PrepareQueryExecutionEvent event ) {
+    public void checkServerConnectionEventHandler( CheckServerConnectionEvent event ) {
+        UIUtil.invokeLaterIfNeeded( ( ) -> {
+            inputSelectedConnection.setEnabled( false );
+            queryResultTable.setEnabled( false );
+            inputNqlQuery.setEnabled( false );
+            inputHistory.setEnabled( false );
+            inputDocumentArea.setEnabled( false );
+            iconReconnect.setEnabled( false );
+            inputeAggregate.setEnabled( false );
+            inputMasterdataScope.setEnabled( false );
+            inputRepositoryRoot.setEnabled( false );
+        } );
+    }
+
+    @Subscribe
+    public void checkedServerConnectionEventHandler( CheckedServerConnectionEvent event ) {
+        UIUtil.invokeLaterIfNeeded( ( ) -> {
+            inputSelectedConnection.setEnabled( true );
+            queryResultTable.setEnabled( true );
+            inputNqlQuery.setEnabled( true );
+            inputHistory.setEnabled( true );
+            inputDocumentArea.setEnabled( true );
+            iconReconnect.setEnabled( true );
+            inputeAggregate.setEnabled( true );
+            inputMasterdataScope.setEnabled( true );
+            inputRepositoryRoot.setEnabled( true );
+        } );
+    }
+
+    @Subscribe
+    public void connectionSelectionChangedEventHandler( ConnectionSelectionChangedEvent event ) {
+
+        if ( event.getConnectionSettings( ) != null ) {
+            UIUtil.invokeLaterIfNeeded( ( ) -> {
+                inputSelectedConnection.setEnabled( true );
+                queryResultTable.setEnabled( true );
+                inputNqlQuery.setEnabled( true );
+                inputHistory.setEnabled( true );
+                inputDocumentArea.setEnabled( true );
+                iconReconnect.setEnabled( true );
+                inputeAggregate.setEnabled( true );
+                inputMasterdataScope.setEnabled( true );
+                inputRepositoryRoot.setEnabled( true );
+            } );
+        }
+    }
+
+    @Subscribe
+    public void prepareQueryExecutionEventHandler( PrepareQueryExecutionEvent event ) {
         QueryMode queryMode = QueryMode.REPOSITORY;
 
         if ( inputDocumentArea.getSelectedIndex( ) == -1 || inputSelectedConnection.getSelectedIndex( ) == -1 ) {
@@ -167,7 +197,7 @@ public class QueryTester extends SimpleToolWindowPanel {
             return;
         }
 
-        ConnectionSettingsService.ConnectionSettings connectionSettings = ( ConnectionSettingsService.ConnectionSettings ) inputSelectedConnection.getSelectedItem( );
+        ConnectionSettings connectionSettings = ( ConnectionSettings ) inputSelectedConnection.getSelectedItem( );
         String documentAreaName = ( String ) inputDocumentArea.getSelectedItem( );
         String masterdataScope = ( String ) inputMasterdataScope.getSelectedItem( );
         String repositoryRoot = inputRepositoryRoot.getText( );
@@ -201,7 +231,7 @@ public class QueryTester extends SimpleToolWindowPanel {
     }
 
     @Subscribe
-    public void rootResourceIdChanged( RootResourceIdChangedEvent event ) {
+    public void rootResourceIdChangedEventHandler( RootResourceIdChangedEvent event ) {
         inputRepositoryRoot.setText( event.getRootResourceId( ) );
         EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
     }
@@ -220,7 +250,7 @@ public class QueryTester extends SimpleToolWindowPanel {
             @Override
             public void actionPerformed( AnActionEvent actionEvent ) {
                 Project currentProject = actionEvent.getProject( );
-                ConnectionSettingsService.ConnectionSettings connectionSettings = new ConnectionSettingsService.ConnectionSettings( );
+                ConnectionSettings connectionSettings = new ConnectionSettings( );
                 ConnectionSetupDialog connectionSetupDialog = new ConnectionSetupDialog( currentProject );
                 connectionSetupDialog.setData( connectionSettings );
                 if ( connectionSetupDialog.showAndGet( ) ) {
@@ -234,7 +264,7 @@ public class QueryTester extends SimpleToolWindowPanel {
         actionGroup.add( new AnAction( "Plugin Settings", "Plugin Settings for nscale QueryTester", AllIcons.General.Settings ) {
             @Override
             public void actionPerformed( @NotNull AnActionEvent e ) {
-                ShowSettingsUtil.getInstance( ).showSettingsDialog( projectManager.getOpenProjects( )[ 0 ], "nscale QueryTester Settings" );
+                ShowSettingsUtil.getInstance( ).showSettingsDialog( projectManager.getOpenProjects( )[ 0 ], "QueryTester" );
             }
         } );
 
@@ -244,10 +274,107 @@ public class QueryTester extends SimpleToolWindowPanel {
         return actionToolbar.getComponent( );
     }
 
-    private void createUIComponents( ) {
-        inputNqlQuery = new NqlQueryTextbox( );
-        inputMasterdataScope = new MasterdataScopeSelect( );
-        inputDocumentArea = new DocumentAreaSelect( );
-        inputSelectedConnection = new ConnectionSelect( );
+    private JComponent createUIComponents( ) {
+        mainPanel = new JPanel( new BorderLayout( -1, -1 ) );
+
+        JBSplitter mainSplitter = new OnePixelSplitter( false, 0.8f );
+        mainSplitter.setHonorComponentsMinimumSize( true );
+        mainSplitter.setSplitterProportionKey( "main.splitter.key" );
+
+        JBSplitter leftPaneSplitter = new OnePixelSplitter( true, 03f );
+        leftPaneSplitter.setHonorComponentsMinimumSize( true );
+        leftPaneSplitter.setSplitterProportionKey( "query.splitter.key" );
+
+        JBPanel leftPanel = new JBPanel<>( new BorderLayout( 3, 3 ) );
+        JBPanel rightPanel = new JBPanel<>( new BorderLayout( 3, 3 ) );
+        rightPanel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
+        leftPanel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
+        leftPanel.add( leftPaneSplitter );
+
+        mainSplitter.setFirstComponent( leftPanel );
+        mainSplitter.setSecondComponent( rightPanel );
+
+        inputNqlQuery = new NqlQueryTextbox( project );
+        queryResultTable = new NscaleTable( project );
+
+        JPanel firstPanel = JBUI.Panels.simplePanel( );
+        firstPanel.add( new JBScrollPane( inputNqlQuery ) );
+        firstPanel.setBorder( BorderFactory.createEtchedBorder( ) );
+
+        JPanel secondPanel = JBUI.Panels.simplePanel( );
+        secondPanel.add( new JBScrollPane( queryResultTable ) );
+        secondPanel.setBorder( BorderFactory.createEtchedBorder( ) );
+
+        leftPaneSplitter.setFirstComponent( firstPanel );
+        leftPaneSplitter.setSecondComponent( secondPanel );
+
+        mainPanel.add( mainSplitter );
+
+        rightPanel.add( createFormPanel( rightPanel ), BorderLayout.NORTH );
+        rightPanel.add( createTabPanel( ), BorderLayout.CENTER, 1 );
+
+        return mainPanel;
+    }
+
+    private JComponent createTabPanel( ) {
+        CellConstraints cc = new CellConstraints( );
+        FormLayout formLayout = new FormLayout(
+                "5px, left:pref, 4dlu, pref:grow",
+                "pref, 3dlu, pref, 3dlu, pref"
+        );
+        JPanel repositoryPanel = new JPanel( formLayout );
+        JPanel masterdataPanel = new JPanel( formLayout );
+
+        inputRepositoryRoot = new RepositoryRootTextField( project );
+        repositoryPanel.add( new JBLabel( "Root resource" ), cc.xy( 2, 1 ) );
+        repositoryPanel.add( inputRepositoryRoot, cc.xy( 4, 1 ) );
+
+        inputeAggregate = new JBCheckBox( "Aggregate" );
+        repositoryPanel.add( inputeAggregate, cc.xy( 4, 3 ) );
+
+        inputMasterdataScope = new MasterdataScopeSelect( project );
+        masterdataPanel.add( new JBLabel( "Scope" ), cc.xy( 2, 1 ) );
+        masterdataPanel.add( inputMasterdataScope, cc.xy( 4, 1 ) );
+
+        tabbedPane = new JBTabbedPane( );
+        tabbedPane.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
+        tabbedPane.addTab( "Repository", repositoryPanel );
+        tabbedPane.addTab( "Masterdata", masterdataPanel );
+        tabbedPane.setBorder( BorderFactory.createEtchedBorder( ) );
+        return tabbedPane;
+    }
+
+    private JComponent createFormPanel( JPanel panel ) {
+        int formRow;
+        int[] formColNums = { 2, 4, 6 };
+        CellConstraints cc = new CellConstraints( );
+        FormLayout formLayout = new FormLayout(
+                "5px, left:pref, 4dlu, pref:grow, 4dlu, pref,5px",
+                "pref, 3dlu, pref, 3dlu, pref"
+        );
+        JPanel formPanel = new JPanel( formLayout );
+        panel.add( formPanel, BorderLayout.NORTH );
+        formPanel.setBorder( BorderFactory.createEtchedBorder( ) );
+
+        formRow = 1;
+        inputSelectedConnection = new ConnectionSelect( project );
+        iconReconnect = new ReconnectIcon( inputSelectedConnection );
+
+        formPanel.add( new JBLabel( "Connection" ), cc.xy( formColNums[ 0 ], formRow ) );
+        formPanel.add( inputSelectedConnection, cc.xy( formColNums[ 1 ], formRow ) );
+        formPanel.add( iconReconnect, cc.xy( formColNums[ 2 ], formRow ) );
+
+        formRow += 2;
+        inputDocumentArea = new DocumentAreaSelect( project );
+        formPanel.add( new JBLabel( "Document area" ), cc.xy( formColNums[ 0 ], formRow ) );
+        formPanel.add( inputDocumentArea, cc.xyw( formColNums[ 1 ], formRow, 3 ) );
+
+        formRow += 2;
+        inputHistory = new HistorySelect( project );
+        inputHistory.setPrototypeDisplayValue( "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" );
+        formPanel.add( new JBLabel( "History" ), cc.xy( formColNums[ 0 ], formRow ) );
+        formPanel.add( inputHistory, cc.xyw( formColNums[ 1 ], formRow, 3 ) );
+
+        return formPanel;
     }
 }

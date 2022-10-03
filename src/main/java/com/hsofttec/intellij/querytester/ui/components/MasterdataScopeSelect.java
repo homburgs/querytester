@@ -32,6 +32,7 @@ import com.hsofttec.intellij.querytester.events.DocumentAreaChangedEvent;
 import com.hsofttec.intellij.querytester.events.MasterdataScopeChangedEvent;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.ui.EventBusFactory;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
 
@@ -43,10 +44,13 @@ import java.util.stream.Collectors;
 
 public class MasterdataScopeSelect extends ComboBox<String> implements ItemListener {
     private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
-    private static final ConnectionService connectionService = ConnectionService.getInstance( );
-    private final List<String> scopes = new ArrayList<>( );
+    private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
 
-    public MasterdataScopeSelect( ) {
+    private final List<String> scopes = new ArrayList<>( );
+    private final Project project;
+
+    public MasterdataScopeSelect( Project project ) {
+        this.project = project;
         EVENT_BUS.register( this );
         setModel( new CollectionComboBoxModel<>( scopes ) );
         addItemListener( this );
@@ -60,7 +64,7 @@ public class MasterdataScopeSelect extends ComboBox<String> implements ItemListe
 
     @Subscribe
     public void documentAreaChangedEvent( DocumentAreaChangedEvent event ) {
-        Session session = connectionService.getSession( );
+        Session session = CONNECTION_SERVICE.getSession( );
         scopes.clear( );
         setSelectedIndex( -1 );
         if ( session != null ) {

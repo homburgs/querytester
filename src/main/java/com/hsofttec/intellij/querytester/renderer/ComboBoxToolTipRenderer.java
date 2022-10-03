@@ -22,18 +22,19 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.events;
+package com.hsofttec.intellij.querytester.renderer;
 
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import javax.swing.*;
+import java.awt.*;
 
-public class ConnectionAddedEvent {
-    private final ConnectionSettings connectionSettings;
-
-    public ConnectionAddedEvent( ConnectionSettings connectionSettings ) {
-        this.connectionSettings = connectionSettings;
-    }
-
-    public ConnectionSettings getData( ) {
-        return connectionSettings;
+public class ComboBoxToolTipRenderer extends DefaultListCellRenderer {
+    @Override
+    public Component getListCellRendererComponent( JList list, Object value,
+                                                   int index, boolean isSelected, boolean cellHasFocus ) {
+        JComponent comp = ( JComponent ) super.getListCellRendererComponent( list, value, index, isSelected, cellHasFocus );
+        if ( -1 < index && null != value ) {
+            list.setToolTipText( ( String ) value );
+        }
+        return comp;
     }
 }

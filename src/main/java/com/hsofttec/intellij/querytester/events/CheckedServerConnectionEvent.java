@@ -24,16 +24,5 @@
 
 package com.hsofttec.intellij.querytester.events;
 
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
-
-public class ConnectionAddedEvent {
-    private final ConnectionSettings connectionSettings;
-
-    public ConnectionAddedEvent( ConnectionSettings connectionSettings ) {
-        this.connectionSettings = connectionSettings;
-    }
-
-    public ConnectionSettings getData( ) {
-        return connectionSettings;
-    }
+public class CheckedServerConnectionEvent {
 }

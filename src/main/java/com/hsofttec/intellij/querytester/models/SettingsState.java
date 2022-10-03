@@ -37,8 +37,6 @@ public class SettingsState {
     private int maxHistorySize;
     private String fontFace;
     private int fontSize;
-    private int lastMainDividerPosition;
-    private int lastLeftDividerPosition;
 
     public SettingsState( ) {
         showKeyColumn = true;
@@ -48,7 +46,5 @@ public class SettingsState {
         maxResultSize = 100;
         fontFace = "JetBrains Mono";
         fontSize = 14;
-        lastMainDividerPosition = 500;
-        lastLeftDividerPosition = 0;
     }
 }

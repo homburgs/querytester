@@ -36,7 +36,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.util.textCompletion.TextFieldWithCompletion;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,12 +46,14 @@ import java.awt.event.KeyEvent;
 
 public class NqlQueryTextbox extends TextFieldWithCompletion {
     private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
-    private static final ProjectManager PROJECT_MANAGER = ProjectManager.getInstance( );
-    private static final Project PROJECT = PROJECT_MANAGER.getOpenProjects( )[ 0 ];
     private static final SettingsState SETTINGS_STATE = SettingsService.getSettings( );
 
-    public NqlQueryTextbox( ) {
-        super( PROJECT, new NqlCompletionProvider( ), "", false, true, true );
+    private final Project project;
+
+    public NqlQueryTextbox( Project project ) {
+        super( project, new NqlCompletionProvider( ), "", false, true, true );
+        setBorder( BorderFactory.createEmptyBorder( ) );
+        this.project = project;
         EVENT_BUS.register( this );
         setFont( new Font( SETTINGS_STATE.getFontFace( ), Font.PLAIN, SETTINGS_STATE.getFontSize( ) ) );
         Dimension preferredSize = getPreferredSize( );
