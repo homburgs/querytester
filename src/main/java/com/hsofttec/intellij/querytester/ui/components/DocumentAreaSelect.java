@@ -26,13 +26,9 @@ package com.hsofttec.intellij.querytester.ui.components;
 
 import com.ceyoniq.nscale.al.core.Session;
 import com.ceyoniq.nscale.al.core.cfg.DocumentArea;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
-import com.hsofttec.intellij.querytester.events.ConnectionSelectionChangedEvent;
-import com.hsofttec.intellij.querytester.events.DocumentAreaChangedEvent;
 import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
-import com.hsofttec.intellij.querytester.ui.EventBusFactory;
+import com.hsofttec.intellij.querytester.ui.notifiers.DocumentAreaChangedNotifier;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
@@ -44,7 +40,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class DocumentAreaSelect extends ComboBox<String> implements ItemListener {
-    private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
 
     private final Project project;
@@ -52,7 +47,6 @@ public class DocumentAreaSelect extends ComboBox<String> implements ItemListener
 
     public DocumentAreaSelect( Project project ) {
         this.project = project;
-        EVENT_BUS.register( this );
         setModel( new CollectionComboBoxModel<>( docAreaNames ) );
         addItemListener( this );
     }
@@ -60,17 +54,15 @@ public class DocumentAreaSelect extends ComboBox<String> implements ItemListener
     @Override
     public void setSelectedIndex( int index ) {
         super.setSelectedIndex( index );
-        EVENT_BUS.post( new DocumentAreaChangedEvent( ( String ) getSelectedItem( ) ) );
+        DocumentAreaChangedNotifier notifier = project.getMessageBus( ).syncPublisher( DocumentAreaChangedNotifier.DOCUMENT_AREA_CHANGED_TOPIC );
+        notifier.doAction( ( String ) getSelectedItem( ) );
     }
 
-    @Subscribe
-    public void connectionSelectionChangedEventHandler( ConnectionSelectionChangedEvent event ) {
-        final ConnectionSettings selectedItem = event.getConnectionSettings( );
-
+    public void reloadDocumentAreas( ConnectionSettings settings ) {
         docAreaNames.clear( );
         setSelectedIndex( -1 );
 
-        if ( selectedItem != null ) {
+        if ( settings != null ) {
             Session session = CONNECTION_SERVICE.getSession( );
             if ( session != null ) {
                 List<DocumentArea> documentAreas = CONNECTION_SERVICE.getSession( ).getConfigurationService( ).getDocumentAreas( );
@@ -85,7 +77,8 @@ public class DocumentAreaSelect extends ComboBox<String> implements ItemListener
     @Override
     public void itemStateChanged( ItemEvent itemEvent ) {
         if ( itemEvent.getStateChange( ) == ItemEvent.SELECTED ) {
-            EVENT_BUS.post( new DocumentAreaChangedEvent( ( String ) itemEvent.getItem( ) ) );
+            DocumentAreaChangedNotifier notifier = project.getMessageBus( ).syncPublisher( DocumentAreaChangedNotifier.DOCUMENT_AREA_CHANGED_TOPIC );
+            notifier.doAction( ( String ) itemEvent.getItem( ) );
         }
     }
 }

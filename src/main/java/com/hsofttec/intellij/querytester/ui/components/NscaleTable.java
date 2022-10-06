@@ -24,12 +24,9 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
+import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryType;
-import com.hsofttec.intellij.querytester.events.FontSettingsChangedEvent;
-import com.hsofttec.intellij.querytester.events.OptimizeTableHeaderWidthEvent;
-import com.hsofttec.intellij.querytester.events.StartQueryExecutionEvent;
+import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.models.DynaClassTableModel;
 import com.hsofttec.intellij.querytester.models.NscaleResult;
 import com.hsofttec.intellij.querytester.models.SettingsState;
@@ -37,12 +34,13 @@ import com.hsofttec.intellij.querytester.renderer.DynaPropertyTableCellRenderer;
 import com.hsofttec.intellij.querytester.services.HistorySettingsService;
 import com.hsofttec.intellij.querytester.services.QueryService;
 import com.hsofttec.intellij.querytester.services.SettingsService;
-import com.hsofttec.intellij.querytester.ui.EventBusFactory;
+import com.hsofttec.intellij.querytester.ui.ModifyResourceDialog;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.table.JBTable;
+import org.apache.commons.beanutils.DynaBean;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +56,6 @@ import java.awt.event.MouseEvent;
 public class NscaleTable extends JBTable {
     private static final Logger logger = LoggerFactory.getLogger( NscaleTable.class );
     private static final Project OPEN_PROJECT = ProjectManager.getInstance( ).getOpenProjects( )[ 0 ];
-    private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
     private static final QueryService QUERY_SERVICE = OPEN_PROJECT.getService( QueryService.class );
     private static final HistorySettingsService HISTORY_SETTINGS_SERVICE = HistorySettingsService.getSettings( OPEN_PROJECT );
     private static final SettingsState SETTINGS = SettingsService.getSettings( );
@@ -66,7 +63,6 @@ public class NscaleTable extends JBTable {
 
     public NscaleTable( Project project ) {
         this.project = project;
-        EVENT_BUS.register( this );
         setFont( new Font( SETTINGS.getFontFace( ), Font.PLAIN, SETTINGS.getFontSize( ) ) );
         setAutoResizeMode( JBTable.AUTO_RESIZE_OFF );
         setDefaultRenderer( Object.class, new DynaPropertyTableCellRenderer( ) );
@@ -75,40 +71,43 @@ public class NscaleTable extends JBTable {
             public void mousePressed( MouseEvent mouseEvent ) {
                 // selects the row at which point the mouse is clicked
                 Point point = mouseEvent.getPoint( );
+                int currentCol = columnAtPoint( point );
                 int currentRow = rowAtPoint( point );
-                if ( currentRow > -1 ) {
-                    try {
-                        setRowSelectionInterval( currentRow, currentRow );
-                    } catch ( Exception e ) {
-                        logger.warn( ExceptionUtils.getRootCause( e ).getLocalizedMessage( ) );
+                if ( currentRow != -1 ) {
+                    if ( mouseEvent.getClickCount( ) == 1 ) {
+                        try {
+                            setRowSelectionInterval( currentRow, currentRow );
+                        } catch ( Exception e ) {
+                            logger.warn( ExceptionUtils.getRootCause( e ).getLocalizedMessage( ) );
+                        }
+                    }
+                }
+                if ( currentCol != -1 ) {
+                    if ( mouseEvent.getClickCount( ) == 2 ) {
+                        DynaBean selectedRowValue = ( DynaBean ) getValueAt( currentRow, currentCol );
+                        Object headerValue = getColumnModel( ).getColumn( currentCol ).getHeaderValue( );
+                        ModifyResourceDialog modifyResourceDialog = new ModifyResourceDialog( project );
+                        modifyResourceDialog.setData( selectedRowValue, ( String ) headerValue );
+                        if ( modifyResourceDialog.showAndGet( ) ) {
+
+                        }
                     }
                 }
             }
         } );
     }
 
-    @Subscribe
-    public void fontSettingsChanged( FontSettingsChangedEvent event ) {
+    public void fontSettingsChanged( ) {
         setFont( new Font( SETTINGS.getFontFace( ), Font.PLAIN, SETTINGS.getFontSize( ) ) );
     }
 
-    @Subscribe
-    public void startQueryExecution( StartQueryExecutionEvent event ) {
-
+    public void startQueryExecution( ConnectionSettings connectionSettings, QueryMode queryMode, String documentAreaName, String masterdataScope, String rootResourceId, String nqlQuery, QueryType queryType ) {
         ProgressManager progressManager = ProgressManager.getInstance( );
         progressManager.runProcessWithProgressSynchronously( ( ) -> {
             final ProgressIndicator progressIndicator = progressManager.getProgressIndicator( );
             progressIndicator.setText( "Execute query ..." );
 
-            StartQueryExecutionEvent.QueryExecutionParameters queryExecutionParameters = event.getData( );
-
-            NscaleResult nscaleResult = QUERY_SERVICE.proccessQuery( queryExecutionParameters.getConnectionSettings( ),
-                    queryExecutionParameters.getQueryMode( ),
-                    queryExecutionParameters.getDocumentAreaName( ),
-                    queryExecutionParameters.getMasterdataScope( ),
-                    queryExecutionParameters.getRootResourceId( ),
-                    queryExecutionParameters.getNqlQuery( ),
-                    queryExecutionParameters.getQueryType( ) );
+            NscaleResult nscaleResult = QUERY_SERVICE.proccessQuery( connectionSettings, queryMode, documentAreaName, masterdataScope, rootResourceId, nqlQuery, queryType );
 
             if ( nscaleResult != null ) {
                 setModel( new DynaClassTableModel( nscaleResult ) );
@@ -116,11 +115,11 @@ public class NscaleTable extends JBTable {
                     getColumnModel( ).getColumn( 0 ).setMinWidth( 0 );
                     getColumnModel( ).getColumn( 0 ).setMaxWidth( 0 );
                 }
-                if ( !SETTINGS.isShowKeyColumn( ) || queryExecutionParameters.getQueryType( ) == QueryType.AGGREGATE ) {
+                if ( !SETTINGS.isShowKeyColumn( ) || queryType == QueryType.AGGREGATE ) {
                     getColumnModel( ).getColumn( 1 ).setMinWidth( 0 );
                     getColumnModel( ).getColumn( 1 ).setMaxWidth( 0 );
                 }
-                HISTORY_SETTINGS_SERVICE.addQuery( event.getData( ).getNqlQuery( ) );
+                HISTORY_SETTINGS_SERVICE.addQuery( nqlQuery );
             }
         }, "Executing query", true, project );
 
@@ -130,8 +129,7 @@ public class NscaleTable extends JBTable {
      * Calculates the optimal width for the header of the given table. The
      * calculation is based on the preferred width of the header renderer.
      */
-    @Subscribe
-    public void calcHeaderWidth( OptimizeTableHeaderWidthEvent event ) {
+    public void calcHeaderWidth( ) {
         JTableHeader header = this.getTableHeader( );
         TableCellRenderer defaultHeaderRenderer = null;
         if ( header != null ) {

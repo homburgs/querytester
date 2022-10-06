@@ -26,22 +26,19 @@ package com.hsofttec.intellij.querytester.ui.components;
 
 import com.ceyoniq.nscale.al.core.repository.ResourceKey;
 import com.ceyoniq.nscale.al.core.repository.ResourceType;
-import com.google.common.eventbus.EventBus;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
-import com.hsofttec.intellij.querytester.events.OptimizeTableHeaderWidthEvent;
-import com.hsofttec.intellij.querytester.events.PrepareQueryExecutionEvent;
-import com.hsofttec.intellij.querytester.events.RootResourceIdChangedEvent;
 import com.hsofttec.intellij.querytester.models.BaseResource;
 import com.hsofttec.intellij.querytester.models.ResourceDialogModel;
 import com.hsofttec.intellij.querytester.models.SettingsState;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.SettingsService;
 import com.hsofttec.intellij.querytester.ui.CreateResourceDialog;
-import com.hsofttec.intellij.querytester.ui.EventBusFactory;
 import com.hsofttec.intellij.querytester.ui.Notifier;
 import com.hsofttec.intellij.querytester.ui.ResourcePathDialog;
+import com.hsofttec.intellij.querytester.ui.notifiers.OptimizeTableHeaderWidthNotifier;
+import com.hsofttec.intellij.querytester.ui.notifiers.PrepareQueryExecutionNotifier;
+import com.hsofttec.intellij.querytester.ui.notifiers.RootResourceIdChangedNotifier;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import org.apache.commons.beanutils.BasicDynaBean;
@@ -56,10 +53,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuListener {
-    private static final ProjectManager projectManager = ProjectManager.getInstance( );
-    private static final Project project = projectManager.getOpenProjects( )[ 0 ];
+    private final Project project;
     private static final Logger logger = LoggerFactory.getLogger( ResultTableContextMenu.class );
-    private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
     private static final SettingsState SETTINGS = SettingsService.getSettings( );
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
     private String selectedResourceId;
@@ -82,8 +77,10 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         }
     };
 
-    public ResultTableContextMenu( ) {
+    public ResultTableContextMenu( Project project ) {
         super( );
+        this.project = project;
+
         selectParentFolderId = new JBMenuItem( "Search From Here" );
         selectParentFolderId.setEnabled( false );
 
@@ -96,7 +93,8 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
             dialog.setData( selectedResourceId );
             if ( dialog.showAndGet( ) ) {
                 BaseResource baseResource = dialog.getData( );
-                EVENT_BUS.post( new RootResourceIdChangedEvent( baseResource.getResourceid( ) ) );
+                RootResourceIdChangedNotifier notifier = project.getMessageBus( ).syncPublisher( RootResourceIdChangedNotifier.ROOT_RESOURCE_ID_CHANGED_TOPIC );
+                notifier.doAction( baseResource.getResourceid( ) );
             }
         } );
         showPathMenuItem.setEnabled( false );
@@ -136,7 +134,8 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
                 ResourceKey resourceKey = CONNECTION_SERVICE.createDocument( data.getParentResource( ), data.getObjectclassName( ), data.getDisplayname( ), data.getSelectedFileName( ) );
                 if ( resourceKey != null ) {
                     Notifier.information( "folder successful created" );
-                    EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
+                    PrepareQueryExecutionNotifier notifier = project.getMessageBus( ).syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
+                    notifier.doAction( );
                 }
             }
         } );
@@ -152,7 +151,8 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
                 ResourceKey resourceKey = CONNECTION_SERVICE.createFolder( data.getParentResource( ), data.getObjectclassName( ), data.getDisplayname( ) );
                 if ( resourceKey != null ) {
                     Notifier.information( "folder successful created" );
-                    EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
+                    PrepareQueryExecutionNotifier notifier = project.getMessageBus( ).syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
+                    notifier.doAction( );
                 }
             }
         } );
@@ -181,7 +181,8 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         optimizeColumnWithMenuItem.addActionListener( new AbstractAction( ) {
             @Override
             public void actionPerformed( ActionEvent e ) {
-                EVENT_BUS.post( new OptimizeTableHeaderWidthEvent( ) );
+                OptimizeTableHeaderWidthNotifier notifier = project.getMessageBus( ).syncPublisher( OptimizeTableHeaderWidthNotifier.OPTIMIZE_TABLE_HEADER_WIDTH_TOPIC );
+                notifier.doAction( );
             }
         } );
     }

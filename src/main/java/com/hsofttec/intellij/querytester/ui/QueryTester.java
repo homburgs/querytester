@@ -24,12 +24,9 @@
 
 package com.hsofttec.intellij.querytester.ui;
 
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
 import com.hsofttec.intellij.querytester.QueryType;
-import com.hsofttec.intellij.querytester.events.*;
 import com.hsofttec.intellij.querytester.listeners.HistoryModifiedEventListener;
 import com.hsofttec.intellij.querytester.models.BaseResource;
 import com.hsofttec.intellij.querytester.models.ConnectionSettings;
@@ -38,6 +35,7 @@ import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
 import com.hsofttec.intellij.querytester.services.HistorySettingsService;
 import com.hsofttec.intellij.querytester.ui.components.*;
+import com.hsofttec.intellij.querytester.ui.notifiers.*;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -47,6 +45,8 @@ import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
 import com.intellij.ui.components.*;
+import com.intellij.util.messages.MessageBus;
+import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -64,8 +64,9 @@ public class QueryTester extends SimpleToolWindowPanel {
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
     private static final ProjectManager projectManager = ProjectManager.getInstance( );
     private static final HistorySettingsService HISTORY_SETTINGS_SERVICE = HistorySettingsService.getSettings( projectManager.getOpenProjects( )[ 0 ] );
-    private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
     private final Project project;
+    private final MessageBus messageBus;
+    private final MessageBusConnection messageBusConnection;
 
     private JPanel mainPanel;
     private ConnectionSelect inputSelectedConnection;
@@ -83,15 +84,17 @@ public class QueryTester extends SimpleToolWindowPanel {
     public QueryTester( Project project ) {
         super( false, true );
         this.project = project;
+        messageBus = project.getMessageBus( );
+        messageBusConnection = messageBus.connect( );
 
-        EVENT_BUS.register( this );
+        subscribeNotifications( );
 
         setToolbar( createToolBar( ) );
         setContent( createUIComponents( ) );
 
         inputSelectedConnection.reloadItems( );
 
-        ResultTableContextMenu resultTableContextMenu = new ResultTableContextMenu( );
+        ResultTableContextMenu resultTableContextMenu = new ResultTableContextMenu( project );
         queryResultTable.setComponentPopupMenu( resultTableContextMenu );
 
         resultTableContextMenu.setSelectParentFolderListener( new AbstractAction( ) {
@@ -100,7 +103,8 @@ public class QueryTester extends SimpleToolWindowPanel {
                 BasicDynaBean basicDynaBean = ( BasicDynaBean ) queryResultTable.getValueAt( queryResultTable.getSelectedRow( ), queryResultTable.getSelectedColumn( ) );
                 String parentResourceId = ( String ) basicDynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY );
                 inputRepositoryRoot.setText( parentResourceId );
-                EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
+                PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
+                notifier.doAction( );
             }
         } );
 
@@ -111,7 +115,8 @@ public class QueryTester extends SimpleToolWindowPanel {
                 String resourceId = ( String ) basicDynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY );
                 BaseResource baseResource = CONNECTION_SERVICE.getBaseResource( resourceId );
                 inputRepositoryRoot.setText( baseResource.getParentresourceid( ) );
-                EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
+                PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
+                notifier.doAction( );
             }
         } );
 
@@ -138,114 +143,144 @@ public class QueryTester extends SimpleToolWindowPanel {
     }
 
     /**
-     * prepare parameters for query execution
-     *
-     * @param event empty event
+     * subscribe diverse notifiers for message bus.
      */
-    @Subscribe
-    public void checkServerConnectionEventHandler( CheckServerConnectionEvent event ) {
-        UIUtil.invokeLaterIfNeeded( ( ) -> {
-            inputSelectedConnection.setEnabled( false );
-            queryResultTable.setEnabled( false );
-            inputNqlQuery.setEnabled( false );
-            inputHistory.setEnabled( false );
-            inputDocumentArea.setEnabled( false );
-            iconReconnect.setEnabled( false );
-            inputAggregate.setEnabled( false );
-            inputMasterdataScope.setEnabled( false );
-            inputRepositoryRoot.setEnabled( false );
+    private void subscribeNotifications( ) {
+        messageBusConnection.subscribe( CheckServerConnectionNotifier.CHECK_SERVER_CONNECTION_TOPIC, new CheckServerConnectionNotifier( ) {
+            @Override
+            public void beforeAction( ConnectionSettings settings ) {
+                UIUtil.invokeLaterIfNeeded( ( ) -> {
+                    inputSelectedConnection.setEnabled( false );
+                    queryResultTable.setEnabled( false );
+                    inputNqlQuery.setEnabled( false );
+                    inputHistory.setEnabled( false );
+                    inputDocumentArea.setEnabled( false );
+                    iconReconnect.setEnabled( false );
+                    inputAggregate.setEnabled( false );
+                    inputMasterdataScope.setEnabled( false );
+                    inputRepositoryRoot.setEnabled( false );
+                } );
+            }
+
+            @Override
+            public void afterAction( ConnectionSettings settings, boolean connectedSuccessful ) {
+                UIUtil.invokeLaterIfNeeded( ( ) -> {
+                    inputSelectedConnection.setEnabled( true );
+                    queryResultTable.setEnabled( true );
+                    inputNqlQuery.setEnabled( true );
+                    inputHistory.setEnabled( true );
+                    inputDocumentArea.setEnabled( true );
+                    iconReconnect.setEnabled( true );
+                    inputAggregate.setEnabled( true );
+                    inputMasterdataScope.setEnabled( true );
+                    inputRepositoryRoot.setEnabled( true );
+
+                    if ( connectedSuccessful ) {
+                        inputDocumentArea.reloadDocumentAreas( settings );
+                    }
+                } );
+            }
         } );
-    }
+        messageBusConnection.subscribe( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC, ( ) -> {
+            QueryMode queryMode = QueryMode.REPOSITORY;
 
-    @Subscribe
-    public void checkedServerConnectionEventHandler( CheckedServerConnectionEvent event ) {
-        UIUtil.invokeLaterIfNeeded( ( ) -> {
-            inputSelectedConnection.setEnabled( true );
-            queryResultTable.setEnabled( true );
-            inputNqlQuery.setEnabled( true );
-            inputHistory.setEnabled( true );
-            inputDocumentArea.setEnabled( true );
-            iconReconnect.setEnabled( true );
-            inputAggregate.setEnabled( true );
-            inputMasterdataScope.setEnabled( true );
-            inputRepositoryRoot.setEnabled( true );
+            if ( inputDocumentArea.getSelectedIndex( ) == -1 || inputSelectedConnection.getSelectedIndex( ) == -1 ) {
+                Notifier.warning( "no connection or/and no document area selected" );
+                return;
+            }
+
+            ConnectionSettings connectionSettings = ( ConnectionSettings ) inputSelectedConnection.getSelectedItem( );
+            String documentAreaName = ( String ) inputDocumentArea.getSelectedItem( );
+            String masterdataScope = ( String ) inputMasterdataScope.getSelectedItem( );
+            String repositoryRoot = inputRepositoryRoot.getText( );
+            String nqlQuery = inputNqlQuery.getText( );
+            QueryType queryType = QueryType.DEFAULT;
+            boolean aggregate = inputAggregate.isSelected( );
+            boolean version = inputVersion.isSelected( );
+
+            if ( aggregate && version ) {
+                queryType = QueryType.AGGREGATE_AND_VERSION;
+            } else if ( aggregate ) {
+                queryType = QueryType.AGGREGATE;
+            } else if ( version ) {
+                queryType = QueryType.VERSION;
+            }
+
+            String tabTitle = tabbedPane.getTitleAt( tabbedPane.getSelectedIndex( ) );
+            switch ( tabTitle ) {
+                case "Repository":
+                    queryMode = QueryMode.REPOSITORY;
+                    break;
+                case "BPNM":
+                    queryMode = QueryMode.BPNM;
+                    break;
+                case "Masterdata":
+                    queryMode = QueryMode.MASTERDATA;
+                    if ( StringUtils.isEmpty( masterdataScope ) ) {
+                        Notifier.warning( "masterdata scope not selected, query execution stopped" );
+                        return;
+                    }
+                    break;
+                case "Principals":
+                    queryMode = QueryMode.PRINCIPALS;
+                    break;
+                case "Workflow":
+                    queryMode = QueryMode.WORKFLOW;
+                    break;
+            }
+
+            StartQueryExecutionNotifier notifier = messageBus.syncPublisher( StartQueryExecutionNotifier.START_QUERY_EXECUTION_TOPIC );
+            notifier.doAction( connectionSettings, queryMode, documentAreaName, masterdataScope, repositoryRoot, nqlQuery, queryType );
         } );
-    }
+        messageBusConnection.subscribe( ConnectionsModifiedNotifier.CONNECTION_MODIFIED_TOPIC, new ConnectionsModifiedNotifier( ) {
+            @Override
+            public void connectionAdded( ConnectionSettings settings ) {
+                inputSelectedConnection.addConnection( settings );
+            }
 
-    @Subscribe
-    public void connectionSelectionChangedEventHandler( ConnectionSelectionChangedEvent event ) {
+            @Override
+            public void connectionModified( ConnectionSettings settings ) {
+                inputSelectedConnection.modifyConnection( settings );
+            }
 
-        if ( event.getConnectionSettings( ) != null ) {
-            UIUtil.invokeLaterIfNeeded( ( ) -> {
-                inputSelectedConnection.setEnabled( true );
-                queryResultTable.setEnabled( true );
-                inputNqlQuery.setEnabled( true );
-                inputHistory.setEnabled( true );
-                inputDocumentArea.setEnabled( true );
-                iconReconnect.setEnabled( true );
-                inputAggregate.setEnabled( true );
-                inputMasterdataScope.setEnabled( true );
-                inputRepositoryRoot.setEnabled( true );
-            } );
-        }
-    }
-
-    @Subscribe
-    public void prepareQueryExecutionEventHandler( PrepareQueryExecutionEvent event ) {
-        QueryMode queryMode = QueryMode.REPOSITORY;
-
-        if ( inputDocumentArea.getSelectedIndex( ) == -1 || inputSelectedConnection.getSelectedIndex( ) == -1 ) {
-            Notifier.warning( "no connection or/and no document area selected" );
-            return;
-        }
-
-        ConnectionSettings connectionSettings = ( ConnectionSettings ) inputSelectedConnection.getSelectedItem( );
-        String documentAreaName = ( String ) inputDocumentArea.getSelectedItem( );
-        String masterdataScope = ( String ) inputMasterdataScope.getSelectedItem( );
-        String repositoryRoot = inputRepositoryRoot.getText( );
-        String nqlQuery = inputNqlQuery.getText( );
-        QueryType queryType = QueryType.DEFAULT;
-        boolean aggregate = inputAggregate.isSelected( );
-        boolean version = inputVersion.isSelected( );
-
-        if ( aggregate && version ) {
-            queryType = QueryType.AGGREGATE_AND_VERSION;
-        } else if ( aggregate ) {
-            queryType = QueryType.AGGREGATE;
-        } else if ( version ) {
-            queryType = QueryType.VERSION;
-        }
-
-        String tabTitle = tabbedPane.getTitleAt( tabbedPane.getSelectedIndex( ) );
-        switch ( tabTitle ) {
-            case "Repository":
-                queryMode = QueryMode.REPOSITORY;
-                break;
-            case "BPNM":
-                queryMode = QueryMode.BPNM;
-                break;
-            case "Masterdata":
-                queryMode = QueryMode.MASTERDATA;
-                if ( StringUtils.isEmpty( masterdataScope ) ) {
-                    Notifier.warning( "masterdata scope not selected, query execution stopped" );
-                    return;
-                }
-                break;
-            case "Principals":
-                queryMode = QueryMode.PRINCIPALS;
-                break;
-            case "Workflow":
-                queryMode = QueryMode.WORKFLOW;
-                break;
-        }
-
-        EVENT_BUS.post( new StartQueryExecutionEvent( connectionSettings, queryMode, documentAreaName, masterdataScope, repositoryRoot, nqlQuery, queryType ) );
-    }
-
-    @Subscribe
-    public void rootResourceIdChangedEventHandler( RootResourceIdChangedEvent event ) {
-        inputRepositoryRoot.setText( event.getRootResourceId( ) );
-        EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
+            @Override
+            public void connectionRemoved( ConnectionSettings settings ) {
+                inputSelectedConnection.removeConnection( settings );
+            }
+        } );
+        messageBusConnection.subscribe( StartQueryExecutionNotifier.START_QUERY_EXECUTION_TOPIC, new StartQueryExecutionNotifier( ) {
+            @Override
+            public void doAction( ConnectionSettings connectionSettings, QueryMode queryMode, String documentAreaName, String masterdataScope, String rootResourceId, String nqlQuery, QueryType queryType ) {
+                queryResultTable.startQueryExecution( connectionSettings, queryMode, documentAreaName, masterdataScope, rootResourceId, nqlQuery, queryType );
+            }
+        } );
+        messageBusConnection.subscribe( DocumentAreaChangedNotifier.DOCUMENT_AREA_CHANGED_TOPIC, new DocumentAreaChangedNotifier( ) {
+            @Override
+            public void doAction( String documentAreaName ) {
+                inputMasterdataScope.reloadMasterdataScopes( documentAreaName );
+            }
+        } );
+        messageBusConnection.subscribe( RootResourceIdChangedNotifier.ROOT_RESOURCE_ID_CHANGED_TOPIC, new RootResourceIdChangedNotifier( ) {
+            @Override
+            public void doAction( String rootResourceId ) {
+                inputRepositoryRoot.setText( rootResourceId );
+                PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
+                notifier.doAction( );
+            }
+        } );
+        messageBusConnection.subscribe( OptimizeTableHeaderWidthNotifier.OPTIMIZE_TABLE_HEADER_WIDTH_TOPIC, new OptimizeTableHeaderWidthNotifier( ) {
+            @Override
+            public void doAction( ) {
+                queryResultTable.calcHeaderWidth( );
+            }
+        } );
+        messageBusConnection.subscribe( FontSettingsChangedNotifier.FONT_SETTINGS_CHANGED_TOPIC, new FontSettingsChangedNotifier( ) {
+            @Override
+            public void doAction( ) {
+                queryResultTable.fontSettingsChanged( );
+                inputNqlQuery.fontSettingsChanged( );
+            }
+        } );
     }
 
     private JComponent createToolBar( ) {
@@ -254,7 +289,8 @@ public class QueryTester extends SimpleToolWindowPanel {
         actionGroup.add( new AnAction( "Execute Query", "Start query execution", AllIcons.RunConfigurations.TestState.Run ) {
             @Override
             public void actionPerformed( @NotNull AnActionEvent e ) {
-                EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
+                PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
+                notifier.doAction( );
             }
         } );
 
@@ -268,7 +304,8 @@ public class QueryTester extends SimpleToolWindowPanel {
                 if ( connectionSetupDialog.showAndGet( ) ) {
                     connectionSettings = connectionSetupDialog.getData( );
                     connectionSettingsService.connectionSettingsState.connectionSettings.add( connectionSettings );
-                    EVENT_BUS.post( new ConnectionAddedEvent( connectionSettings ) );
+                    ConnectionsModifiedNotifier notifier = messageBus.syncPublisher( ConnectionsModifiedNotifier.CONNECTION_MODIFIED_TOPIC );
+                    notifier.connectionAdded( connectionSettings );
                 }
             }
         } );

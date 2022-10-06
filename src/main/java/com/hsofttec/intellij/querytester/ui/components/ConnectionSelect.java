@@ -24,35 +24,39 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
-import com.hsofttec.intellij.querytester.events.*;
+import com.hsofttec.intellij.querytester.events.ConnectionSelectionChangedEvent;
 import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.renderer.ConnectionListCellRenderer;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
 import com.hsofttec.intellij.querytester.ui.EventBusFactory;
+import com.hsofttec.intellij.querytester.ui.notifiers.CheckServerConnectionNotifier;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.util.messages.MessageBus;
 
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ConnectionSelect extends ComboBox<ConnectionSettings> implements ItemListener {
-    private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
     private static final ConnectionSettingsService CONNECTION_SETTINGS_SERVICE = ConnectionSettingsService.getSettings( );
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
     private final Project project;
+    private final MessageBus messageBus;
+    private final List<ConnectionSettings> connections = new ArrayList<>( );
 
     public ConnectionSelect( Project project ) {
-        EVENT_BUS.register( this );
         this.project = project;
+        messageBus = project.getMessageBus( );
         this.addItemListener( this );
+        setModel( new CollectionComboBoxModel<>( connections ) );
         setRenderer( new ConnectionListCellRenderer( ) );
     }
 
@@ -60,12 +64,16 @@ public class ConnectionSelect extends ComboBox<ConnectionSettings> implements It
         List<ConnectionSettings> connectionSettings = CONNECTION_SETTINGS_SERVICE.connectionSettingsState.connectionSettings.stream( )
                 .filter( ConnectionSettings::isActive ).collect( Collectors.toList( ) );
 
-        setModel( new CollectionComboBoxModel<>( connectionSettings ) );
-
-        ConnectionSettings settings = ( ConnectionSettings ) getSelectedItem( );
-        if ( settings != null ) {
-            checkOnlineState( settings );
+        connections.clear( );
+        if ( !connectionSettings.isEmpty( ) ) {
+            connections.addAll( connectionSettings );
+            setSelectedIndex( 0 );
+            ConnectionSettings settings = ( ConnectionSettings ) getSelectedItem( );
+            if ( settings != null ) {
+                checkOnlineState( settings );
+            }
         }
+
     }
 
     @Override
@@ -79,62 +87,45 @@ public class ConnectionSelect extends ComboBox<ConnectionSettings> implements It
     }
 
     public void checkOnlineState( ConnectionSettings settings ) {
-        EVENT_BUS.post( new CheckServerConnectionEvent( ) );
+        MessageBus messageBus = project.getMessageBus( );
+        CheckServerConnectionNotifier checkServerConnectionNotifier = messageBus.syncPublisher( CheckServerConnectionNotifier.CHECK_SERVER_CONNECTION_TOPIC );
+        checkServerConnectionNotifier.beforeAction( settings );
         ProgressManager progressManager = ProgressManager.getInstance( );
         progressManager.runProcessWithProgressSynchronously( ( ) -> {
             final ProgressIndicator progressIndicator = progressManager.getProgressIndicator( );
             progressIndicator.setText( String.format( "Testing server '%s'", settings.getConnectionName( ) ) );
-            if ( CONNECTION_SERVICE.isConnectionUsable( settings ) ) {
-                EVENT_BUS.post( new ConnectionSelectionChangedEvent( settings ) );
-            } else {
-                EVENT_BUS.post( new ConnectionSelectionChangedEvent( null ) );
-            }
-            EVENT_BUS.post( new CheckedServerConnectionEvent( ) );
+            boolean connectionUsable = CONNECTION_SERVICE.isConnectionUsable( settings );
+            checkServerConnectionNotifier.afterAction( settings, connectionUsable );
         }, "Testing connection", false, project, this );
     }
 
-    @Subscribe
-    public void connectionSettingsChanged( ConnectionChangedEvent event ) {
-        boolean foundInSelectBox = false;
-        ConnectionSettings changedSettings = event.getData( );
+    public void modifyConnection( ConnectionSettings settings ) {
         CollectionComboBoxModel<ConnectionSettings> model = ( CollectionComboBoxModel<ConnectionSettings> ) getModel( );
         for ( ConnectionSettings item : model.getItems( ) ) {
-            if ( item.getId( ).equals( changedSettings.getId( ) ) ) {
-                foundInSelectBox = true;
-                if ( !changedSettings.isActive( ) ) {
-                    removeItem( item );
-                    return;
-                } else {
-                    item.setUsername( changedSettings.getUsername( ) );
-                    item.setPassword( changedSettings.getPassword( ) );
-                    item.setSsl( changedSettings.isSsl( ) );
-                    item.setServer( changedSettings.getServer( ) );
-                    item.setInstance( changedSettings.getInstance( ) );
-                    item.setPort( changedSettings.getPort( ) );
-                    item.setConnectionName( changedSettings.getConnectionName( ) );
-                    item.setTimeout( changedSettings.getTimeout( ) );
-                    item.setTimeout( changedSettings.getTimeout( ) );
-                }
+            if ( item.getId( ).equals( settings.getId( ) ) ) {
+                item.setUsername( settings.getUsername( ) );
+                item.setPassword( settings.getPassword( ) );
+                item.setSsl( settings.isSsl( ) );
+                item.setServer( settings.getServer( ) );
+                item.setInstance( settings.getInstance( ) );
+                item.setPort( settings.getPort( ) );
+                item.setConnectionName( settings.getConnectionName( ) );
+                item.setTimeout( settings.getTimeout( ) );
+                item.setTimeout( settings.getTimeout( ) );
             }
         }
-
-        if ( !foundInSelectBox && changedSettings.isActive( ) ) {
-            EVENT_BUS.post( new ConnectionAddedEvent( changedSettings ) );
-        }
     }
 
     @Subscribe
-    public void connectionSettingsAdded( ConnectionAddedEvent event ) {
-        addItem( event.getData( ) );
+    public void addConnection( ConnectionSettings settings ) {
+        connections.add( settings );
         if ( getItemCount( ) == 1 ) {
             setSelectedIndex( 0 );
-            EVENT_BUS.post( new ConnectionSelectionChangedEvent( ( ConnectionSettings ) getSelectedItem( ) ) );
+            EventBusFactory.getInstance( ).get( ).post( new ConnectionSelectionChangedEvent( ( ConnectionSettings ) getSelectedItem( ) ) );
         }
     }
 
-    @Subscribe
-    public void connectionSettingsRemoved( ConnectionRemovedEvent event ) {
-        removeItem( event.getData( ) );
+    public void removeConnection( ConnectionSettings settings ) {
+        connections.remove( settings );
     }
-
 }

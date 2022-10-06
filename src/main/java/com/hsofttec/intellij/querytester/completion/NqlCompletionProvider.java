@@ -26,11 +26,9 @@ package com.hsofttec.intellij.querytester.completion;
 
 import com.ceyoniq.nscale.al.core.Session;
 import com.ceyoniq.nscale.al.core.cfg.IndexingPropertyDefinition;
-import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.hsofttec.intellij.querytester.events.DocumentAreaChangedEvent;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
-import com.hsofttec.intellij.querytester.ui.EventBusFactory;
 import com.hsofttec.intellij.querytester.utils.NqlLiterals;
 import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
@@ -45,16 +43,12 @@ import java.util.regex.Pattern;
 public class NqlCompletionProvider extends TextFieldCompletionProviderDumbAware {
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
 
-    private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
-    ;
-
     private Pattern pattern = Pattern.compile( "([.!? ,])" );
 
     private final List<IndexingPropertyDefinition> indexingPropertyDefinitions = new ArrayList<>( );
 
     public NqlCompletionProvider( ) {
         super( true );
-        EVENT_BUS.register( this );
     }
 
 

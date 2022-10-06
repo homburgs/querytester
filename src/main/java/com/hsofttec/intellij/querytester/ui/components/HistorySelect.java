@@ -24,9 +24,7 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import com.google.common.eventbus.EventBus;
 import com.hsofttec.intellij.querytester.renderer.ComboBoxToolTipRenderer;
-import com.hsofttec.intellij.querytester.ui.EventBusFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 
@@ -34,12 +32,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
 public class HistorySelect extends ComboBox<String> implements ItemListener {
-    private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
-
     private final Project project;
 
     public HistorySelect( Project project ) {
-        EVENT_BUS.register( this );
         this.project = project;
         setRenderer( new ComboBoxToolTipRenderer( ) );
     }

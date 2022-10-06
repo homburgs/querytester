@@ -22,31 +22,12 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.ui;
+package com.hsofttec.intellij.querytester.ui.notifiers;
 
-import com.google.common.eventbus.EventBus;
-import com.intellij.openapi.project.ProjectManager;
+import com.intellij.util.messages.Topic;
 
-public class EventBusFactory {
-    private static EventBusFactory instance = null;
-    private static final ProjectManager projectManager = ProjectManager.getInstance( );
+public interface RootResourceIdChangedNotifier {
+    Topic<RootResourceIdChangedNotifier> ROOT_RESOURCE_ID_CHANGED_TOPIC = Topic.create( "root resource id changed", RootResourceIdChangedNotifier.class );
 
-    private final EventBus eventBus;
-
-    private EventBusFactory( ) {
-        eventBus = new EventBus( );
-    }
-
-    public static EventBusFactory getInstance( ) {
-        if ( instance == null ) {
-            synchronized ( EventBusFactory.class ) {
-                instance = new EventBusFactory( );
-            }
-        }
-        return instance;
-    }
-
-    public EventBus get( ) {
-        return eventBus;
-    }
+    void doAction( String rootResourceId );
 }

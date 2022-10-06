@@ -24,22 +24,18 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import com.google.common.eventbus.EventBus;
 import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.renderer.ConnectionListCellRenderer;
 import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
-import com.hsofttec.intellij.querytester.ui.EventBusFactory;
 import com.intellij.ui.components.JBList;
 
 import javax.swing.*;
 
 public class ConnectionList extends JBList<ConnectionSettings> {
-    private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
     private static final ConnectionSettingsService connectionSettingsService = ConnectionSettingsService.getSettings( );
 
     public ConnectionList( ) {
         super( connectionSettingsService.connectionSettingsState.connectionSettings );
-        EVENT_BUS.register( this );
         setCellRenderer( new ConnectionListCellRenderer( ) );
     }
 

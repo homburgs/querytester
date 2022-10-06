@@ -24,15 +24,11 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import com.google.common.eventbus.EventBus;
-import com.hsofttec.intellij.querytester.events.ConnectionAddedEvent;
-import com.hsofttec.intellij.querytester.events.ConnectionChangedEvent;
-import com.hsofttec.intellij.querytester.events.ConnectionRemovedEvent;
 import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.models.FontFaceComboBoxModel;
 import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
 import com.hsofttec.intellij.querytester.ui.ConnectionSetupDialog;
-import com.hsofttec.intellij.querytester.ui.EventBusFactory;
+import com.hsofttec.intellij.querytester.ui.notifiers.ConnectionsModifiedNotifier;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.IdeBorderFactory;
@@ -47,7 +43,7 @@ public class AppSettingsComponent {
 
     private static final ProjectManager projectManager = ProjectManager.getInstance( );
 
-    private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
+    private final Project project;
 
     private JCheckBox inputShowIdColumn;
     private JCheckBox inputShowKeyColumn;
@@ -64,7 +60,8 @@ public class AppSettingsComponent {
     private ConnectionList listConnections;
     private JPanel panelConnections;
 
-    public AppSettingsComponent( ) {
+    public AppSettingsComponent( Project project ) {
+        this.project = project;
         inputFontFace.setModel( new FontFaceComboBoxModel( ) );
         createConnectionsToolbar( );
     }
@@ -155,14 +152,16 @@ public class AppSettingsComponent {
                 connectionSettings = connectionSetupDialog.getData( );
                 listConnections.addElement( connectionSettings );
                 connectionSettingsService.connectionSettingsState.connectionSettings.add( connectionSettings );
-                EVENT_BUS.post( new ConnectionAddedEvent( connectionSettings ) );
+                ConnectionsModifiedNotifier notifier = project.getMessageBus( ).syncPublisher( ConnectionsModifiedNotifier.CONNECTION_MODIFIED_TOPIC );
+                notifier.connectionAdded( connectionSettings );
             }
         } );
         decorationToolbar.setRemoveAction( anActionButton -> {
             ConnectionSettings selectedValue = listConnections.getSelectedValue( );
             listConnections.removeElement( selectedValue );
             connectionSettingsService.removeConnection( selectedValue.getId( ) );
-            EVENT_BUS.post( new ConnectionRemovedEvent( selectedValue ) );
+            ConnectionsModifiedNotifier notifier = project.getMessageBus( ).syncPublisher( ConnectionsModifiedNotifier.CONNECTION_MODIFIED_TOPIC );
+            notifier.connectionRemoved( selectedValue );
         } );
         decorationToolbar.setEditAction( anActionButton -> {
             ConnectionSettings selectedValue = listConnections.getSelectedValue( );
@@ -173,9 +172,11 @@ public class AppSettingsComponent {
                 selectedValue = connectionSetupDialog.getData( );
                 listConnections.repaint( );
                 if ( selectedValue.isActive( ) ) {
-                    EVENT_BUS.post( new ConnectionChangedEvent( selectedValue ) );
+                    ConnectionsModifiedNotifier notifier = project.getMessageBus( ).syncPublisher( ConnectionsModifiedNotifier.CONNECTION_MODIFIED_TOPIC );
+                    notifier.connectionModified( selectedValue );
                 } else {
-                    EVENT_BUS.post( new ConnectionRemovedEvent( selectedValue ) );
+                    ConnectionsModifiedNotifier notifier = project.getMessageBus( ).syncPublisher( ConnectionsModifiedNotifier.CONNECTION_MODIFIED_TOPIC );
+                    notifier.connectionRemoved( selectedValue );
                 }
             }
         } );

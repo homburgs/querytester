@@ -76,7 +76,6 @@
         <projectService serviceImplementation="com.hsofttec.intellij.querytester.services.HistorySettingsService"/>
 
         <!--        <notificationGroup id="QueryTester Notification Group" displayType="TOOL_WINDOW" key="notification.group.name"/>-->
-        <!--        <preloadingActivity implementation="com.hsofttec.intellij.querytester.ui.EventBusLoader"/>-->
 
         <applicationConfigurable
                 parentId="tools"

@@ -26,24 +26,16 @@ package com.hsofttec.intellij.querytester.ui.components;
 
 import com.ceyoniq.nscale.al.core.Session;
 import com.ceyoniq.nscale.al.core.cfg.MasterdataScope;
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
-import com.hsofttec.intellij.querytester.events.DocumentAreaChangedEvent;
-import com.hsofttec.intellij.querytester.events.MasterdataScopeChangedEvent;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
-import com.hsofttec.intellij.querytester.ui.EventBusFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
 
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MasterdataScopeSelect extends ComboBox<String> implements ItemListener {
-    private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
+public class MasterdataScopeSelect extends ComboBox<String> {
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
 
     private final List<String> scopes = new ArrayList<>( );
@@ -51,35 +43,19 @@ public class MasterdataScopeSelect extends ComboBox<String> implements ItemListe
 
     public MasterdataScopeSelect( Project project ) {
         this.project = project;
-        EVENT_BUS.register( this );
         setModel( new CollectionComboBoxModel<>( scopes ) );
-        addItemListener( this );
     }
 
-    @Override
-    public void setSelectedIndex( int index ) {
-        super.setSelectedIndex( index );
-        EVENT_BUS.post( new MasterdataScopeChangedEvent( ( String ) getSelectedItem( ) ) );
-    }
-
-    @Subscribe
-    public void documentAreaChangedEvent( DocumentAreaChangedEvent event ) {
+    public void reloadMasterdataScopes( String documentArea ) {
         Session session = CONNECTION_SERVICE.getSession( );
         scopes.clear( );
         setSelectedIndex( -1 );
         if ( session != null ) {
-            List<MasterdataScope> masterdataScopes = session.getConfigurationService( ).getMasterdataScopes( event.getDocumentAreaName( ) );
+            List<MasterdataScope> masterdataScopes = session.getConfigurationService( ).getMasterdataScopes( documentArea );
             scopes.addAll( masterdataScopes.stream( ).map( MasterdataScope::getDisplayNameId ).collect( Collectors.toList( ) ) );
             if ( !scopes.isEmpty( ) ) {
                 setSelectedIndex( 0 );
             }
-        }
-    }
-
-    @Override
-    public void itemStateChanged( ItemEvent itemEvent ) {
-        if ( itemEvent.getStateChange( ) == ItemEvent.SELECTED ) {
-            EVENT_BUS.post( new MasterdataScopeChangedEvent( ( String ) itemEvent.getItem( ) ) );
         }
     }
 }

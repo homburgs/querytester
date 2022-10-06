@@ -22,31 +22,17 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.ui;
+package com.hsofttec.intellij.querytester.ui.notifiers;
 
-import com.google.common.eventbus.EventBus;
-import com.intellij.openapi.project.ProjectManager;
+import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import com.intellij.util.messages.Topic;
 
-public class EventBusFactory {
-    private static EventBusFactory instance = null;
-    private static final ProjectManager projectManager = ProjectManager.getInstance( );
+public interface ConnectionsModifiedNotifier {
+    Topic<ConnectionsModifiedNotifier> CONNECTION_MODIFIED_TOPIC = Topic.create( "connection modified", ConnectionsModifiedNotifier.class );
 
-    private final EventBus eventBus;
+    void connectionAdded( ConnectionSettings settings );
 
-    private EventBusFactory( ) {
-        eventBus = new EventBus( );
-    }
+    void connectionModified( ConnectionSettings settings );
 
-    public static EventBusFactory getInstance( ) {
-        if ( instance == null ) {
-            synchronized ( EventBusFactory.class ) {
-                instance = new EventBusFactory( );
-            }
-        }
-        return instance;
-    }
-
-    public EventBus get( ) {
-        return eventBus;
-    }
+    void connectionRemoved( ConnectionSettings settings );
 }

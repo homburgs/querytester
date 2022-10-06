@@ -31,7 +31,6 @@ import com.hsofttec.intellij.querytester.ui.Notifier;
 import com.intellij.ide.plugins.newui.LinkComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.AnimatedIcon;
-import lombok.SneakyThrows;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
@@ -71,19 +70,15 @@ public class ConnectionSetupComponent {
                 linkTestConnection.setIcon( new AnimatedIcon.Default( ) );
                 linkTestConnection.setEnabled( false );
 
-                ApplicationManager.getApplication( ).invokeLaterOnWriteThread( new Runnable( ) {
-                    @SneakyThrows
-                    @Override
-                    public void run( ) {
-                        ConnectionSettings data = getData( );
-                        CONNECTION_SERVICE.checkConnection( data,
-                                ( ) -> Notifier.information( "Connection tested successfully" ),
-                                ( ) -> Notifier.warning( "Connection not successfully" ),
-                                ( ) -> {
-                                    linkTestConnection.setEnabled( true );
-                                    linkTestConnection.setIcon( null );
-                                } );
-                    }
+                ApplicationManager.getApplication( ).invokeLaterOnWriteThread( ( ) -> {
+                    ConnectionSettings data = getData( );
+                    CONNECTION_SERVICE.checkConnection( data,
+                            ( ) -> Notifier.information( "Connection tested successfully" ),
+                            ( ) -> Notifier.warning( "Connection not successfully" ),
+                            ( ) -> {
+                                linkTestConnection.setEnabled( true );
+                                linkTestConnection.setIcon( null );
+                            } );
                 } );
             }
         } );

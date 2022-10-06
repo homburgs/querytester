@@ -24,18 +24,15 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 import com.hsofttec.intellij.querytester.completion.NqlCompletionProvider;
-import com.hsofttec.intellij.querytester.events.FontSettingsChangedEvent;
-import com.hsofttec.intellij.querytester.events.PrepareQueryExecutionEvent;
 import com.hsofttec.intellij.querytester.models.SettingsState;
 import com.hsofttec.intellij.querytester.services.SettingsService;
-import com.hsofttec.intellij.querytester.ui.EventBusFactory;
+import com.hsofttec.intellij.querytester.ui.notifiers.PrepareQueryExecutionNotifier;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.messages.MessageBus;
 import com.intellij.util.textCompletion.TextFieldWithCompletion;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +42,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
 public class NqlQueryTextbox extends TextFieldWithCompletion {
-    private static final EventBus EVENT_BUS = EventBusFactory.getInstance( ).get( );
     private static final SettingsState SETTINGS_STATE = SettingsService.getSettings( );
 
     private final Project project;
@@ -54,7 +50,6 @@ public class NqlQueryTextbox extends TextFieldWithCompletion {
         super( project, new NqlCompletionProvider( ), "", false, true, true );
         setBorder( BorderFactory.createEmptyBorder( ) );
         this.project = project;
-        EVENT_BUS.register( this );
         setFont( new Font( SETTINGS_STATE.getFontFace( ), Font.PLAIN, SETTINGS_STATE.getFontSize( ) ) );
         Dimension preferredSize = getPreferredSize( );
         preferredSize.height = 200;
@@ -65,15 +60,16 @@ public class NqlQueryTextbox extends TextFieldWithCompletion {
         AnAction action = new AnAction( ) {
             @Override
             public void actionPerformed( @NotNull AnActionEvent anActionEvent ) {
-                EVENT_BUS.post( new PrepareQueryExecutionEvent( ) );
+                MessageBus messageBus = project.getMessageBus( );
+                PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
+                notifier.doAction( );
             }
         };
 
         action.registerCustomShortcutSet( new CustomShortcutSet( KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK ) ), this );
     }
 
-    @Subscribe
-    public void fontSettingsChanged( FontSettingsChangedEvent event ) {
+    public void fontSettingsChanged( ) {
         setFont( new Font( SETTINGS_STATE.getFontFace( ), Font.PLAIN, SETTINGS_STATE.getFontSize( ) ) );
     }
 }

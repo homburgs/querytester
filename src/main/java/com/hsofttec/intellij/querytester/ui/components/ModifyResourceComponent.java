@@ -22,7 +22,43 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.events;
+package com.hsofttec.intellij.querytester.ui.components;
 
-public class CheckServerConnectionEvent {
+import com.intellij.ui.components.JBLabel;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+import lombok.Getter;
+
+import javax.swing.*;
+
+@Getter
+public class ModifyResourceComponent {
+    private CellConstraints cellConstraints = new CellConstraints( );
+    private JPanel mainPanel;
+    private JBLabel fieldLabel;
+    private JComponent inputComponent;
+
+    public ModifyResourceComponent( ) {
+        FormLayout formLayout = new FormLayout(
+                "5px, left:pref, 4dlu, pref:grow",
+                "pref, 3dlu, pref, 3dlu, pref"
+        );
+        mainPanel = new JPanel( formLayout );
+        fieldLabel = new JBLabel( "Label" );
+        mainPanel.add( fieldLabel, cellConstraints.xy( 2, 1 ) );
+    }
+
+    public JPanel getMainPanel( ) {
+        return mainPanel;
+    }
+
+    public JBLabel getFieldLabel( ) {
+        return fieldLabel;
+    }
+
+    public void setInputField( JComponent component ) {
+        if ( component != null ) {
+            mainPanel.add( component, cellConstraints.xy( 4, 1 ) );
+        }
+    }
 }
