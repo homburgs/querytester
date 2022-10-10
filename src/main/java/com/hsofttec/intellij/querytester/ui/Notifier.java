@@ -24,10 +24,8 @@
 
 package com.hsofttec.intellij.querytester.ui;
 
-import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 
@@ -54,9 +52,5 @@ public class Notifier {
                 .getNotificationGroup( "QueryTester" )
                 .createNotification( "QueryTester", content, NotificationType.INFORMATION )
                 .notify( PROJECT );
-    }
-
-    private static void notify( Notification notification ) {
-        Notifications.Bus.notify( notification );
     }
 }
