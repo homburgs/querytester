@@ -26,13 +26,14 @@ package com.hsofttec.intellij.querytester.completion;
 
 import com.ceyoniq.nscale.al.core.Session;
 import com.ceyoniq.nscale.al.core.cfg.IndexingPropertyDefinition;
-import com.google.common.eventbus.Subscribe;
-import com.hsofttec.intellij.querytester.events.DocumentAreaChangedEvent;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
+import com.hsofttec.intellij.querytester.ui.notifiers.DocumentAreaChangedNotifier;
 import com.hsofttec.intellij.querytester.utils.NqlLiterals;
 import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.TextFieldCompletionProviderDumbAware;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -42,15 +43,18 @@ import java.util.regex.Pattern;
 
 public class NqlCompletionProvider extends TextFieldCompletionProviderDumbAware {
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
+    private final Project project;
 
     private Pattern pattern = Pattern.compile( "([.!? ,])" );
 
     private final List<IndexingPropertyDefinition> indexingPropertyDefinitions = new ArrayList<>( );
 
-    public NqlCompletionProvider( ) {
+    public NqlCompletionProvider( Project project ) {
         super( true );
+        this.project = project;
+        MessageBusConnection connect = project.getMessageBus( ).connect( );
+        connect.subscribe( DocumentAreaChangedNotifier.DOCUMENT_AREA_CHANGED_TOPIC, this::dcumentAreaChanged );
     }
-
 
     @Override
     protected void addCompletionVariants( @NotNull String text, int offset, @NotNull String prefix, @NotNull CompletionResultSet result ) {
@@ -83,12 +87,11 @@ public class NqlCompletionProvider extends TextFieldCompletionProviderDumbAware 
         result.stopHere( );
     }
 
-    @Subscribe
-    public void dcumentAreaChanged( DocumentAreaChangedEvent event ) {
+    public void dcumentAreaChanged( String selectedDocumentAreaName ) {
         Session session = CONNECTION_SERVICE.getSession( );
         indexingPropertyDefinitions.clear( );
         if ( session != null ) {
-            List<IndexingPropertyDefinition> definitions = session.getConfigurationService( ).getIndexingPropertyDefinitions( event.getDocumentAreaName( ) );
+            List<IndexingPropertyDefinition> definitions = session.getConfigurationService( ).getIndexingPropertyDefinitions( selectedDocumentAreaName );
             indexingPropertyDefinitions.addAll( definitions );
         }
     }

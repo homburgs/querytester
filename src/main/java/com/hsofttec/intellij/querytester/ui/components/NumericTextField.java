@@ -22,39 +22,15 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.models;
+package com.hsofttec.intellij.querytester.ui.components;
 
-import javax.swing.table.AbstractTableModel;
+import org.jdesktop.swingx.text.NumberFormatExt;
 
-public class DynaClassTableModel extends AbstractTableModel {
-    private final NscaleResult result;
+import javax.swing.*;
 
-    public DynaClassTableModel( NscaleResult result ) {
-        this.result = result;
-    }
-
-    @Override
-    public String getColumnName( int column ) {
-        return result.getPropertyNames( ).get( column );
-    }
-
-    @Override
-    public int getRowCount( ) {
-        return result.getDynaBeans( ).size( );
-    }
-
-    @Override
-    public int getColumnCount( ) {
-        return result.getPropertyNames( ).size( );
-    }
-
-    @Override
-    public Object getValueAt( int rowIndex, int columnIndex ) {
-        return result.getDynaBeans( ).get( rowIndex );
-    }
-
-    @Override
-    public boolean isCellEditable( int rowIndex, int columnIndex ) {
-        return false;
+public class NumericTextField extends JFormattedTextField {
+    public NumericTextField( ) {
+        super( new NumberFormatExt( ) );
+        setColumns( 10 );
     }
 }

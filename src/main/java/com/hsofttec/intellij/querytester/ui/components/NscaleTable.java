@@ -34,13 +34,11 @@ import com.hsofttec.intellij.querytester.renderer.DynaPropertyTableCellRenderer;
 import com.hsofttec.intellij.querytester.services.HistorySettingsService;
 import com.hsofttec.intellij.querytester.services.QueryService;
 import com.hsofttec.intellij.querytester.services.SettingsService;
-import com.hsofttec.intellij.querytester.ui.ModifyResourceDialog;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.table.JBTable;
-import org.apache.commons.beanutils.DynaBean;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,13 +82,13 @@ public class NscaleTable extends JBTable {
                 }
                 if ( currentCol != -1 ) {
                     if ( mouseEvent.getClickCount( ) == 2 ) {
-                        DynaBean selectedRowValue = ( DynaBean ) getValueAt( currentRow, currentCol );
-                        Object headerValue = getColumnModel( ).getColumn( currentCol ).getHeaderValue( );
-                        ModifyResourceDialog modifyResourceDialog = new ModifyResourceDialog( project );
-                        modifyResourceDialog.setData( selectedRowValue, ( String ) headerValue );
-                        if ( modifyResourceDialog.showAndGet( ) ) {
-
-                        }
+//                        DynaBean selectedRowValue = ( DynaBean ) getValueAt( currentRow, currentCol );
+//                        Object headerValue = getColumnModel( ).getColumn( currentCol ).getHeaderValue( );
+//                        ModifyResourceDialog modifyResourceDialog = new ModifyResourceDialog( project );
+//                        modifyResourceDialog.setData( selectedRowValue, ( String ) headerValue );
+//                        if ( modifyResourceDialog.showAndGet( ) ) {
+//
+//                        }
                     }
                 }
             }
@@ -110,6 +108,11 @@ public class NscaleTable extends JBTable {
             NscaleResult nscaleResult = QUERY_SERVICE.proccessQuery( connectionSettings, queryMode, documentAreaName, masterdataScope, rootResourceId, nqlQuery, queryType );
 
             if ( nscaleResult != null ) {
+//                DynaClassTableModel existingMOdel = ( DynaClassTableModel ) getModel();
+//                if (existingMOdel != null){
+//                    existingMOdel.
+//                }
+
                 setModel( new DynaClassTableModel( nscaleResult ) );
                 if ( !SETTINGS.isShowIdColumn( ) ) {
                     getColumnModel( ).getColumn( 0 ).setMinWidth( 0 );

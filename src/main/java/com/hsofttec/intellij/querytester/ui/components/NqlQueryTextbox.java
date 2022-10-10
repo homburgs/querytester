@@ -47,14 +47,14 @@ public class NqlQueryTextbox extends TextFieldWithCompletion {
     private final Project project;
 
     public NqlQueryTextbox( Project project ) {
-        super( project, new NqlCompletionProvider( ), "", false, true, true );
+        super( project, new NqlCompletionProvider( project ), "", false, true, true );
         setBorder( BorderFactory.createEmptyBorder( ) );
         this.project = project;
         setFont( new Font( SETTINGS_STATE.getFontFace( ), Font.PLAIN, SETTINGS_STATE.getFontSize( ) ) );
         Dimension preferredSize = getPreferredSize( );
         preferredSize.height = 200;
         setMaximumSize( preferredSize );
-        setPlaceholder( "type your query, dude!" );
+        setPlaceholder( "... type your query and press Ctrl-Enter to execute, dude!" );
         setShowPlaceholderWhenFocused( true );
 
         AnAction action = new AnAction( ) {

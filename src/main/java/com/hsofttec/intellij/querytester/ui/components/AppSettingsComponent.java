@@ -49,13 +49,13 @@ public class AppSettingsComponent {
     private JCheckBox inputShowKeyColumn;
     private JPanel settingsPanel;
     private JCheckBox inputShowDelete;
-    private JTextField inputMaxResultSize;
+    private NumericTextField inputMaxResultSize;
     private JLabel labelMaxResultSize;
     private JLabel labelMaxHistorySize;
-    private JTextField inputMaxHistorySize;
+    private NumericTextField inputMaxHistorySize;
     private JComboBox<String> inputFontFace;
     private JLabel labelFontFace;
-    private JTextField inputFontSize;
+    private NumericTextField inputFontSize;
     private JLabel labelFontSize;
     private ConnectionList listConnections;
     private JPanel panelConnections;
