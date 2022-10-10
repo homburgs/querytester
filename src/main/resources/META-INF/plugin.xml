@@ -75,7 +75,7 @@
         <projectService serviceImplementation="com.hsofttec.intellij.querytester.services.QueryService"/>
         <projectService serviceImplementation="com.hsofttec.intellij.querytester.services.HistorySettingsService"/>
 
-        <!--        <notificationGroup id="QueryTester Notification Group" displayType="TOOL_WINDOW" key="notification.group.name"/>-->
+        <notificationGroup displayType="BALLOON" id="QueryTester" isLogByDefault="true" toolWindowId="QueryTester"/>
 
         <applicationConfigurable
                 parentId="tools"
