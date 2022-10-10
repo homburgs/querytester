@@ -22,39 +22,18 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.models;
+package com.hsofttec.intellij.querytester.utils;
 
-import javax.swing.table.AbstractTableModel;
+import java.util.HashMap;
 
-public class DynaClassTableModel extends AbstractTableModel {
-    private final NscaleResult result;
-
-    public DynaClassTableModel( NscaleResult result ) {
-        this.result = result;
-    }
+public class QueryTabMap extends HashMap<Integer, QueryTab> {
+    private int activeQueryTabId = 0;
 
     @Override
-    public String getColumnName( int column ) {
-        return result.getPropertyNames( ).get( column );
-    }
+    public QueryTab put( Integer key, QueryTab value ) {
+        QueryTab addedQueryTab = super.put( key, value );
 
-    @Override
-    public int getRowCount( ) {
-        return result.getDynaBeans( ).size( );
-    }
 
-    @Override
-    public int getColumnCount( ) {
-        return result.getPropertyNames( ).size( );
-    }
-
-    @Override
-    public Object getValueAt( int rowIndex, int columnIndex ) {
-        return result.getDynaBeans( ).get( rowIndex );
-    }
-
-    @Override
-    public boolean isCellEditable( int rowIndex, int columnIndex ) {
-        return false;
+        return addedQueryTab;
     }
 }

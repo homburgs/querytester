@@ -31,6 +31,7 @@ import com.hsofttec.intellij.querytester.ui.Notifier;
 import com.intellij.ide.plugins.newui.LinkComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.AnimatedIcon;
+import org.apache.commons.lang.StringUtils;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
@@ -130,15 +131,17 @@ public class ConnectionSetupComponent {
 
     public void setData( ConnectionSettings data ) {
         settings = data;
-        if ( settings == null ) {
+        if ( settings == null || StringUtils.isBlank( settings.getConnectionName( ) ) ) {
             settings.setActive( true );
+            settings.setConnectionName( "New connection" );
             settings.setServer( "127.0.0.1" );
             settings.setPort( 8080 );
             settings.setSsl( false );
             settings.setInstance( "nscalealinst1" );
             settings.setUsername( "admin@nscale" );
             settings.setTimeout( 10 );
-            settings.setConnectTimeout( 10000 );
+            settings.setConnectTimeout( 3000 );
+            settings.setActive( true );
         }
 
         inputConnectionActivated.setSelected( settings.isActive( ) );

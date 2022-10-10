@@ -36,6 +36,7 @@ import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
 import com.hsofttec.intellij.querytester.services.HistorySettingsService;
 import com.hsofttec.intellij.querytester.ui.components.*;
 import com.hsofttec.intellij.querytester.ui.notifiers.*;
+import com.hsofttec.intellij.querytester.utils.QueryTab;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -44,10 +45,12 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.OnePixelSplitter;
-import com.intellij.ui.components.*;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.ui.components.JBPanel;
+import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.MessageBusConnection;
-import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -70,8 +73,6 @@ public class QueryTester extends SimpleToolWindowPanel {
 
     private JPanel mainPanel;
     private ConnectionSelect inputSelectedConnection;
-    private NscaleTable queryResultTable;
-    private NqlQueryTextbox inputNqlQuery;
     private JComboBox<String> inputHistory;
     private RepositoryRootTextField inputRepositoryRoot;
     private DocumentAreaSelect inputDocumentArea;
@@ -80,6 +81,7 @@ public class QueryTester extends SimpleToolWindowPanel {
     private JCheckBox inputVersion;
     private MasterdataScopeSelect inputMasterdataScope;
     private ReconnectIcon iconReconnect;
+    private QueryTabbedPane queryTabbedPane;
 
     public QueryTester( Project project ) {
         super( false, true );
@@ -95,28 +97,37 @@ public class QueryTester extends SimpleToolWindowPanel {
         inputSelectedConnection.reloadItems( );
 
         ResultTableContextMenu resultTableContextMenu = new ResultTableContextMenu( project );
-        queryResultTable.setComponentPopupMenu( resultTableContextMenu );
+        QueryTab activeQueryTab = queryTabbedPane.getActiveQueryTab( );
+        if ( activeQueryTab != null ) {
+            activeQueryTab.getQueryResultTable( ).setComponentPopupMenu( resultTableContextMenu );
+        }
 
         resultTableContextMenu.setSelectParentFolderListener( new AbstractAction( ) {
             @Override
             public void actionPerformed( ActionEvent actionEvent ) {
-                BasicDynaBean basicDynaBean = ( BasicDynaBean ) queryResultTable.getValueAt( queryResultTable.getSelectedRow( ), queryResultTable.getSelectedColumn( ) );
-                String parentResourceId = ( String ) basicDynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY );
-                inputRepositoryRoot.setText( parentResourceId );
-                PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
-                notifier.doAction( );
+                QueryTab activeQueryTab = queryTabbedPane.getActiveQueryTab( );
+                if ( activeQueryTab != null ) {
+                    BasicDynaBean basicDynaBean = ( BasicDynaBean ) activeQueryTab.getQueryResultTable( ).getValueAt( activeQueryTab.getQueryResultTable( ).getSelectedRow( ), activeQueryTab.getQueryResultTable( ).getSelectedColumn( ) );
+                    String parentResourceId = ( String ) basicDynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY );
+                    inputRepositoryRoot.setText( parentResourceId );
+                    PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
+                    notifier.doAction( );
+                }
             }
         } );
 
         resultTableContextMenu.setSearchFromParentFolderListener( new AbstractAction( ) {
             @Override
             public void actionPerformed( ActionEvent actionEvent ) {
-                BasicDynaBean basicDynaBean = ( BasicDynaBean ) queryResultTable.getValueAt( queryResultTable.getSelectedRow( ), queryResultTable.getSelectedColumn( ) );
-                String resourceId = ( String ) basicDynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY );
-                BaseResource baseResource = CONNECTION_SERVICE.getBaseResource( resourceId );
-                inputRepositoryRoot.setText( baseResource.getParentresourceid( ) );
-                PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
-                notifier.doAction( );
+                QueryTab activeQueryTab = queryTabbedPane.getActiveQueryTab( );
+                if ( activeQueryTab != null ) {
+                    BasicDynaBean basicDynaBean = ( BasicDynaBean ) activeQueryTab.getQueryResultTable( ).getValueAt( activeQueryTab.getQueryResultTable( ).getSelectedRow( ), activeQueryTab.getQueryResultTable( ).getSelectedColumn( ) );
+                    String resourceId = ( String ) basicDynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY );
+                    BaseResource baseResource = CONNECTION_SERVICE.getBaseResource( resourceId );
+                    inputRepositoryRoot.setText( baseResource.getParentresourceid( ) );
+                    PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
+                    notifier.doAction( );
+                }
             }
         } );
 
@@ -125,7 +136,10 @@ public class QueryTester extends SimpleToolWindowPanel {
         inputHistory.addActionListener( actionEvent -> {
             String selectedItem = ( String ) inputHistory.getSelectedItem( );
             if ( StringUtils.isNotBlank( selectedItem ) ) {
-                inputNqlQuery.setText( selectedItem );
+                QueryTab activeQueryTab1 = queryTabbedPane.getActiveQueryTab( );
+                if ( activeQueryTab1 != null ) {
+                    activeQueryTab1.getQueryTextbox( ).setText( selectedItem );
+                }
             }
         } );
 
@@ -151,8 +165,7 @@ public class QueryTester extends SimpleToolWindowPanel {
             public void beforeAction( ConnectionSettings settings ) {
                 UIUtil.invokeLaterIfNeeded( ( ) -> {
                     inputSelectedConnection.setEnabled( false );
-                    queryResultTable.setEnabled( false );
-                    inputNqlQuery.setEnabled( false );
+                    queryTabbedPane.setEnabled( false );
                     inputHistory.setEnabled( false );
                     inputDocumentArea.setEnabled( false );
                     iconReconnect.setEnabled( false );
@@ -166,8 +179,7 @@ public class QueryTester extends SimpleToolWindowPanel {
             public void afterAction( ConnectionSettings settings, boolean connectedSuccessful ) {
                 UIUtil.invokeLaterIfNeeded( ( ) -> {
                     inputSelectedConnection.setEnabled( true );
-                    queryResultTable.setEnabled( true );
-                    inputNqlQuery.setEnabled( true );
+                    queryTabbedPane.setEnabled( true );
                     inputHistory.setEnabled( true );
                     inputDocumentArea.setEnabled( true );
                     iconReconnect.setEnabled( true );
@@ -193,7 +205,7 @@ public class QueryTester extends SimpleToolWindowPanel {
             String documentAreaName = ( String ) inputDocumentArea.getSelectedItem( );
             String masterdataScope = ( String ) inputMasterdataScope.getSelectedItem( );
             String repositoryRoot = inputRepositoryRoot.getText( );
-            String nqlQuery = inputNqlQuery.getText( );
+            String nqlQuery = queryTabbedPane.getActiveQueryTab( ).getQueryTextbox( ).getText( );
             QueryType queryType = QueryType.DEFAULT;
             boolean aggregate = inputAggregate.isSelected( );
             boolean version = inputVersion.isSelected( );
@@ -251,6 +263,7 @@ public class QueryTester extends SimpleToolWindowPanel {
         messageBusConnection.subscribe( StartQueryExecutionNotifier.START_QUERY_EXECUTION_TOPIC, new StartQueryExecutionNotifier( ) {
             @Override
             public void doAction( ConnectionSettings connectionSettings, QueryMode queryMode, String documentAreaName, String masterdataScope, String rootResourceId, String nqlQuery, QueryType queryType ) {
+                NscaleTable queryResultTable = queryTabbedPane.getActiveQueryTab( ).getQueryResultTable( );
                 queryResultTable.startQueryExecution( connectionSettings, queryMode, documentAreaName, masterdataScope, rootResourceId, nqlQuery, queryType );
             }
         } );
@@ -271,14 +284,17 @@ public class QueryTester extends SimpleToolWindowPanel {
         messageBusConnection.subscribe( OptimizeTableHeaderWidthNotifier.OPTIMIZE_TABLE_HEADER_WIDTH_TOPIC, new OptimizeTableHeaderWidthNotifier( ) {
             @Override
             public void doAction( ) {
-                queryResultTable.calcHeaderWidth( );
+                QueryTab activeQueryTab = queryTabbedPane.getActiveQueryTab( );
+                activeQueryTab.getQueryResultTable( ).calcHeaderWidth( );
             }
         } );
         messageBusConnection.subscribe( FontSettingsChangedNotifier.FONT_SETTINGS_CHANGED_TOPIC, new FontSettingsChangedNotifier( ) {
             @Override
             public void doAction( ) {
+                NscaleTable queryResultTable = queryTabbedPane.getActiveQueryTab( ).getQueryResultTable( );
+                NqlQueryTextbox queryTextbox = queryTabbedPane.getActiveQueryTab( ).getQueryTextbox( );
                 queryResultTable.fontSettingsChanged( );
-                inputNqlQuery.fontSettingsChanged( );
+                queryTextbox.fontSettingsChanged( );
             }
         } );
     }
@@ -286,11 +302,18 @@ public class QueryTester extends SimpleToolWindowPanel {
     private JComponent createToolBar( ) {
         DefaultActionGroup actionGroup = new DefaultActionGroup( );
 
-        actionGroup.add( new AnAction( "Execute Query", "Start query execution", AllIcons.RunConfigurations.TestState.Run ) {
+        actionGroup.add( new AnAction( "Execute Active Query", "The active query execution", AllIcons.RunConfigurations.TestState.Run ) {
             @Override
             public void actionPerformed( @NotNull AnActionEvent e ) {
                 PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
                 notifier.doAction( );
+            }
+        } );
+
+        actionGroup.add( new AnAction( "Add Query Tab", "Open a new query tab", AllIcons.Ide.Rating ) {
+            @Override
+            public void actionPerformed( @NotNull AnActionEvent e ) {
+                queryTabbedPane.createQueryTab( ( String ) inputDocumentArea.getSelectedItem( ) );
             }
         } );
 
@@ -330,32 +353,16 @@ public class QueryTester extends SimpleToolWindowPanel {
         mainSplitter.setHonorComponentsMinimumSize( true );
         mainSplitter.setSplitterProportionKey( "main.splitter.key" );
 
-        JBSplitter leftPaneSplitter = new OnePixelSplitter( true, 03f );
-        leftPaneSplitter.setHonorComponentsMinimumSize( true );
-        leftPaneSplitter.setSplitterProportionKey( "query.splitter.key" );
-
         JPanel leftPanel = new JBPanel<>( new BorderLayout( 3, 3 ) );
         JPanel rightPanel = new JBPanel<>( new BorderLayout( 3, 3 ) );
         rightPanel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
         leftPanel.setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
-        leftPanel.add( leftPaneSplitter );
 
-        mainSplitter.setFirstComponent( leftPanel );
+        queryTabbedPane = new QueryTabbedPane( project );
+        queryTabbedPane.createQueryTab( null );
+
+        mainSplitter.setFirstComponent( queryTabbedPane );
         mainSplitter.setSecondComponent( rightPanel );
-
-        inputNqlQuery = new NqlQueryTextbox( project );
-        queryResultTable = new NscaleTable( project );
-
-        JPanel firstPanel = JBUI.Panels.simplePanel( );
-        firstPanel.add( new JBScrollPane( inputNqlQuery ) );
-        firstPanel.setBorder( BorderFactory.createEtchedBorder( ) );
-
-        JPanel secondPanel = JBUI.Panels.simplePanel( );
-        secondPanel.add( new JBScrollPane( queryResultTable ) );
-        secondPanel.setBorder( BorderFactory.createEtchedBorder( ) );
-
-        leftPaneSplitter.setFirstComponent( firstPanel );
-        leftPaneSplitter.setSecondComponent( secondPanel );
 
         mainPanel.add( mainSplitter );
 
@@ -364,6 +371,7 @@ public class QueryTester extends SimpleToolWindowPanel {
 
         return mainPanel;
     }
+
 
     private JComponent createTabPanel( ) {
         CellConstraints cc = new CellConstraints( );

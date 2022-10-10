@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.2.0] - 2022-10-08
+
+### Added
+
+- queries and result displayed in tabs (tabbed pane)
+
+### Changed
+
+- stabilize plugin
+
+### Fixed
+
+- some minor bugs fixed
+
+### Security
+
 ## [1.1.0] - 2022-10-04
 
 ### Added
