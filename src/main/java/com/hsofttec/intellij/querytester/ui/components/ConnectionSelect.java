@@ -25,13 +25,12 @@
 package com.hsofttec.intellij.querytester.ui.components;
 
 import com.google.common.eventbus.Subscribe;
-import com.hsofttec.intellij.querytester.events.ConnectionSelectionChangedEvent;
 import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.renderer.ConnectionListCellRenderer;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
-import com.hsofttec.intellij.querytester.ui.EventBusFactory;
 import com.hsofttec.intellij.querytester.ui.notifiers.CheckServerConnectionNotifier;
+import com.hsofttec.intellij.querytester.ui.notifiers.ConnectionsModifiedNotifier;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
@@ -121,7 +120,8 @@ public class ConnectionSelect extends ComboBox<ConnectionSettings> implements It
         connections.add( settings );
         if ( getItemCount( ) == 1 ) {
             setSelectedIndex( 0 );
-            EventBusFactory.getInstance( ).get( ).post( new ConnectionSelectionChangedEvent( ( ConnectionSettings ) getSelectedItem( ) ) );
+            ConnectionsModifiedNotifier notifier = messageBus.syncPublisher( ConnectionsModifiedNotifier.CONNECTION_MODIFIED_TOPIC );
+            notifier.connectionAdded( ( ConnectionSettings ) getSelectedItem( ) );
         }
     }
 
