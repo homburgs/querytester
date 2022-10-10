@@ -27,11 +27,11 @@ package com.hsofttec.intellij.querytester.ui.components;
 import com.hsofttec.intellij.querytester.ui.notifiers.DocumentAreaChangedNotifier;
 import com.hsofttec.intellij.querytester.utils.QueryTab;
 import com.hsofttec.intellij.querytester.utils.QueryTabMap;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBTabbedPane;
 
 import javax.annotation.Nullable;
-import javax.swing.*;
 
 public class QueryTabbedPane extends JBTabbedPane {
     private final QueryTabMap queryTabMap = new QueryTabMap( );
@@ -52,7 +52,7 @@ public class QueryTabbedPane extends JBTabbedPane {
             notifier.doAction( documentAreaName );
         }
 
-        SwingUtilities.invokeLater( ( ) -> queryTab.getQueryTextbox( ).requestFocus( ) );
+        ApplicationManager.getApplication( ).invokeLater( ( ) -> queryTab.getQueryTextbox( ).requestFocus( ) );
     }
 
     public QueryTab getActiveQueryTab( ) {

@@ -24,7 +24,8 @@
 
 package com.hsofttec.intellij.querytester.ui;
 
-import com.intellij.notification.*;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 
@@ -33,21 +34,23 @@ public class Notifier {
     private static final Project PROJECT = ProjectManager.getInstance( ).getOpenProjects( )[ 0 ];
 
     public static void error( String content ) {
-        NotificationGroup notificationGroup = new NotificationGroup( "QueryTester", NotificationDisplayType.STICKY_BALLOON, true );
-        notify( notificationGroup.createNotification( content, NotificationType.ERROR ) );
+        NotificationGroupManager.getInstance( )
+                .getNotificationGroup( "QueryTester" )
+                .createNotification( "QueryTester", content, NotificationType.ERROR )
+                .notify( PROJECT );
     }
 
     public static void warning( String content ) {
-        NotificationGroup notificationGroup = new NotificationGroup( "QueryTester", NotificationDisplayType.STICKY_BALLOON, true );
-        notify( notificationGroup.createNotification( content, NotificationType.WARNING ) );
+        NotificationGroupManager.getInstance( )
+                .getNotificationGroup( "QueryTester" )
+                .createNotification( "QueryTester", content, NotificationType.WARNING )
+                .notify( PROJECT );
     }
 
     public static void information( String content ) {
-        NotificationGroup notificationGroup = new NotificationGroup( "QueryTester", NotificationDisplayType.STICKY_BALLOON, true );
-        notify( notificationGroup.createNotification( content, NotificationType.INFORMATION ) );
-    }
-
-    private static void notify( Notification notification ) {
-        Notifications.Bus.notify( notification );
+        NotificationGroupManager.getInstance( )
+                .getNotificationGroup( "QueryTester" )
+                .createNotification( "QueryTester", content, NotificationType.INFORMATION )
+                .notify( PROJECT );
     }
 }
