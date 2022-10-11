@@ -34,12 +34,14 @@ import com.hsofttec.intellij.querytester.models.HistoryComboBoxModel;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
 import com.hsofttec.intellij.querytester.services.HistorySettingsService;
+import com.hsofttec.intellij.querytester.ui.actions.AddQueryTabAction;
+import com.hsofttec.intellij.querytester.ui.actions.ExecuteActiveQueryAction;
+import com.hsofttec.intellij.querytester.ui.actions.ShowPluginSettingsAction;
 import com.hsofttec.intellij.querytester.ui.components.*;
 import com.hsofttec.intellij.querytester.ui.notifiers.*;
 import com.hsofttec.intellij.querytester.utils.QueryTab;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
@@ -61,6 +63,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 
 public class QueryTester extends SimpleToolWindowPanel {
     private static final ConnectionSettingsService connectionSettingsService = ConnectionSettingsService.getSettings( );
@@ -96,7 +100,7 @@ public class QueryTester extends SimpleToolWindowPanel {
 
         inputSelectedConnection.reloadItems( );
 
-        ResultTableContextMenu resultTableContextMenu = new ResultTableContextMenu( project );
+        ResultTableContextMenu resultTableContextMenu = new ResultTableContextMenu( project, queryTabbedPane );
         QueryTab activeQueryTab = queryTabbedPane.getActiveQueryTab( );
         if ( activeQueryTab != null ) {
             activeQueryTab.getQueryResultTable( ).setComponentPopupMenu( resultTableContextMenu );
@@ -288,6 +292,13 @@ public class QueryTester extends SimpleToolWindowPanel {
                 activeQueryTab.getQueryResultTable( ).calcHeaderWidth( );
             }
         } );
+        messageBusConnection.subscribe( IncrementTableHeaderWidthNotifier.INCREMENT_TABLE_HEADER_WIDTH_TOPIC, new IncrementTableHeaderWidthNotifier( ) {
+            @Override
+            public void doAction( ) {
+                QueryTab activeQueryTab = queryTabbedPane.getActiveQueryTab( );
+                activeQueryTab.getQueryResultTable( ).incrementHeaderWidth( );
+            }
+        } );
         messageBusConnection.subscribe( FontSettingsChangedNotifier.FONT_SETTINGS_CHANGED_TOPIC, new FontSettingsChangedNotifier( ) {
             @Override
             public void doAction( ) {
@@ -302,20 +313,8 @@ public class QueryTester extends SimpleToolWindowPanel {
     private JComponent createToolBar( ) {
         DefaultActionGroup actionGroup = new DefaultActionGroup( );
 
-        actionGroup.add( new AnAction( "Execute Active Query", "The active query execution", AllIcons.RunConfigurations.TestState.Run ) {
-            @Override
-            public void actionPerformed( @NotNull AnActionEvent e ) {
-                PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
-                notifier.doAction( );
-            }
-        } );
-
-        actionGroup.add( new AnAction( "Add Query Tab", "Open a new query tab", AllIcons.Ide.Rating ) {
-            @Override
-            public void actionPerformed( @NotNull AnActionEvent e ) {
-                queryTabbedPane.createQueryTab( ( String ) inputDocumentArea.getSelectedItem( ) );
-            }
-        } );
+        actionGroup.add( new ExecuteActiveQueryAction( project ) );
+        actionGroup.add( new AddQueryTabAction( queryTabbedPane, inputDocumentArea ) );
 
         actionGroup.add( new AnAction( "Add Connection", "Show the connection settings dialog", AllIcons.General.Add ) {
             @Override
@@ -333,12 +332,7 @@ public class QueryTester extends SimpleToolWindowPanel {
             }
         } );
 
-        actionGroup.add( new AnAction( "Plugin Settings", "Plugin Settings for nscale QueryTester", AllIcons.General.Settings ) {
-            @Override
-            public void actionPerformed( @NotNull AnActionEvent e ) {
-                ShowSettingsUtil.getInstance( ).showSettingsDialog( projectManager.getOpenProjects( )[ 0 ], "QueryTester" );
-            }
-        } );
+        actionGroup.add( new ShowPluginSettingsAction( project ) );
 
         ActionToolbar actionToolbar = ActionManager.getInstance( ).createActionToolbar( ActionPlaces.TOOLBAR, actionGroup, true );
         actionToolbar.setTargetComponent( mainPanel );
@@ -348,6 +342,25 @@ public class QueryTester extends SimpleToolWindowPanel {
 
     private JComponent createUIComponents( ) {
         mainPanel = new JPanel( new BorderLayout( -1, -1 ) );
+
+        AnAction action1 = new AnAction( ) {
+            @Override
+            public void actionPerformed( @NotNull AnActionEvent anActionEvent ) {
+                NscaleTable queryResultTable = queryTabbedPane.getActiveQueryTab( ).getQueryResultTable( );
+                queryResultTable.incrementHeaderWidth( );
+            }
+        };
+
+        AnAction action2 = new AnAction( ) {
+            @Override
+            public void actionPerformed( @NotNull AnActionEvent anActionEvent ) {
+                NscaleTable queryResultTable = queryTabbedPane.getActiveQueryTab( ).getQueryResultTable( );
+                queryResultTable.calcHeaderWidth( );
+            }
+        };
+
+        action1.registerCustomShortcutSet( new CustomShortcutSet( KeyStroke.getKeyStroke( KeyEvent.VK_I, InputEvent.CTRL_DOWN_MASK ) ), mainPanel );
+        action2.registerCustomShortcutSet( new CustomShortcutSet( KeyStroke.getKeyStroke( KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK ) ), mainPanel );
 
         JBSplitter mainSplitter = new OnePixelSplitter( false, 0.8f );
         mainSplitter.setHonorComponentsMinimumSize( true );
