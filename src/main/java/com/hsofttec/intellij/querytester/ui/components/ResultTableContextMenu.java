@@ -35,12 +35,14 @@ import com.hsofttec.intellij.querytester.services.SettingsService;
 import com.hsofttec.intellij.querytester.ui.CreateResourceDialog;
 import com.hsofttec.intellij.querytester.ui.Notifier;
 import com.hsofttec.intellij.querytester.ui.ResourcePathDialog;
+import com.hsofttec.intellij.querytester.ui.notifiers.IncrementTableHeaderWidthNotifier;
 import com.hsofttec.intellij.querytester.ui.notifiers.OptimizeTableHeaderWidthNotifier;
 import com.hsofttec.intellij.querytester.ui.notifiers.PrepareQueryExecutionNotifier;
 import com.hsofttec.intellij.querytester.ui.notifiers.RootResourceIdChangedNotifier;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.ui.components.JBTabbedPane;
 import org.apache.commons.beanutils.BasicDynaBean;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -54,6 +56,7 @@ import java.awt.event.ActionListener;
 
 public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuListener {
     private final Project project;
+    private final JBTabbedPane owner;
     private static final Logger logger = LoggerFactory.getLogger( ResultTableContextMenu.class );
     private static final SettingsState SETTINGS = SettingsService.getSettings( );
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
@@ -69,6 +72,7 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
     private JBMenuItem addLinkMenuItem;
     private JBMenuItem deleteResourceMenuItem;
     private JBMenuItem optimizeColumnWithMenuItem;
+    private JBMenuItem incrementColumnWithMenuItem;
 
     private ActionListener actionListener = new AbstractAction( ) {
         @Override
@@ -77,9 +81,10 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         }
     };
 
-    public ResultTableContextMenu( Project project ) {
+    public ResultTableContextMenu( Project project, JBTabbedPane owner ) {
         super( );
         this.project = project;
+        this.owner = owner;
 
         selectParentFolderId = new JBMenuItem( "Search From Here" );
         selectParentFolderId.setEnabled( false );
@@ -161,6 +166,9 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         addLinkMenuItem.setEnabled( false );
 
         optimizeColumnWithMenuItem = new JBMenuItem( "Optimize Column Width" );
+        optimizeColumnWithMenuItem.setAccelerator( KeyStroke.getKeyStroke( "control O" ) );
+        incrementColumnWithMenuItem = new JBMenuItem( "Increment Column Width (+100px)" );
+        incrementColumnWithMenuItem.setAccelerator( KeyStroke.getKeyStroke( "control I" ) );
 
         add( selectParentFolderId );
         add( searchParentMenuItem );
@@ -171,6 +179,7 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         add( unlockMenuItem );
         addSeparator( );
         add( optimizeColumnWithMenuItem );
+        add( incrementColumnWithMenuItem );
         addSeparator( );
         add( addDocumentMenuItem );
         add( addFolderMenuItem );
@@ -182,6 +191,14 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
             @Override
             public void actionPerformed( ActionEvent e ) {
                 OptimizeTableHeaderWidthNotifier notifier = project.getMessageBus( ).syncPublisher( OptimizeTableHeaderWidthNotifier.OPTIMIZE_TABLE_HEADER_WIDTH_TOPIC );
+                notifier.doAction( );
+            }
+        } );
+
+        incrementColumnWithMenuItem.addActionListener( new AbstractAction( ) {
+            @Override
+            public void actionPerformed( ActionEvent e ) {
+                IncrementTableHeaderWidthNotifier notifier = project.getMessageBus( ).syncPublisher( IncrementTableHeaderWidthNotifier.INCREMENT_TABLE_HEADER_WIDTH_TOPIC );
                 notifier.doAction( );
             }
         } );

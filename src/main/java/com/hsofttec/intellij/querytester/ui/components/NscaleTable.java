@@ -39,6 +39,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.UIUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,21 +109,19 @@ public class NscaleTable extends JBTable {
             NscaleResult nscaleResult = QUERY_SERVICE.proccessQuery( connectionSettings, queryMode, documentAreaName, masterdataScope, rootResourceId, nqlQuery, queryType );
 
             if ( nscaleResult != null ) {
-//                DynaClassTableModel existingMOdel = ( DynaClassTableModel ) getModel();
-//                if (existingMOdel != null){
-//                    existingMOdel.
-//                }
 
-                setModel( new DynaClassTableModel( nscaleResult ) );
-                if ( !SETTINGS.isShowIdColumn( ) ) {
-                    getColumnModel( ).getColumn( 0 ).setMinWidth( 0 );
-                    getColumnModel( ).getColumn( 0 ).setMaxWidth( 0 );
-                }
-                if ( !SETTINGS.isShowKeyColumn( ) || queryType == QueryType.AGGREGATE ) {
-                    getColumnModel( ).getColumn( 1 ).setMinWidth( 0 );
-                    getColumnModel( ).getColumn( 1 ).setMaxWidth( 0 );
-                }
-                HISTORY_SETTINGS_SERVICE.addQuery( nqlQuery );
+                UIUtil.invokeLaterIfNeeded( ( ) -> {
+                    setModel( new DynaClassTableModel( nscaleResult ) );
+                    if ( !SETTINGS.isShowIdColumn( ) ) {
+                        getColumnModel( ).getColumn( 0 ).setMinWidth( 0 );
+                        getColumnModel( ).getColumn( 0 ).setMaxWidth( 0 );
+                    }
+                    if ( !SETTINGS.isShowKeyColumn( ) || queryType == QueryType.AGGREGATE ) {
+                        getColumnModel( ).getColumn( 1 ).setMinWidth( 0 );
+                        getColumnModel( ).getColumn( 1 ).setMaxWidth( 0 );
+                    }
+                    HISTORY_SETTINGS_SERVICE.addQuery( nqlQuery );
+                } );
             }
         }, "Executing query", true, project );
 
@@ -152,6 +151,15 @@ public class NscaleTable extends JBTable {
                 width = c.getPreferredSize( ).width + 10;
                 column.setPreferredWidth( width );
             }
+        }
+    }
+
+    public void incrementHeaderWidth( ) {
+        TableColumnModel columns = this.getColumnModel( );
+        for ( int col = 0; col < columns.getColumnCount( ); col++ ) {
+            TableColumn column = columns.getColumn( col );
+            int width = column.getPreferredWidth( );
+            column.setPreferredWidth( width + 100 );
         }
     }
 }
