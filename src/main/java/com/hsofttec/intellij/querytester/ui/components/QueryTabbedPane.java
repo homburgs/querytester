@@ -24,39 +24,63 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import com.hsofttec.intellij.querytester.ui.notifiers.DocumentAreaChangedNotifier;
-import com.hsofttec.intellij.querytester.utils.QueryTab;
+import com.hsofttec.intellij.querytester.ui.QueryTester;
 import com.hsofttec.intellij.querytester.utils.QueryTabMap;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBTabbedPane;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
+import javax.swing.*;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 
 public class QueryTabbedPane extends JBTabbedPane {
     private final QueryTabMap queryTabMap = new QueryTabMap( );
-    private final Project project;
+    private final QueryTester queryTester;
 
-    public QueryTabbedPane( Project project ) {
-        this.project = project;
+    public QueryTabbedPane( QueryTester queryTester ) {
+        this.queryTester = queryTester;
+
+        AnAction action1 = new AnAction( ) {
+            @Override
+            public void actionPerformed( @NotNull AnActionEvent anActionEvent ) {
+                QueryTab queryTab = getActiveQueryTab( );
+                if ( queryTab != null ) {
+                    NscaleTable queryResultTable = queryTab.getQueryResultTable( );
+                    queryResultTable.incrementHeaderWidth( );
+                }
+            }
+        };
+
+        AnAction action2 = new AnAction( ) {
+            @Override
+            public void actionPerformed( @NotNull AnActionEvent anActionEvent ) {
+                QueryTab queryTab = getActiveQueryTab( );
+                if ( queryTab != null ) {
+                    NscaleTable queryResultTable = queryTab.getQueryResultTable( );
+                    queryResultTable.calcHeaderWidth( );
+                }
+            }
+        };
+
+        action1.registerCustomShortcutSet( new CustomShortcutSet( KeyStroke.getKeyStroke( KeyEvent.VK_I, InputEvent.CTRL_DOWN_MASK ) ), this );
+        action2.registerCustomShortcutSet( new CustomShortcutSet( KeyStroke.getKeyStroke( KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK ) ), this );
+
     }
 
-    public void createQueryTab( @Nullable String documentAreaName ) {
-        int tabId = getTabCount( ) + 1;
-        String tabTitle = String.format( "Query %d", tabId );
-        QueryTab queryTab = new QueryTab( project, this, tabId, tabTitle );
+    public void createQueryTab( ) {
+        int tabId = getTabCount( );
+        String tabTitle = String.format( "Query %d", tabId + 1 );
+        QueryTab queryTab = new QueryTab( queryTester, this, tabTitle );
         queryTabMap.put( tabId, queryTab );
-
-        if ( documentAreaName != null ) {
-            DocumentAreaChangedNotifier notifier = project.getMessageBus( ).syncPublisher( DocumentAreaChangedNotifier.DOCUMENT_AREA_CHANGED_TOPIC );
-            notifier.doAction( documentAreaName );
-        }
-
         ApplicationManager.getApplication( ).invokeLater( ( ) -> queryTab.getQueryTextbox( ).requestFocus( ) );
     }
 
     public QueryTab getActiveQueryTab( ) {
-        return queryTabMap.get( getSelectedIndex( ) + 1 );
+        return queryTabMap.get( getSelectedIndex( ) );
     }
 
     @Override

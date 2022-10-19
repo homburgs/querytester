@@ -27,11 +27,11 @@ package com.hsofttec.intellij.querytester.ui.components;
 import com.hsofttec.intellij.querytester.completion.NqlCompletionProvider;
 import com.hsofttec.intellij.querytester.models.SettingsState;
 import com.hsofttec.intellij.querytester.services.SettingsService;
+import com.hsofttec.intellij.querytester.ui.QueryTester;
 import com.hsofttec.intellij.querytester.ui.notifiers.PrepareQueryExecutionNotifier;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
-import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.textCompletion.TextFieldWithCompletion;
 import org.jetbrains.annotations.NotNull;
@@ -44,12 +44,12 @@ import java.awt.event.KeyEvent;
 public class NqlQueryTextbox extends TextFieldWithCompletion {
     private static final SettingsState SETTINGS_STATE = SettingsService.getSettings( );
 
-    private final Project project;
+    private final QueryTester queryTester;
 
-    public NqlQueryTextbox( Project project ) {
-        super( project, new NqlCompletionProvider( project ), "", false, true, true );
+    public NqlQueryTextbox( QueryTab owner ) {
+        super( owner.getQueryTester( ).getProject( ), new NqlCompletionProvider( owner.getQueryTester( ).getProject( ) ), "", false, true, true );
+        this.queryTester = owner.getQueryTester( );
         setBorder( BorderFactory.createEmptyBorder( ) );
-        this.project = project;
         setFont( new Font( SETTINGS_STATE.getFontFace( ), Font.PLAIN, SETTINGS_STATE.getFontSize( ) ) );
         Dimension preferredSize = getPreferredSize( );
         preferredSize.height = 200;
@@ -60,7 +60,7 @@ public class NqlQueryTextbox extends TextFieldWithCompletion {
         AnAction action = new AnAction( ) {
             @Override
             public void actionPerformed( @NotNull AnActionEvent anActionEvent ) {
-                MessageBus messageBus = project.getMessageBus( );
+                MessageBus messageBus = queryTester.getProject( ).getMessageBus( );
                 PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
                 notifier.doAction( );
             }

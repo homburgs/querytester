@@ -24,23 +24,23 @@
 
 package com.hsofttec.intellij.querytester.ui.actions;
 
+import com.hsofttec.intellij.querytester.ui.QueryTester;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public class ShowPluginSettingsAction extends DumbAwareAction {
-    private final Project project;
+    private final QueryTester queryTester;
 
-    public ShowPluginSettingsAction( Project project ) {
+    public ShowPluginSettingsAction( QueryTester queryTester ) {
         super( "Plugin Settings", "Plugin Settings for nscale QueryTester", AllIcons.General.Settings );
-        this.project = project;
+        this.queryTester = queryTester;
     }
 
     @Override
     public void actionPerformed( @NotNull AnActionEvent anActionEvent ) {
-        ShowSettingsUtil.getInstance( ).showSettingsDialog( project, "QueryTester" );
+        ShowSettingsUtil.getInstance( ).showSettingsDialog( queryTester.getProject( ), "QueryTester" );
     }
 }

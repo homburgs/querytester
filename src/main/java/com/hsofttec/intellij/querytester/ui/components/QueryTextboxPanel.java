@@ -22,18 +22,23 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.utils;
+package com.hsofttec.intellij.querytester.ui.components;
 
-import com.hsofttec.intellij.querytester.services.ConnectionService;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.components.BorderLayoutPanel;
+import lombok.Getter;
 
-public class ConnectionTestTask implements Runnable {
-    private final static ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
-    public boolean useable = false;
+import java.awt.*;
 
-    @Override
-    public void run( ) {
-//        if (CONNECTION_SERVICE.isConnectionUsable(  )
+public class QueryTextboxPanel extends BorderLayoutPanel {
+    private final QueryTab queryTab;
+
+    @Getter
+    private NqlQueryTextbox queryTextbox;
+
+    public QueryTextboxPanel( QueryTab queryTab ) {
+        this.queryTab = queryTab;
+        queryTextbox = new NqlQueryTextbox( queryTab );
+        add( new JBScrollPane( queryTextbox ), BorderLayout.CENTER );
     }
-
-
 }

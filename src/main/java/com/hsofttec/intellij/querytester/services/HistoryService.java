@@ -1,3 +1,27 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the “Software”), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 package com.hsofttec.intellij.querytester.services;
 
 import com.hsofttec.intellij.querytester.listeners.HistoryModifiedEventListener;
@@ -22,43 +46,43 @@ import java.util.zip.Checksum;
         name = "QueryHistory",
         storages = { @Storage( "querytester.xml" ) }
 )
-public class HistorySettingsService implements PersistentStateComponent<HistorySettingsService.HistorySettingsState> {
+public class HistoryService implements PersistentStateComponent<HistoryService.HistoryState> {
 
     private static final SettingsState SETTINGS_STATE = SettingsService.getSettings( );
 
     private final Project project;
-    private HistorySettingsState historySettingsState = new HistorySettingsState( );
+    private HistoryState historyState = new HistoryState( );
 
-    public HistorySettingsService( Project project ) {
+    public HistoryService( Project project ) {
         this.project = project;
     }
 
     private static final List<HistoryModifiedEventListener> listeners = new ArrayList<>( );
 
-    public static HistorySettingsService getSettings( Project project ) {
-        return ServiceManager.getService( project, HistorySettingsService.class );
+    public static HistoryService getSettings( Project project ) {
+        return ServiceManager.getService( project, HistoryService.class );
     }
 
     @Override
-    public HistorySettingsService.HistorySettingsState getState( ) {
-        return historySettingsState;
+    public HistoryState getState( ) {
+        return historyState;
     }
 
     @Override
-    public void loadState( @NotNull HistorySettingsService.HistorySettingsState state ) {
-        XmlSerializerUtil.copyBean( state, this.historySettingsState );
+    public void loadState( @NotNull HistoryService.HistoryState state ) {
+        XmlSerializerUtil.copyBean( state, this.historyState );
     }
 
     public Dimension getDialogDimension( ) {
-        return historySettingsState.dialogDimension;
+        return historyState.dialogDimension;
     }
 
     public void setDialogDimension( Dimension dialogDimension ) {
-        historySettingsState.dialogDimension = dialogDimension;
+        historyState.dialogDimension = dialogDimension;
     }
 
     public List<String> getQueryList( ) {
-        return historySettingsState.historyList;
+        return historyState.historyList;
     }
 
     public void addListener( HistoryModifiedEventListener listener ) {
@@ -72,16 +96,16 @@ public class HistorySettingsService implements PersistentStateComponent<HistoryS
 
         nqlQuery = nqlQuery.replaceAll( "\\t\\n\\r", " " );
 
-        for ( String query : historySettingsState.historyList ) {
+        for ( String query : historyState.historyList ) {
             if ( query.equals( nqlQuery ) ) {
                 return;
             }
         }
 
-        if ( historySettingsState.historyList.size( ) >= SETTINGS_STATE.getMaxHistorySize( ) ) {
-            historySettingsState.historyList.remove( 0 );
+        if ( historyState.historyList.size( ) >= SETTINGS_STATE.getMaxHistorySize( ) ) {
+            historyState.historyList.remove( 0 );
         }
-        historySettingsState.historyList.add( nqlQuery );
+        historyState.historyList.add( nqlQuery );
 
         for ( HistoryModifiedEventListener listener : listeners ) {
             listener.notifyAdd( nqlQuery );
@@ -94,7 +118,7 @@ public class HistorySettingsService implements PersistentStateComponent<HistoryS
         return crc32.getValue( );
     }
 
-    public static class HistorySettingsState {
+    public static class HistoryState {
         public List<String> historyList = new ArrayList<>( );
         @OptionTag( converter = DimensionConverter.class )
         public Dimension dialogDimension = new Dimension( 200, 200 );

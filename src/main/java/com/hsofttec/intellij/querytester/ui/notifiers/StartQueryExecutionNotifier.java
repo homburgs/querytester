@@ -24,19 +24,11 @@
 
 package com.hsofttec.intellij.querytester.ui.notifiers;
 
-import com.hsofttec.intellij.querytester.QueryMode;
-import com.hsofttec.intellij.querytester.QueryType;
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import com.hsofttec.intellij.querytester.models.NscaleQueryInformation;
 import com.intellij.util.messages.Topic;
 
 public interface StartQueryExecutionNotifier {
     Topic<StartQueryExecutionNotifier> START_QUERY_EXECUTION_TOPIC = Topic.create( "start query execution", StartQueryExecutionNotifier.class );
 
-    void doAction( ConnectionSettings connectionSettings,
-                   QueryMode queryMode,
-                   String documentAreaName,
-                   String masterdataScope,
-                   String rootResourceId,
-                   String nqlQuery,
-                   QueryType queryType );
+    void doAction( NscaleQueryInformation queryInformation );
 }

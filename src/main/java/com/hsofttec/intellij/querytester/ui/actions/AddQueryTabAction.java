@@ -24,25 +24,22 @@
 
 package com.hsofttec.intellij.querytester.ui.actions;
 
-import com.hsofttec.intellij.querytester.ui.components.DocumentAreaSelect;
-import com.hsofttec.intellij.querytester.ui.components.QueryTabbedPane;
+import com.hsofttec.intellij.querytester.ui.QueryTester;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
 import org.jetbrains.annotations.NotNull;
 
 public class AddQueryTabAction extends DumbAwareAction {
-    private final QueryTabbedPane queryTabbedPane;
-    private final DocumentAreaSelect documentAreaSelect;
+    private final QueryTester queryTester;
 
-    public AddQueryTabAction( QueryTabbedPane queryTabbedPane, DocumentAreaSelect documentAreaSelect ) {
+    public AddQueryTabAction( QueryTester queryTester ) {
         super( "Add Query Tab", "Open a new query tab", AllIcons.Ide.Rating );
-        this.queryTabbedPane = queryTabbedPane;
-        this.documentAreaSelect = documentAreaSelect;
+        this.queryTester = queryTester;
     }
 
     @Override
     public void actionPerformed( @NotNull AnActionEvent anActionEvent ) {
-        queryTabbedPane.createQueryTab( ( String ) documentAreaSelect.getSelectedItem( ) );
+        queryTester.getQueryTabbedPane( ).createQueryTab( );
     }
 }

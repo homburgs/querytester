@@ -73,7 +73,7 @@
         <applicationService serviceImplementation="com.hsofttec.intellij.querytester.services.ConnectionSettingsService"/>
         <applicationService serviceImplementation="com.hsofttec.intellij.querytester.services.SettingsService"/>
         <projectService serviceImplementation="com.hsofttec.intellij.querytester.services.QueryService"/>
-        <projectService serviceImplementation="com.hsofttec.intellij.querytester.services.HistorySettingsService"/>
+        <projectService serviceImplementation="com.hsofttec.intellij.querytester.services.HistoryService"/>
 
         <notificationGroup displayType="BALLOON" id="QueryTester" isLogByDefault="true" toolWindowId="QueryTester"/>
 

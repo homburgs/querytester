@@ -24,24 +24,24 @@
 
 package com.hsofttec.intellij.querytester.ui.actions;
 
+import com.hsofttec.intellij.querytester.ui.QueryTester;
 import com.hsofttec.intellij.querytester.ui.notifiers.PrepareQueryExecutionNotifier;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.DumbAwareAction;
-import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
 public class ExecuteActiveQueryAction extends DumbAwareAction {
-    private final Project project;
+    private final QueryTester queryTester;
 
-    public ExecuteActiveQueryAction( Project project ) {
+    public ExecuteActiveQueryAction( QueryTester queryTester ) {
         super( "Execute Active Query", "The active query execution", AllIcons.RunConfigurations.TestState.Run );
-        this.project = project;
+        this.queryTester = queryTester;
     }
 
     @Override
     public void actionPerformed( @NotNull AnActionEvent anActionEvent ) {
-        PrepareQueryExecutionNotifier notifier = project.getMessageBus( ).syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
+        PrepareQueryExecutionNotifier notifier = queryTester.getProject( ).getMessageBus( ).syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
         notifier.doAction( );
     }
 }

@@ -43,10 +43,12 @@ public class DocumentAreaSelect extends ComboBox<String> implements ItemListener
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
 
     private final Project project;
+    private final QueryTab owner;
     private final List<String> docAreaNames = new ArrayList<>( );
 
-    public DocumentAreaSelect( Project project ) {
-        this.project = project;
+    public DocumentAreaSelect( QueryTab owner ) {
+        this.project = owner.getQueryTester( ).getProject( );
+        this.owner = owner;
         setModel( new CollectionComboBoxModel<>( docAreaNames ) );
         addItemListener( this );
     }

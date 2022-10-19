@@ -344,4 +344,12 @@ public class ConnectionService {
         return thread;
     }
 
+    public String getApplicationLayerVersion( ) {
+        Session localSession = getSession( );
+        String serverVersion = null;
+        if ( localSession != null ) {
+            serverVersion = localSession.getServerVersion( );
+        }
+        return serverVersion;
+    }
 }

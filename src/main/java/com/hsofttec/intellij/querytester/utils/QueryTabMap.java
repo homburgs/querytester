@@ -24,16 +24,14 @@
 
 package com.hsofttec.intellij.querytester.utils;
 
+import com.hsofttec.intellij.querytester.ui.components.QueryTab;
+
 import java.util.HashMap;
 
 public class QueryTabMap extends HashMap<Integer, QueryTab> {
-    private int activeQueryTabId = 0;
-
     @Override
     public QueryTab put( Integer key, QueryTab value ) {
         QueryTab addedQueryTab = super.put( key, value );
-
-
         return addedQueryTab;
     }
 }

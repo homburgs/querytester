@@ -50,9 +50,11 @@ public class ConnectionSelect extends ComboBox<ConnectionSettings> implements It
     private final Project project;
     private final MessageBus messageBus;
     private final List<ConnectionSettings> connections = new ArrayList<>( );
+    private final QueryTab owner;
 
-    public ConnectionSelect( Project project ) {
-        this.project = project;
+    public ConnectionSelect( QueryTab owner ) {
+        this.owner = owner;
+        this.project = owner.getQueryTester( ).getProject( );
         messageBus = project.getMessageBus( );
         this.addItemListener( this );
         setModel( new CollectionComboBoxModel<>( connections ) );
@@ -72,7 +74,6 @@ public class ConnectionSelect extends ComboBox<ConnectionSettings> implements It
                 checkOnlineState( settings );
             }
         }
-
     }
 
     @Override

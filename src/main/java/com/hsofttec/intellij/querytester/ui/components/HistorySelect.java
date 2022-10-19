@@ -33,9 +33,11 @@ import java.awt.event.ItemListener;
 
 public class HistorySelect extends ComboBox<String> implements ItemListener {
     private final Project project;
+    private final QueryTab owner;
 
-    public HistorySelect( Project project ) {
-        this.project = project;
+    public HistorySelect( QueryTab owner ) {
+        this.owner = owner;
+        this.project = owner.getQueryTester( ).getProject( );
         setRenderer( new ComboBoxToolTipRenderer( ) );
     }
 

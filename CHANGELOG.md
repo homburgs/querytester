@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.3.0] - 2022-10-31
+
+### Added
+
+- add shortcuts for increment the colum size
+
+### Changed
+
+- stabilize plugin
+- every query, query-settings and query-options run in his own context
+
+### Fixed
+
+- use scope area name instead of scope displayname
+
+### Security
+
 ## [1.2.0] - 2022-10-08
 
 ### Added
@@ -37,5 +54,7 @@
 - ui redesign
 
 ## [1.0.0] - 2022-09-20
+
 ### Added
+
 - first release

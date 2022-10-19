@@ -26,6 +26,7 @@ package com.hsofttec.intellij.querytester.ui.components;
 
 import com.ceyoniq.nscale.al.core.Session;
 import com.ceyoniq.nscale.al.core.cfg.MasterdataScope;
+import com.hsofttec.intellij.querytester.renderer.MasterdataListCellRenderer;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
@@ -33,17 +34,17 @@ import com.intellij.ui.CollectionComboBoxModel;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class MasterdataScopeSelect extends ComboBox<String> {
+public class MasterdataScopeSelect extends ComboBox<MasterdataScope> {
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
 
-    private final List<String> scopes = new ArrayList<>( );
+    private final List<MasterdataScope> scopes = new ArrayList<>( );
     private final Project project;
 
     public MasterdataScopeSelect( Project project ) {
         this.project = project;
         setModel( new CollectionComboBoxModel<>( scopes ) );
+        setRenderer( new MasterdataListCellRenderer( ) );
     }
 
     public void reloadMasterdataScopes( String documentArea ) {
@@ -52,7 +53,7 @@ public class MasterdataScopeSelect extends ComboBox<String> {
         setSelectedIndex( -1 );
         if ( session != null ) {
             List<MasterdataScope> masterdataScopes = session.getConfigurationService( ).getMasterdataScopes( documentArea );
-            scopes.addAll( masterdataScopes.stream( ).map( MasterdataScope::getDisplayNameId ).collect( Collectors.toList( ) ) );
+            scopes.addAll( masterdataScopes );
             if ( !scopes.isEmpty( ) ) {
                 setSelectedIndex( 0 );
             }

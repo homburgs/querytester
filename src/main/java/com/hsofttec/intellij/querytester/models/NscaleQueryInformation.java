@@ -22,31 +22,20 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.ui;
+package com.hsofttec.intellij.querytester.models;
 
-import com.google.common.eventbus.EventBus;
-import com.intellij.openapi.project.ProjectManager;
+import com.hsofttec.intellij.querytester.QueryMode;
+import com.hsofttec.intellij.querytester.QueryType;
+import lombok.Data;
 
-public class EventBusFactory {
-    private static EventBusFactory instance = null;
-    private static final ProjectManager projectManager = ProjectManager.getInstance( );
-
-    private final EventBus eventBus;
-
-    private EventBusFactory( ) {
-        eventBus = new EventBus( );
-    }
-
-    public static EventBusFactory getInstance( ) {
-        if ( instance == null ) {
-            synchronized ( EventBusFactory.class ) {
-                instance = new EventBusFactory( );
-            }
-        }
-        return instance;
-    }
-
-    public EventBus get( ) {
-        return eventBus;
-    }
+@Data
+public class NscaleQueryInformation {
+    private ConnectionSettings connectionSettings;
+    private String documentAreaName;
+    private String nqlQuery;
+    private String repositoryRoot;
+    private String masterdataScope;
+    private QueryMode queryMode;
+    private QueryType queryType;
+    private int totalSelectedItems;
 }

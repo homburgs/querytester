@@ -36,10 +36,8 @@ import com.ceyoniq.nscale.al.core.masterdata.MasterdataResults;
 import com.ceyoniq.nscale.al.core.repository.ResourceKey;
 import com.ceyoniq.nscale.al.core.repository.ResourceResultTable;
 import com.ceyoniq.nscale.al.core.repository.ResourceResults;
-import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
-import com.hsofttec.intellij.querytester.QueryType;
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import com.hsofttec.intellij.querytester.models.NscaleQueryInformation;
 import com.hsofttec.intellij.querytester.models.NscaleResult;
 import com.hsofttec.intellij.querytester.models.SettingsState;
 import com.hsofttec.intellij.querytester.ui.Notifier;
@@ -56,28 +54,23 @@ public class QueryService {
     private static final ConnectionService connectionService = ConnectionService.getInstance( );
     private static final SettingsState SETTINGS = SettingsService.getSettings( );
 
-    public NscaleResult proccessQuery( ConnectionSettings configuration,
-                                       QueryMode queryMode,
-                                       String documentAreaName,
-                                       String masterdataScope,
-                                       String repositoryRoot,
-                                       String nqlQuery,
-                                       QueryType queryType ) {
+    public NscaleResult proccessQuery( NscaleQueryInformation queryInformation,
+                                       int pageNumber ) {
         NscaleResult nscaleResult = null;
 
-        if ( StringUtils.isBlank( nqlQuery ) ) {
+        if ( queryInformation == null || StringUtils.isBlank( queryInformation.getNqlQuery( ) ) ) {
             Notifier.warning( "query is blank, query execution stopped" );
             return null;
         }
 
         try {
 
-            switch ( queryMode ) {
+            switch ( queryInformation.getQueryMode( ) ) {
                 case REPOSITORY:
-                    nscaleResult = proccessRepositoryQuery( documentAreaName, repositoryRoot, nqlQuery, queryType );
+                    nscaleResult = proccessRepositoryQuery( queryInformation, pageNumber );
                     break;
                 case MASTERDATA:
-                    nscaleResult = proccessMasterdatQuery( documentAreaName, masterdataScope, nqlQuery );
+                    nscaleResult = proccessMasterdatQuery( queryInformation, pageNumber );
                     break;
             }
 
@@ -87,13 +80,15 @@ public class QueryService {
         }
     }
 
-    private NscaleResult proccessMasterdatQuery( String documentAreaName, String masterdataScope, String nqlQuery ) throws IllegalAccessException, InstantiationException {
+    private NscaleResult proccessMasterdatQuery( NscaleQueryInformation queryInformation, int pageNumber ) throws IllegalAccessException, InstantiationException {
         try {
             Session session = connectionService.getSession( );
             MasterdataService masterdataService = session.getMasterdataService( );
             List<DynaBean> dynaBeans = new ArrayList<>( );
 
-            MasterdataResults masterdataResults = masterdataService.search( masterdataScope, documentAreaName, prepareQuery( nqlQuery ) );
+            MasterdataResults masterdataResults = masterdataService.search( queryInformation.getMasterdataScope( ),
+                    queryInformation.getDocumentAreaName( ),
+                    prepareQuery( queryInformation.getNqlQuery( ), pageNumber ) );
             BasicDynaClass dynaClass = createDynaClass( masterdataResults.getResultTable( ).getPropertyNames( ) );
 
             int counter = 0;
@@ -110,50 +105,55 @@ public class QueryService {
                 dynaBeans.add( dynaBean );
             }
 
-            return new NscaleResult( dynaClass, dynaBeans );
+            return new NscaleResult( dynaClass, dynaBeans, masterdataResults.getResultCount( ) );
         } catch ( ServerException | IllegalAccessException | InstantiationException exception ) {
             Notifier.error( String.format( "%s: %s", exception.getClass( ).getSimpleName( ), exception.getLocalizedMessage( ) ) );
             return null;
         }
     }
 
-    private NscaleResult proccessRepositoryQuery( String documentAreaName, String repositoryRoot, String nqlQuery, QueryType queryType ) throws IllegalAccessException, InstantiationException {
+    private NscaleResult proccessRepositoryQuery( NscaleQueryInformation queryInformation, int pageNumber ) throws IllegalAccessException, InstantiationException {
         Session session = connectionService.getSession( );
         RepositoryService repositoryService = session.getRepositoryService( );
         ResourceKey rootFolder;
         List<DynaBean> dynaBeans = new ArrayList<>( );
+        int itemsTotal = 0;
 
-        if ( StringUtils.isBlank( repositoryRoot ) ) {
-            rootFolder = repositoryService.getRootFolder( documentAreaName );
+        if ( StringUtils.isBlank( queryInformation.getRepositoryRoot( ) ) ) {
+            rootFolder = repositoryService.getRootFolder( queryInformation.getDocumentAreaName( ) );
         } else {
             try {
-                rootFolder = new ResourceKey( repositoryRoot );
+                rootFolder = new ResourceKey( queryInformation.getRepositoryRoot( ) );
             } catch ( Exception e ) {
-                Notifier.error( String.format( "parent resource id '%s': %s", repositoryRoot, e.getLocalizedMessage( ) ) );
+                Notifier.error( String.format( "parent resource id '%s': %s", queryInformation.getRepositoryRoot( ), e.getLocalizedMessage( ) ) );
                 return null;
             }
             if ( !repositoryService.exists( rootFolder ) ) {
-                Notifier.error( String.format( "parent resource id '%s' not exists", repositoryRoot ) );
+                Notifier.error( String.format( "parent resource id '%s' not exists", queryInformation.getRepositoryRoot( ) ) );
                 return null;
             }
         }
 
         ResultTable resultTable = null;
         try {
-            switch ( queryType ) {
+            switch ( queryInformation.getQueryType( ) ) {
                 case DEFAULT:
-                    ResourceResults results = repositoryService.search( rootFolder, prepareQuery( nqlQuery ) );
+                    ResourceResults results = repositoryService.search( rootFolder, prepareQuery( queryInformation.getNqlQuery( ), pageNumber ) );
+                    itemsTotal = results.getResultCount( );
                     resultTable = results.getResultTable( );
                     break;
                 case AGGREGATE:
-                    resultTable = repositoryService.searchAggregate( rootFolder, prepareQuery( nqlQuery ) );
+                    resultTable = repositoryService.searchAggregate( rootFolder, prepareQuery( queryInformation.getNqlQuery( ), pageNumber ) );
+                    itemsTotal = resultTable.getRowCount( );
                     break;
                 case VERSION:
-                    ResourceResults versionResult = repositoryService.searchVersions( rootFolder, prepareQuery( nqlQuery ) );
+                    ResourceResults versionResult = repositoryService.searchVersions( rootFolder, prepareQuery( queryInformation.getNqlQuery( ), pageNumber ) );
                     resultTable = versionResult.getResultTable( );
+                    itemsTotal = versionResult.getResultCount( );
                     break;
                 case AGGREGATE_AND_VERSION:
-                    resultTable = repositoryService.searchVersionsAggregate( rootFolder, prepareQuery( nqlQuery ) );
+                    resultTable = repositoryService.searchVersionsAggregate( rootFolder, prepareQuery( queryInformation.getNqlQuery( ), pageNumber ) );
+                    itemsTotal = resultTable.getRowCount( );
                     break;
             }
         } catch ( ServerException serverException ) {
@@ -183,7 +183,7 @@ public class QueryService {
             dynaBeans.add( dynaBean );
         }
 
-        return new NscaleResult( dynaClass, dynaBeans );
+        return new NscaleResult( dynaClass, dynaBeans, itemsTotal );
     }
 
     /**
@@ -191,10 +191,14 @@ public class QueryService {
      *
      * @param nqlQuery query
      */
-    private String prepareQuery( String nqlQuery ) {
+    private String prepareQuery( String nqlQuery, int pageNumber ) {
+        if ( !nqlQuery.contains( "count" ) ) {
+            nqlQuery = String.format( "%s count", nqlQuery );
+        }
+
         if ( SETTINGS.getMaxResultSize( ) > 0 ) {
             if ( !nqlQuery.contains( "paging" ) ) {
-                String pagingString = String.format( " paging(number=1, size=%d) ", SETTINGS.getMaxResultSize( ) );
+                String pagingString = String.format( " paging(number=%d, size=%d) ", pageNumber, SETTINGS.getMaxResultSize( ) );
                 int lastIndexOfScope = nqlQuery.lastIndexOf( "scope" );
                 StringBuilder builder = new StringBuilder( nqlQuery );
                 if ( lastIndexOfScope > -1 ) {

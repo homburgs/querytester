@@ -22,11 +22,24 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.ui.notifiers;
+package com.hsofttec.intellij.querytester.renderer;
 
-import com.intellij.util.messages.Topic;
+import com.ceyoniq.nscale.al.core.cfg.MasterdataScope;
 
-public interface IncrementTableHeaderWidthNotifier {
-    Topic<IncrementTableHeaderWidthNotifier> INCREMENT_TABLE_HEADER_WIDTH_TOPIC = Topic.create( "increment table header width", IncrementTableHeaderWidthNotifier.class );
-    void doAction( );
+import javax.swing.*;
+import java.awt.*;
+
+public class MasterdataListCellRenderer extends DefaultListCellRenderer {
+    @Override
+    public Component getListCellRendererComponent( JList<?> list,
+                                                   Object value,
+                                                   int index,
+                                                   boolean isSelected,
+                                                   boolean cellHasFocus ) {
+        if ( value != null ) {
+            MasterdataScope masterdataScope = ( MasterdataScope ) value;
+            value = masterdataScope.getDisplayNameId( );
+        }
+        return super.getListCellRendererComponent( list, value, index, isSelected, cellHasFocus );
+    }
 }
