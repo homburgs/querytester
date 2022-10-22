@@ -24,27 +24,22 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import com.hsofttec.intellij.querytester.QueryTesterConstants;
-import com.hsofttec.intellij.querytester.models.BaseResource;
 import com.hsofttec.intellij.querytester.models.SettingsState;
 import com.hsofttec.intellij.querytester.renderer.DynaPropertyTableCellRenderer;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.SettingsService;
 import com.hsofttec.intellij.querytester.ui.QueryTester;
-import com.hsofttec.intellij.querytester.ui.notifiers.PrepareQueryExecutionNotifier;
 import com.intellij.ui.table.JBTable;
-import org.apache.commons.beanutils.BasicDynaBean;
+import org.apache.commons.beanutils.DynaBean;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.*;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -65,35 +60,6 @@ public class NscaleTable extends JBTable {
         contextMenu = new ResultTableContextMenu( queryTester );
         setComponentPopupMenu( contextMenu );
 
-        contextMenu.setSelectParentFolderListener( new AbstractAction( ) {
-            @Override
-            public void actionPerformed( ActionEvent actionEvent ) {
-                QueryTab queryTab = queryTester.getQueryTabbedPane( ).getActiveQueryTab( );
-                if ( queryTab != null ) {
-                    BasicDynaBean basicDynaBean = ( BasicDynaBean ) getValueAt( getSelectedRow( ), getSelectedColumn( ) );
-                    String parentResourceId = ( String ) basicDynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY );
-                    queryTab.getQueryOptionsTabbedPane( ).getInputRepositoryRoot( ).setText( parentResourceId );
-                    PrepareQueryExecutionNotifier notifier = queryTester.getProject( ).getMessageBus( ).syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
-                    notifier.doAction( );
-                }
-            }
-        } );
-
-        contextMenu.setSearchFromParentFolderListener( new AbstractAction( ) {
-            @Override
-            public void actionPerformed( ActionEvent actionEvent ) {
-                QueryTab queryTab = queryTester.getQueryTabbedPane( ).getActiveQueryTab( );
-                if ( queryTab != null ) {
-                    BasicDynaBean basicDynaBean = ( BasicDynaBean ) getValueAt( getSelectedRow( ), getSelectedColumn( ) );
-                    String resourceId = ( String ) basicDynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY );
-                    BaseResource baseResource = connectionService.getBaseResource( resourceId );
-                    queryTab.getQueryOptionsTabbedPane( ).getInputRepositoryRoot( ).setText( baseResource.getParentresourceid( ) );
-                    PrepareQueryExecutionNotifier notifier = queryTester.getProject( ).getMessageBus( ).syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
-                    notifier.doAction( );
-                }
-            }
-        } );
-
         addMouseListener( new MouseAdapter( ) {
             @Override
             public void mousePressed( MouseEvent mouseEvent ) {
@@ -112,9 +78,9 @@ public class NscaleTable extends JBTable {
                 }
                 if ( currentCol != -1 ) {
                     if ( mouseEvent.getClickCount( ) == 2 ) {
-//                        DynaBean selectedRowValue = ( DynaBean ) getValueAt( currentRow, currentCol );
-//                        Object headerValue = getColumnModel( ).getColumn( currentCol ).getHeaderValue( );
-//                        ModifyResourceDialog modifyResourceDialog = new ModifyResourceDialog( project );
+                        DynaBean selectedRowValue = ( DynaBean ) getValueAt( currentRow, currentCol );
+                        Object headerValue = getColumnModel( ).getColumn( currentCol ).getHeaderValue( );
+//                        ModifyResourceDialog modifyResourceDialog = new ModifyResourceDialog( queryTester );
 //                        modifyResourceDialog.setData( selectedRowValue, ( String ) headerValue );
 //                        if ( modifyResourceDialog.showAndGet( ) ) {
 //
@@ -156,6 +122,9 @@ public class NscaleTable extends JBTable {
         }
     }
 
+    /**
+     * increments every table column width except line no column.
+     */
     public void incrementHeaderWidth( ) {
         TableColumnModel columns = this.getColumnModel( );
         for ( int col = 0; col < columns.getColumnCount( ); col++ ) {

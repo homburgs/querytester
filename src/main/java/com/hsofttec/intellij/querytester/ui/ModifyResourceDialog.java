@@ -34,7 +34,6 @@ import com.hsofttec.intellij.querytester.QueryTesterConstants;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.ui.components.ModifyResourceComponent;
 import com.hsofttec.intellij.querytester.ui.components.ObjectclassSelect;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.components.JBTextField;
@@ -49,13 +48,13 @@ import java.util.Date;
 
 public class ModifyResourceDialog extends DialogWrapper {
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
+    private final QueryTester queryTester;
 
-    private final Project project;
     private ModifyResourceComponent dlgComponent = null;
 
-    public ModifyResourceDialog( Project project ) {
-        super( project, true );
-        this.project = project;
+    public ModifyResourceDialog( QueryTester queryTester ) {
+        super( queryTester.getProject( ), true );
+        this.queryTester = queryTester;
         setModal( true );
         setHorizontalStretch( 2 );
         init( );
@@ -81,26 +80,33 @@ public class ModifyResourceDialog extends DialogWrapper {
     public void setData( DynaBean dynaBean, String propertyName ) {
         JComponent inputField = null;
         Object value = dynaBean.get( propertyName );
+        Class<?> clasz = getMasterdataDefinition( propertyName );
         dlgComponent.getFieldLabel( ).setText( propertyName );
-        if ( value instanceof DateTime ) {
+        if ( DateTime.class.equals( clasz ) ) {
             DatePickerSettings datePickerSettings = new DatePickerSettings( );
             datePickerSettings.setFirstDayOfWeek( DayOfWeek.MONDAY );
             TimePickerSettings timePickerSettings = new TimePickerSettings( );
             inputField = new DateTimePicker( datePickerSettings, timePickerSettings );
             ( ( DateTimePicker ) inputField ).setDateTimePermissive( LocalDateTime.now( ) );
-        } else if ( value instanceof Date ) {
+        } else if ( Date.class.equals( clasz ) ) {
             DatePickerSettings datePickerSettings = new DatePickerSettings( );
             datePickerSettings.setFirstDayOfWeek( DayOfWeek.MONDAY );
             inputField = new DatePicker( datePickerSettings );
             ( ( DatePicker ) inputField ).setDateToToday( );
-        } else if ( value instanceof String || value instanceof Long || value instanceof Integer ) {
+        } else if ( String.class.equals( clasz ) || Long.class.equals( clasz ) || Integer.class.equals( clasz ) ) {
             inputField = new JBTextField( String.valueOf( value ) );
         } else if ( value instanceof ObjectclassName ) {
-            inputField = new ObjectclassSelect( project, ( ResourceKey ) dynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY ) );
+            inputField = new ObjectclassSelect( queryTester.getProject( ), ( ResourceKey ) dynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY ) );
             ( ( ObjectclassSelect ) inputField ).setSelectedItem( value );
         } else if ( value instanceof Boolean ) {
             inputField = new JCheckBox( "true/false", ( Boolean ) value );
         }
         dlgComponent.setInputField( inputField );
+    }
+
+    private Class getMasterdataDefinition( String propertyName ) {
+        String documentAreaName = queryTester.getActiveQueryTab( ).getQueryInformation( ).getDocumentAreaName( );
+        String masterdataScope = queryTester.getActiveQueryTab( ).getQueryInformation( ).getMasterdataScope( );
+        return CONNECTION_SERVICE.getMasterdataDefinition( documentAreaName, masterdataScope, propertyName );
     }
 }

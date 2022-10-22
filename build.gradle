@@ -63,9 +63,6 @@ dependencies {
     implementation("com.ceyoniq.nscale.applicationlayer:al-advanced-connector:8.2.1100") {
         exclude group: "org.slf4j"
     }
-    implementation("com.ceyoniq.nscale.applicationlayer:al-core:8.2.1100") {
-        transitive = false
-    }
 
     compileOnly 'org.projectlombok:lombok:1.18.24'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'

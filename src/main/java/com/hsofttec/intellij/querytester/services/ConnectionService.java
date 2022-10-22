@@ -29,6 +29,10 @@ import com.ceyoniq.nscale.al.core.Principal;
 import com.ceyoniq.nscale.al.core.Session;
 import com.ceyoniq.nscale.al.core.cfg.FolderObjectclass;
 import com.ceyoniq.nscale.al.core.cfg.IndexingPropertyName;
+import com.ceyoniq.nscale.al.core.cfg.MasterdataPropertyDefinition;
+import com.ceyoniq.nscale.al.core.cfg.MasterdataPropertyName;
+import com.ceyoniq.nscale.al.core.cfg.type.BlobType;
+import com.ceyoniq.nscale.al.core.cfg.type.PropertyType;
 import com.ceyoniq.nscale.al.core.common.ObjectclassName;
 import com.ceyoniq.nscale.al.core.common.Property;
 import com.ceyoniq.nscale.al.core.common.PropertyName;
@@ -40,6 +44,7 @@ import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.ui.Notifier;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,6 +58,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class ConnectionService {
@@ -351,5 +357,33 @@ public class ConnectionService {
             serverVersion = localSession.getServerVersion( );
         }
         return serverVersion;
+    }
+
+    public Class getMasterdataDefinition( String documentAreaName, String masterdataScope, String propertyName ) {
+        Session localSession = getSession( );
+        Class<?> clasz = null;
+        if ( localSession != null ) {
+            MasterdataPropertyName mdPropertyName = new MasterdataPropertyName( propertyName, masterdataScope, documentAreaName );
+            MasterdataPropertyDefinition masterdataPropertyDefinition = localSession.getConfigurationService( ).getMasterdataPropertyDefinition( mdPropertyName );
+            PropertyType type = masterdataPropertyDefinition.getType( );
+            if ( type.isDateType( ) ) {
+                clasz = Date.class;
+            } else if ( type.isStringType( ) ) {
+                clasz = String.class;
+            } else if ( type.isDoubleType( ) ) {
+                clasz = Double.class;
+            } else if ( type.isLongType( ) ) {
+                clasz = Long.class;
+            } else if ( type.isIntegerType( ) ) {
+                clasz = Integer.class;
+            } else if ( type.isBooleanType( ) ) {
+                clasz = Boolean.class;
+            } else if ( type.isTimestampType( ) ) {
+                clasz = DateTime.class;
+            } else if ( type.isBlobType( ) ) {
+                clasz = BlobType.class;
+            }
+        }
+        return clasz;
     }
 }

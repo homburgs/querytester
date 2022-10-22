@@ -26,6 +26,7 @@ package com.hsofttec.intellij.querytester.ui.components;
 
 import com.ceyoniq.nscale.al.core.repository.ResourceKey;
 import com.ceyoniq.nscale.al.core.repository.ResourceType;
+import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
 import com.hsofttec.intellij.querytester.models.BaseResource;
 import com.hsofttec.intellij.querytester.models.ResourceDialogModel;
@@ -85,9 +86,30 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
 
         selectParentFolderId = new JBMenuItem( "Search From Here" );
         selectParentFolderId.setEnabled( false );
+        selectParentFolderId.addActionListener( actionEvent -> {
+            QueryTab queryTab = queryTester.getQueryTabbedPane( ).getActiveQueryTab( );
+            if ( queryTab != null ) {
+                BasicDynaBean basicDynaBean = ( BasicDynaBean ) queryTab.getQueryResultTable( ).getValueAt( queryTab.getQueryResultTable( ).getSelectedRow( ), queryTab.getQueryResultTable( ).getSelectedColumn( ) );
+                String parentResourceId = ( String ) basicDynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY );
+                queryTab.getQueryOptionsTabbedPane( ).getInputRepositoryRoot( ).setText( parentResourceId );
+                PrepareQueryExecutionNotifier notifier = queryTester.getProject( ).getMessageBus( ).syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
+                notifier.doAction( );
+            }
+        } );
 
         searchParentMenuItem = new JBMenuItem( "Search Parent" );
         searchParentMenuItem.setEnabled( true );
+        searchParentMenuItem.addActionListener( actionEvent -> {
+            QueryTab queryTab = queryTester.getQueryTabbedPane( ).getActiveQueryTab( );
+            if ( queryTab != null ) {
+                BasicDynaBean basicDynaBean = ( BasicDynaBean ) queryTab.getQueryResultTable( ).getValueAt( queryTab.getQueryResultTable( ).getSelectedRow( ), queryTab.getQueryResultTable( ).getSelectedColumn( ) );
+                String resourceId = ( String ) basicDynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY );
+                BaseResource baseResource = CONNECTION_SERVICE.getBaseResource( resourceId );
+                queryTab.getQueryOptionsTabbedPane( ).getInputRepositoryRoot( ).setText( baseResource.getParentresourceid( ) );
+                PrepareQueryExecutionNotifier notifier = queryTester.getProject( ).getMessageBus( ).syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
+                notifier.doAction( );
+            }
+        } );
 
         showPathMenuItem = new JBMenuItem( "Show Path" );
         showPathMenuItem.addActionListener( actionEvent -> {
@@ -201,20 +223,12 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         } );
     }
 
-    public void setSelectParentFolderListener( Action action ) {
-        selectParentFolderId.addActionListener( action );
-    }
-
-    public void setSearchFromParentFolderListener( Action action ) {
-        searchParentMenuItem.addActionListener( action );
-    }
-
     /**
      * disable all menu items
      */
     private void disableAllMenuItems( ) {
         selectParentFolderId.setEnabled( false );
-        searchParentMenuItem.setEnabled( true );
+        searchParentMenuItem.setEnabled( false );
         showPathMenuItem.setEnabled( false );
         showContentMenuItem.setEnabled( false );
         lockMenuItem.setEnabled( false );
@@ -252,23 +266,25 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         // if resource id found, enable some menu items
         if ( basicDynaBean != null ) {
             selectedResourceId = ( String ) basicDynaBean.get( QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY );
-            BaseResource baseResource = CONNECTION_SERVICE.getBaseResource( selectedResourceId );
-            if ( !baseResource.isLocked( ) ) {
-                lockMenuItem.setEnabled( true );
-                unlockMenuItem.setEnabled( false );
-            } else {
-                lockMenuItem.setEnabled( false );
-                unlockMenuItem.setEnabled( true );
-            }
+            QueryMode queryMode = queryTester.getActiveQueryTab( ).getQueryInformation( ).getQueryMode( );
+            if ( queryMode == QueryMode.REPOSITORY ) {
+                BaseResource baseResource = CONNECTION_SERVICE.getBaseResource( selectedResourceId );
+                if ( !baseResource.isLocked( ) ) {
+                    lockMenuItem.setEnabled( true );
+                    unlockMenuItem.setEnabled( false );
+                } else {
+                    lockMenuItem.setEnabled( false );
+                    unlockMenuItem.setEnabled( true );
+                }
 
-            if ( baseResource.getResourcetype( ) == ResourceType.FOLDER.getId( ) ) {
-                addFolderMenuItem.setEnabled( true );
-                addDocumentMenuItem.setEnabled( true );
-                addLinkMenuItem.setEnabled( true );
+                if ( baseResource.getResourcetype( ) == ResourceType.FOLDER.getId( ) ) {
+                    addFolderMenuItem.setEnabled( true );
+                    addDocumentMenuItem.setEnabled( true );
+                    addLinkMenuItem.setEnabled( true );
+                }
+                showPathMenuItem.setEnabled( true );
+                selectParentFolderId.setEnabled( baseResource.getResourcetype( ) == ResourceType.FOLDER.getId( ) );
             }
-
-            showPathMenuItem.setEnabled( true );
-            selectParentFolderId.setEnabled( baseResource.getResourcetype( ) == ResourceType.FOLDER.getId( ) );
         }
     }
 

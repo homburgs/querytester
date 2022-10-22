@@ -36,6 +36,7 @@ import com.ceyoniq.nscale.al.core.masterdata.MasterdataResults;
 import com.ceyoniq.nscale.al.core.repository.ResourceKey;
 import com.ceyoniq.nscale.al.core.repository.ResourceResultTable;
 import com.ceyoniq.nscale.al.core.repository.ResourceResults;
+import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
 import com.hsofttec.intellij.querytester.models.NscaleQueryInformation;
 import com.hsofttec.intellij.querytester.models.NscaleResult;
@@ -45,17 +46,19 @@ import org.apache.commons.beanutils.BasicDynaClass;
 import org.apache.commons.beanutils.DynaBean;
 import org.apache.commons.beanutils.DynaProperty;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class QueryService {
+    private static final Logger logger = LoggerFactory.getLogger( ConnectionService.class );
     private static final ConnectionService connectionService = ConnectionService.getInstance( );
     private static final SettingsState SETTINGS = SettingsService.getSettings( );
 
-    public NscaleResult proccessQuery( NscaleQueryInformation queryInformation,
-                                       int pageNumber ) {
+    public NscaleResult proccessQuery( NscaleQueryInformation queryInformation, int pageNumber ) {
         NscaleResult nscaleResult = null;
 
         if ( queryInformation == null || StringUtils.isBlank( queryInformation.getNqlQuery( ) ) ) {
@@ -80,6 +83,13 @@ public class QueryService {
         }
     }
 
+    /**
+     * processing a masterdata query
+     *
+     * @param queryInformation query information
+     * @param pageNumber       page number to get
+     * @return result set
+     */
     private NscaleResult proccessMasterdatQuery( NscaleQueryInformation queryInformation, int pageNumber ) throws IllegalAccessException, InstantiationException {
         try {
             Session session = connectionService.getSession( );
@@ -88,7 +98,7 @@ public class QueryService {
 
             MasterdataResults masterdataResults = masterdataService.search( queryInformation.getMasterdataScope( ),
                     queryInformation.getDocumentAreaName( ),
-                    prepareQuery( queryInformation.getNqlQuery( ), pageNumber ) );
+                    prepareQuery( queryInformation.getNqlQuery( ), pageNumber, queryInformation.getQueryMode( ) ) );
             BasicDynaClass dynaClass = createDynaClass( masterdataResults.getResultTable( ).getPropertyNames( ) );
 
             int counter = 0;
@@ -112,6 +122,13 @@ public class QueryService {
         }
     }
 
+    /**
+     * processing a repository query
+     *
+     * @param queryInformation query information
+     * @param pageNumber       page number to get
+     * @return result set
+     */
     private NscaleResult proccessRepositoryQuery( NscaleQueryInformation queryInformation, int pageNumber ) throws IllegalAccessException, InstantiationException {
         Session session = connectionService.getSession( );
         RepositoryService repositoryService = session.getRepositoryService( );
@@ -138,21 +155,21 @@ public class QueryService {
         try {
             switch ( queryInformation.getQueryType( ) ) {
                 case DEFAULT:
-                    ResourceResults results = repositoryService.search( rootFolder, prepareQuery( queryInformation.getNqlQuery( ), pageNumber ) );
+                    ResourceResults results = repositoryService.search( rootFolder, prepareQuery( queryInformation.getNqlQuery( ), pageNumber, queryInformation.getQueryMode( ) ) );
                     itemsTotal = results.getResultCount( );
                     resultTable = results.getResultTable( );
                     break;
                 case AGGREGATE:
-                    resultTable = repositoryService.searchAggregate( rootFolder, prepareQuery( queryInformation.getNqlQuery( ), pageNumber ) );
+                    resultTable = repositoryService.searchAggregate( rootFolder, prepareQuery( queryInformation.getNqlQuery( ), pageNumber, queryInformation.getQueryMode( ) ) );
                     itemsTotal = resultTable.getRowCount( );
                     break;
                 case VERSION:
-                    ResourceResults versionResult = repositoryService.searchVersions( rootFolder, prepareQuery( queryInformation.getNqlQuery( ), pageNumber ) );
+                    ResourceResults versionResult = repositoryService.searchVersions( rootFolder, prepareQuery( queryInformation.getNqlQuery( ), pageNumber, queryInformation.getQueryMode( ) ) );
                     resultTable = versionResult.getResultTable( );
                     itemsTotal = versionResult.getResultCount( );
                     break;
                 case AGGREGATE_AND_VERSION:
-                    resultTable = repositoryService.searchVersionsAggregate( rootFolder, prepareQuery( queryInformation.getNqlQuery( ), pageNumber ) );
+                    resultTable = repositoryService.searchVersionsAggregate( rootFolder, prepareQuery( queryInformation.getNqlQuery( ), pageNumber, queryInformation.getQueryMode( ) ) );
                     itemsTotal = resultTable.getRowCount( );
                     break;
             }
@@ -187,14 +204,13 @@ public class QueryService {
     }
 
     /**
-     * insert paging if not exists in query and paging size in settings greater 100
+     * insert "paging" or/and "count" if not exists in query
      *
-     * @param nqlQuery query
+     * @param nqlQuery   query
+     * @param pageNumber page number of result set
+     * @param queryMode  query mode
      */
-    private String prepareQuery( String nqlQuery, int pageNumber ) {
-        if ( !nqlQuery.contains( "count" ) ) {
-            nqlQuery = String.format( "%s count", nqlQuery );
-        }
+    private String prepareQuery( String nqlQuery, int pageNumber, QueryMode queryMode ) {
 
         if ( SETTINGS.getMaxResultSize( ) > 0 ) {
             if ( !nqlQuery.contains( "paging" ) ) {
@@ -209,6 +225,11 @@ public class QueryService {
                 nqlQuery = builder.toString( );
             }
         }
+
+        if ( !nqlQuery.contains( "count" ) ) {
+            nqlQuery = String.format( "%s count", nqlQuery );
+        }
+
         return nqlQuery;
     }
 
