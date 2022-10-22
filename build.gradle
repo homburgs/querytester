@@ -58,7 +58,7 @@ changelog {
 }
 
 dependencies {
-    implementation 'commons-beanutils:commons-beanutils:1.9.4'
+    implementation 'commons-beanutils:commons-beanutils: 1.9.4'
     implementation 'com.github.lgooddatepicker:LGoodDatePicker:11.2.1'
     implementation("com.ceyoniq.nscale.applicationlayer:al-advanced-connector:8.2.1100") {
         exclude group: "org.slf4j"

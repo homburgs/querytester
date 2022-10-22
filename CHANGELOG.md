@@ -5,6 +5,7 @@
 ### Added
 
 - add shortcuts for increment the colum size
+- add result table pagination
 
 ### Changed
 
