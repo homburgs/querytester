@@ -140,12 +140,20 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         } );
         unlockMenuItem.setEnabled( false );
 
-        if ( SETTINGS.isShowDelete( ) ) {
-            deleteResourceMenuItem = new JBMenuItem( "Delete Document/Folder" );
-            deleteResourceMenuItem.setEnabled( false );
-            add( deleteResourceMenuItem );
-            addSeparator( );
-        }
+        deleteResourceMenuItem = new JBMenuItem( "Delete Document/Folder" );
+        deleteResourceMenuItem.setEnabled( false );
+        deleteResourceMenuItem.addActionListener( new ActionListener( ) {
+            @Override
+            public void actionPerformed( ActionEvent actionEvent ) {
+                BaseResource baseResource = CONNECTION_SERVICE.getBaseResource( selectedResourceId );
+                CONNECTION_SERVICE.deleteResource( baseResource );
+                Notifier.information( "resource successful deleted" );
+                PrepareQueryExecutionNotifier notifier = queryTester.getProject( ).getMessageBus( ).syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
+                notifier.doAction( );
+            }
+        } );
+        add( deleteResourceMenuItem );
+        addSeparator( );
 
         addDocumentMenuItem = new JBMenuItem( "Add Document" );
         addDocumentMenuItem.setEnabled( false );
@@ -236,10 +244,7 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         addDocumentMenuItem.setEnabled( false );
         addFolderMenuItem.setEnabled( false );
         addLinkMenuItem.setEnabled( false );
-
-        if ( SETTINGS.isShowDelete( ) ) {
-            deleteResourceMenuItem.setEnabled( false );
-        }
+        deleteResourceMenuItem.setEnabled( false );
     }
 
     @Override
@@ -275,6 +280,10 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
                 } else {
                     lockMenuItem.setEnabled( false );
                     unlockMenuItem.setEnabled( true );
+                }
+
+                if ( SETTINGS.isShowDelete( ) ) {
+                    deleteResourceMenuItem.setEnabled( true );
                 }
 
                 if ( baseResource.getResourcetype( ) == ResourceType.FOLDER.getId( ) ) {

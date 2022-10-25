@@ -386,4 +386,11 @@ public class ConnectionService {
         }
         return clasz;
     }
+
+    public void deleteResource( BaseResource baseResource ) {
+        Session localSession = getSession( );
+        if ( localSession != null ) {
+            localSession.getRepositoryService( ).deletePhysical( new ResourceKey( baseResource.getResourceid( ) ) );
+        }
+    }
 }
