@@ -82,6 +82,14 @@ public class AppSettingsComponent {
         inputShowIdColumn.setSelected( value );
     }
 
+    public boolean getShowDeleteValue( ) {
+        return inputShowDelete.isSelected( );
+    }
+
+    public void setShowDeleteValue( boolean selected ) {
+        inputShowDelete.setSelected( selected );
+    }
+
     public boolean getShowKeyColumnValue( ) {
         return inputShowKeyColumn.isSelected( );
     }
