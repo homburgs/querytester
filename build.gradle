@@ -71,6 +71,9 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
 }
 
-publishPlugin {
-    token = "${jetbrains_marketplace_token_querytester}"
+// check for existing property
+if (findProperty("jetbrains_marketplace_token_querytester")) {
+    publishPlugin {
+        token = "${jetbrains_marketplace_token_querytester}"
+    }
 }

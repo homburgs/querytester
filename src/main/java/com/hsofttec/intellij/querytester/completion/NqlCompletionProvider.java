@@ -75,7 +75,7 @@ public class NqlCompletionProvider extends TextFieldCompletionProviderDumbAware 
         }
 
         for ( String literal : NqlLiterals.LITERALS ) {
-            final LookupElementBuilder element = LookupElementBuilder.create( literal.toLowerCase( ) );
+            final LookupElementBuilder element = LookupElementBuilder.create( literal );
             myResult.addElement( element.withLookupString( element.getLookupString( ) ) );
         }
 
