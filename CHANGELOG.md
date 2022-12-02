@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.3.1] - 2022-10-31
+
+### Added
+
+### Changed
+
+### Fixed
+
+- make plugin usable for IDEA 2022.3+
+
+### Security
+
 ## [1.3.0] - 2022-10-31
 
 ### Added
