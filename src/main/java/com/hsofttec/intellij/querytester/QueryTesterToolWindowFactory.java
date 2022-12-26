@@ -40,7 +40,7 @@ public class QueryTesterToolWindowFactory implements ToolWindowFactory {
      * @param toolWindow current tool window
      */
     public void createToolWindowContent( @NotNull Project project, @NotNull ToolWindow toolWindow ) {
-        Content content = ContentFactory.SERVICE.getInstance().createContent(new QueryTester(project), "", false);
+        Content content = ContentFactory.getInstance().createContent(new QueryTester(project), "", false);
         toolWindow.getContentManager( ).addContent( content );
     }
 }

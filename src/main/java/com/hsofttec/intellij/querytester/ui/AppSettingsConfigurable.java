@@ -70,7 +70,8 @@ public class AppSettingsConfigurable implements Configurable {
         modified |= appSettingsComponent.getMaxHistorySizeValue( ) != settings.getMaxHistorySize( );
         modified |= appSettingsComponent.getMaxResultSizeValue( ) != settings.getMaxResultSize( );
         modified |= appSettingsComponent.getFontSizeValue( ) != settings.getFontSize( );
-        modified |= !appSettingsComponent.getFontFaceValue( ).equals( settings.getFontFace( ) );
+        modified |= !appSettingsComponent.getFontFaceValue().equals(settings.getFontFace());
+        modified |= !appSettingsComponent.getFieldSeparator().equals(settings.getFieldSeparator());
         return modified;
     }
 
@@ -83,7 +84,8 @@ public class AppSettingsConfigurable implements Configurable {
         settings.setMaxHistorySize( appSettingsComponent.getMaxHistorySizeValue( ) );
         settings.setMaxResultSize( appSettingsComponent.getMaxResultSizeValue( ) );
         settings.setFontFace( appSettingsComponent.getFontFaceValue( ) );
-        settings.setFontSize( appSettingsComponent.getFontSizeValue( ) );
+        settings.setFontSize(appSettingsComponent.getFontSizeValue());
+        settings.setFieldSeparator(appSettingsComponent.getFieldSeparator());
         FontSettingsChangedNotifier notifier = messageBus.syncPublisher( FontSettingsChangedNotifier.FONT_SETTINGS_CHANGED_TOPIC );
         notifier.doAction( );
     }
@@ -97,7 +99,8 @@ public class AppSettingsConfigurable implements Configurable {
         appSettingsComponent.setMaxHistorySizeValue( settings.getMaxHistorySize( ) );
         appSettingsComponent.setMaxResultSizeValue( settings.getMaxResultSize( ) );
         appSettingsComponent.setFontSizeValue( settings.getFontSize( ) );
-        appSettingsComponent.setFontFaceValue( settings.getFontFace( ) );
+        appSettingsComponent.setFontFaceValue(settings.getFontFace());
+        appSettingsComponent.setFieldSeparator(settings.getFieldSeparator());
     }
 
     @Override

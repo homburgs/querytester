@@ -51,7 +51,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class QueryTab {
-    private static final SettingsState SETTINGS = SettingsService.getSettings( );
+    private static final SettingsState SETTINGS = SettingsService.getSettings();
 
     private final HistoryService historyService;
     private final ConnectionService connectionService;
@@ -85,155 +85,171 @@ public class QueryTab {
     @Getter
     private int resultPageNumber;
 
+    private IconActionComponent btnClose;
+
+    private GridBagConstraints gbc;
+
+    private JPanel pnlTab;
+
     public QueryTab( QueryTester queryTester, JBTabbedPane parent, String tabTitle ) {
         this.queryTester = queryTester;
         this.parent = parent;
         this.tabTitle = tabTitle;
 
-        messageBus = queryTester.getProject( ).getMessageBus( );
+        messageBus = queryTester.getProject().getMessageBus();
         resultPageNumber = 1;
-        queryService = queryTester.getProject( ).getService( QueryService.class );
-        historyService = HistoryService.getSettings( queryTester.getProject( ) );
-        connectionService = ConnectionService.getInstance( );
+        queryService = queryTester.getProject().getService(QueryService.class);
+        historyService = HistoryService.getSettings(queryTester.getProject());
+        connectionService = ConnectionService.getInstance();
 
-        createUI( );
+        createUI();
 
-        loadComponentsData( );
+        loadComponentsData();
     }
 
-    public NqlQueryTextbox getQueryTextbox( ) {
-        return queryTextboxPanel.getQueryTextbox( );
+    public NqlQueryTextbox getQueryTextbox() {
+        return queryTextboxPanel.getQueryTextbox();
     }
 
-    public NscaleTable getQueryResultTable( ) {
-        return queryResultTablePanel.getQueryResultTable( );
+    public NscaleTable getQueryResultTable() {
+        return queryResultTablePanel.getQueryResultTable();
     }
 
 
-    public void startQueryExecution( ) {
-        ProgressManager progressManager = ProgressManager.getInstance( );
-        progressManager.runProcessWithProgressSynchronously( ( ) -> {
-            final ProgressIndicator progressIndicator = progressManager.getProgressIndicator( );
-            progressIndicator.setText( "Execute query ..." );
+    public void startQueryExecution() {
+        ProgressManager progressManager = ProgressManager.getInstance();
+        progressManager.runProcessWithProgressSynchronously(() -> {
+            final ProgressIndicator progressIndicator = progressManager.getProgressIndicator();
+            progressIndicator.setText("Execute query ...");
 
-            NscaleResult nscaleResult = queryService.proccessQuery( queryInformation, resultPageNumber );
+            NscaleResult nscaleResult = queryService.proccessQuery(queryInformation, resultPageNumber);
 
-            if ( nscaleResult != null ) {
+            if (nscaleResult != null) {
 
-                queryInformation.setTotalSelectedItems( nscaleResult.getItemsTotal( ) );
+                queryInformation.setTotalSelectedItems(nscaleResult.getItemsTotal());
 
-                UIUtil.invokeLaterIfNeeded( ( ) -> {
+                UIUtil.invokeLaterIfNeeded(() -> {
 
 //                    if ( queryInformation.getTotalSelectedItems( ) < 0 ) {
 //                        actionToolbarComponent.setEnabled( true );
 //                    }
 
-                    getQueryResultTable( ).setModel( new DynaClassTableModel( nscaleResult ) );
-                    if ( !SETTINGS.isShowIdColumn( ) ) {
-                        getQueryResultTable( ).getColumnModel( ).getColumn( 0 ).setMinWidth( 0 );
-                        getQueryResultTable( ).getColumnModel( ).getColumn( 0 ).setMaxWidth( 0 );
+                    getQueryResultTable().setModel(new DynaClassTableModel(nscaleResult));
+                    getQueryResultTable().calcHeaderWidth();
+                    if (!SETTINGS.isShowIdColumn()) {
+                        getQueryResultTable().getColumnModel().getColumn(0).setMinWidth(0);
+                        getQueryResultTable().getColumnModel().getColumn(0).setMaxWidth(0);
                     }
-                    if ( !SETTINGS.isShowKeyColumn( ) || queryInformation.getQueryType( ) == QueryType.AGGREGATE ) {
-                        getQueryResultTable( ).getColumnModel( ).getColumn( 1 ).setMinWidth( 0 );
-                        getQueryResultTable( ).getColumnModel( ).getColumn( 1 ).setMaxWidth( 0 );
+                    if (!SETTINGS.isShowKeyColumn() || queryInformation.getQueryType() == QueryType.AGGREGATE) {
+                        getQueryResultTable().getColumnModel().getColumn(1).setMinWidth(0);
+                        getQueryResultTable().getColumnModel().getColumn(1).setMaxWidth(0);
                     }
-                    historyService.addQuery( queryInformation.getNqlQuery( ) );
-                } );
+                    historyService.addQuery(queryInformation.getNqlQuery());
+                });
             }
-        }, "Executing query", true, queryTester.getProject( ) );
+        }, "Executing query", true, queryTester.getProject());
 
     }
 
     /**
      * create all GUI components
      */
-    private void createUI( ) {
-        JBSplitter topBottomSplitter = createTopBottomSplitter( );
-        JBSplitter leftRightSplitter = createLeftRightSplitter( topBottomSplitter );
+    private void createUI() {
+        JBSplitter topBottomSplitter = createTopBottomSplitter();
+        JBSplitter leftRightSplitter = createLeftRightSplitter(topBottomSplitter);
 
-        parent.addTab( tabTitle, AllIcons.Actions.Close, leftRightSplitter );
+        parent.addTab(tabTitle, AllIcons.Actions.Close, leftRightSplitter);
 
+        int index = parent.indexOfTab(tabTitle);
+        pnlTab = new JPanel(new GridBagLayout());
+        pnlTab.setOpaque(false);
+        JLabel lblTitle = new JBLabel(tabTitle);
 
-        int index = parent.indexOfTab( tabTitle );
-        JPanel pnlTab = new JPanel( new GridBagLayout( ) );
-        pnlTab.setOpaque( false );
-        JLabel lblTitle = new JBLabel( tabTitle );
-        IconActionComponent btnClose = new IconActionComponent( AllIcons.Actions.Close, null, "Close query tab", ( ) -> {
-            int index1 = parent.indexOfTab( tabTitle );
-            if ( index1 >= 0 ) {
-                parent.removeTabAt( index1 );
-            }
-        } );
-
-        GridBagConstraints gbc = new GridBagConstraints( );
+        gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1;
 
-        pnlTab.add( lblTitle, gbc );
+        pnlTab.add(lblTitle, gbc);
 
-        gbc.gridx++;
-        gbc.weightx = 0;
-        pnlTab.add( btnClose, gbc );
+        parent.setTabComponentAt(index, pnlTab);
+        parent.setSelectedIndex(index);
 
-        parent.setTabComponentAt( index, pnlTab );
-        parent.setSelectedIndex( index );
-
-        historyService.addListener( new HistoryModifiedEventListener( ) {
+        historyService.addListener(new HistoryModifiedEventListener() {
             @Override
             public void notifyAdd( String query ) {
-                querySettingsPanel.getInputHistory( ).addItem( query );
+                querySettingsPanel.getInputHistory().addItem(query);
             }
 
             @Override
             public void notifyRemove( String query ) {
             }
-        } );
+        });
 
+    }
+
+    public void addCloseButton() {
+        if (btnClose == null) {
+            btnClose = new IconActionComponent(AllIcons.Actions.Close, null, "Close query tab", () -> {
+                int index1 = parent.indexOfTab(tabTitle);
+                if (index1 >= 0) {
+                    parent.removeTabAt(index1);
+                }
+            });
+            gbc.gridx = 1;
+            gbc.gridy = 0;
+            gbc.weightx = 0;
+            pnlTab.add(btnClose, gbc);
+        }
+    }
+
+    public void removeCloseButton() {
+        pnlTab.remove(btnClose);
+        btnClose = null;
     }
 
     /**
      * after all components created, we load settings and update data
      */
-    private void loadComponentsData( ) {
-        querySettingsPanel.getInputSelectedConnection( ).reloadItems( );
-        querySettingsPanel.getInputHistory( ).setModel( new HistoryComboBoxModel( historyService.getQueryList( ) ) );
-        querySettingsPanel.getInputHistory( ).setMaximumSize( querySettingsPanel.getInputHistory( ).getPreferredSize( ) );
-        querySettingsPanel.getInputHistory( ).addActionListener( actionEvent -> {
-            String selectedItem = ( String ) querySettingsPanel.getInputHistory( ).getSelectedItem( );
-            if ( StringUtils.isNotBlank( selectedItem ) ) {
-                queryTextboxPanel.getQueryTextbox( ).setText( selectedItem );
+    private void loadComponentsData() {
+        querySettingsPanel.getInputSelectedConnection().reloadItems();
+        querySettingsPanel.getInputHistory().setModel(new HistoryComboBoxModel(historyService.getQueryList()));
+        querySettingsPanel.getInputHistory().setMaximumSize(querySettingsPanel.getInputHistory().getPreferredSize());
+        querySettingsPanel.getInputHistory().addActionListener(actionEvent -> {
+            String selectedItem = (String) querySettingsPanel.getInputHistory().getSelectedItem();
+            if (StringUtils.isNotBlank(selectedItem)) {
+                queryTextboxPanel.getQueryTextbox().setText(selectedItem);
             }
-        } );
+        });
     }
 
-    private JBSplitter createTopBottomSplitter( ) {
-        JBSplitter splitter = new OnePixelSplitter( true, 0.3f );
-        splitter.setHonorComponentsMinimumSize( true );
-        splitter.setSplitterProportionKey( "query.splitter.key" );
+    private JBSplitter createTopBottomSplitter() {
+        JBSplitter splitter = new OnePixelSplitter(true, 0.3f);
+        splitter.setHonorComponentsMinimumSize(true);
+        splitter.setSplitterProportionKey("query.splitter.key");
 
-        queryTextboxPanel = new QueryTextboxPanel( this );
-        queryResultTablePanel = new QueryResultTablePanel( this );
+        queryTextboxPanel = new QueryTextboxPanel(this);
+        queryResultTablePanel = new QueryResultTablePanel(this);
 
-        splitter.setFirstComponent( queryTextboxPanel );
-        splitter.setSecondComponent( queryResultTablePanel );
+        splitter.setFirstComponent(queryTextboxPanel);
+        splitter.setSecondComponent(queryResultTablePanel);
 
         return splitter;
     }
 
     private JBSplitter createLeftRightSplitter( JComponent firstComponent ) {
-        JBSplitter splitter = new OnePixelSplitter( false, 0.3f );
-        splitter.setHonorComponentsMinimumSize( true );
-        splitter.setSplitterProportionKey( "main.splitter.key" );
-        splitter.setFirstComponent( firstComponent );
+        JBSplitter splitter = new OnePixelSplitter(false, 0.3f);
+        splitter.setHonorComponentsMinimumSize(true);
+        splitter.setSplitterProportionKey("main.splitter.key");
+        splitter.setFirstComponent(firstComponent);
 
-        JPanel secondComponent = JBUI.Panels.simplePanel( );
-        querySettingsPanel = new QuerySettingsPanel( this );
-        queryOptionsTabbedPane = new QueryOptionsTabbedPane( this );
-        secondComponent.add( querySettingsPanel, BorderLayout.NORTH );
-        secondComponent.add( queryOptionsTabbedPane, BorderLayout.CENTER );
+        JPanel secondComponent = JBUI.Panels.simplePanel();
+        querySettingsPanel = new QuerySettingsPanel(this);
+        queryOptionsTabbedPane = new QueryOptionsTabbedPane(this);
+        secondComponent.add(querySettingsPanel, BorderLayout.NORTH);
+        secondComponent.add(queryOptionsTabbedPane, BorderLayout.CENTER);
 
-        splitter.setSecondComponent( secondComponent );
+        splitter.setSecondComponent(secondComponent);
         return splitter;
     }
 }

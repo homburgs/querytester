@@ -102,18 +102,19 @@ public class ConnectionService {
                 advancedConnector.setSsl( connectionSettings.isSsl( ) );
                 advancedConnector.setTimeout( connectionSettings.getTimeout( ) );
                 advancedConnector.setConnectTimeout( connectionSettings.getConnectTimeout( ) );
-                connectionId = connectionSettings.getId( );
+                connectionId = connectionSettings.getId();
 
-                String[] usernameParts = StringUtils.split( connectionSettings.getUsername( ), "@" );
-                String username = usernameParts[ 0 ];
+                String[] usernameParts = StringUtils.split(connectionSettings.getUsername(), "@");
+                String username = usernameParts[0];
                 String domain = null;
 
-                if ( usernameParts.length > 1 ) {
-                    domain = usernameParts[ 1 ];
+                if (usernameParts.length > 1) {
+                    domain = usernameParts[1];
                 }
 
-                Principal principal = new Principal( username, connectionSettings.getPassword( ), domain );
-                session = advancedConnector.login( principal );
+                String password = connectionSettings.getPassword();
+                Principal principal = new Principal(username, password, domain);
+                session = advancedConnector.login(principal);
             } catch ( Exception exception ) {
                 String localizedMessage = exception.getLocalizedMessage( );
 //                logger.error( localizedMessage, rootCause );

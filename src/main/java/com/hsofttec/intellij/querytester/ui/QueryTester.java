@@ -147,17 +147,17 @@ public class QueryTester extends SimpleToolWindowPanel {
                 } );
             }
         } );
-        messageBusConnection.subscribe( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC, ( ) -> {
-            QueryTab queryTab = getActiveQueryTab( );
-            if ( queryTab != null ) {
-                QuerySettingsPanel querySettingsPanel = queryTab.getQuerySettingsPanel( );
-                QueryOptionsTabbedPane queryOptionsTabbedPane = queryTab.getQueryOptionsTabbedPane( );
-                QueryTextboxPanel queryTextboxPanel = queryTab.getQueryTextboxPanel( );
-                NscaleQueryInformation queryInformation = new NscaleQueryInformation( );
-                queryInformation.setQueryMode( QueryMode.REPOSITORY );
+        messageBusConnection.subscribe(PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC, (PrepareQueryExecutionNotifier) () -> {
+            QueryTab queryTab = getActiveQueryTab();
+            if (queryTab != null) {
+                QuerySettingsPanel querySettingsPanel = queryTab.getQuerySettingsPanel();
+                QueryOptionsTabbedPane queryOptionsTabbedPane = queryTab.getQueryOptionsTabbedPane();
+                QueryTextboxPanel queryTextboxPanel = queryTab.getQueryTextboxPanel();
+                NscaleQueryInformation queryInformation = new NscaleQueryInformation();
+                queryInformation.setQueryMode(QueryMode.REPOSITORY);
 
-                if ( querySettingsPanel.getInputDocumentArea( ).getSelectedIndex( ) == -1 || querySettingsPanel.getInputSelectedConnection( ).getSelectedIndex( ) == -1 ) {
-                    Notifier.warning( "no connection or/and no document area selected" );
+                if (querySettingsPanel.getInputDocumentArea().getSelectedIndex() == -1 || querySettingsPanel.getInputSelectedConnection().getSelectedIndex() == -1) {
+                    Notifier.warning("no connection or/and no document area selected");
                     return;
                 }
 
@@ -175,39 +175,31 @@ public class QueryTester extends SimpleToolWindowPanel {
                 boolean aggregate = queryOptionsTabbedPane.getInputAggregate( ).isSelected( );
                 boolean version = queryOptionsTabbedPane.getInputVersion( ).isSelected( );
 
-                if ( aggregate && version ) {
-                    queryInformation.setQueryType( QueryType.AGGREGATE_AND_VERSION );
-                } else if ( aggregate ) {
-                    queryInformation.setQueryType( QueryType.AGGREGATE );
-                } else if ( version ) {
-                    queryInformation.setQueryType( QueryType.VERSION );
+                if (aggregate && version) {
+                    queryInformation.setQueryType(QueryType.AGGREGATE_AND_VERSION);
+                } else if (aggregate) {
+                    queryInformation.setQueryType(QueryType.AGGREGATE);
+                } else if (version) {
+                    queryInformation.setQueryType(QueryType.VERSION);
                 }
 
-                String tabTitle = queryOptionsTabbedPane.getTitleAt( queryOptionsTabbedPane.getSelectedIndex( ) );
-                switch ( tabTitle ) {
-                    case "Repository":
-                        queryInformation.setQueryMode( QueryMode.REPOSITORY );
-                        break;
-                    case "BPNM":
-                        queryInformation.setQueryMode( QueryMode.BPNM );
-                        break;
-                    case "Masterdata":
-                        queryInformation.setQueryMode( QueryMode.MASTERDATA );
-                        if ( StringUtils.isEmpty( queryInformation.getMasterdataScope( ) ) ) {
-                            Notifier.warning( "masterdata scope not selected, query execution stopped" );
+                String tabTitle = queryOptionsTabbedPane.getTitleAt(queryOptionsTabbedPane.getSelectedIndex());
+                switch (tabTitle) {
+                    case "Repository" -> queryInformation.setQueryMode(QueryMode.REPOSITORY);
+                    case "BPNM" -> queryInformation.setQueryMode(QueryMode.BPNM);
+                    case "Masterdata" -> {
+                        queryInformation.setQueryMode(QueryMode.MASTERDATA);
+                        if (StringUtils.isEmpty(queryInformation.getMasterdataScope())) {
+                            Notifier.warning("masterdata scope not selected, query execution stopped");
                             return;
                         }
-                        break;
-                    case "Principals":
-                        queryInformation.setQueryMode( QueryMode.PRINCIPALS );
-                        break;
-                    case "Workflow":
-                        queryInformation.setQueryMode( QueryMode.WORKFLOW );
-                        break;
+                    }
+                    case "Principals" -> queryInformation.setQueryMode(QueryMode.PRINCIPALS);
+                    case "Workflow" -> queryInformation.setQueryMode(QueryMode.WORKFLOW);
                 }
 
-                StartQueryExecutionNotifier notifier = messageBus.syncPublisher( StartQueryExecutionNotifier.START_QUERY_EXECUTION_TOPIC );
-                notifier.doAction( queryInformation );
+                StartQueryExecutionNotifier notifier = messageBus.syncPublisher(StartQueryExecutionNotifier.START_QUERY_EXECUTION_TOPIC);
+                notifier.doAction(queryInformation);
             }
         } );
         messageBusConnection.subscribe( ConnectionsModifiedNotifier.CONNECTION_MODIFIED_TOPIC, new ConnectionsModifiedNotifier( ) {
@@ -229,69 +221,39 @@ public class QueryTester extends SimpleToolWindowPanel {
 
             @Override
             public void connectionRemoved( ConnectionSettings settings ) {
-                QueryTab queryTab = getActiveQueryTab( );
-                if ( queryTab != null ) {
-                    queryTab.getQuerySettingsPanel( ).getInputSelectedConnection( ).removeConnection( settings );
+                QueryTab queryTab = getActiveQueryTab();
+                if (queryTab != null) {
+                    queryTab.getQuerySettingsPanel().getInputSelectedConnection().removeConnection(settings);
                 }
             }
-        } );
-        messageBusConnection.subscribe( StartQueryExecutionNotifier.START_QUERY_EXECUTION_TOPIC, new StartQueryExecutionNotifier( ) {
-            @Override
-            public void doAction( NscaleQueryInformation queryInformation ) {
-                QueryTab queryTab = getActiveQueryTab( );
-                if ( queryTab != null ) {
-                    queryTab.setQueryInformation( queryInformation );
-                    queryTab.startQueryExecution( );
-                }
+        });
+        messageBusConnection.subscribe(StartQueryExecutionNotifier.START_QUERY_EXECUTION_TOPIC, (StartQueryExecutionNotifier) queryInformation -> {
+            QueryTab queryTab = getActiveQueryTab();
+            if (queryTab != null) {
+                queryTab.setQueryInformation(queryInformation);
+                queryTab.startQueryExecution();
             }
-        } );
-        messageBusConnection.subscribe( DocumentAreaChangedNotifier.DOCUMENT_AREA_CHANGED_TOPIC, new DocumentAreaChangedNotifier( ) {
-            @Override
-            public void doAction( String documentAreaName ) {
-                QueryTab queryTab = getActiveQueryTab( );
-                if ( queryTab != null ) {
-                    queryTab.getQueryOptionsTabbedPane( ).getInputMasterdataScope( ).reloadMasterdataScopes( documentAreaName );
-                }
+        });
+        messageBusConnection.subscribe(DocumentAreaChangedNotifier.DOCUMENT_AREA_CHANGED_TOPIC, (DocumentAreaChangedNotifier) documentAreaName -> {
+            QueryTab queryTab = getActiveQueryTab();
+            if (queryTab != null) {
+                queryTab.getQueryOptionsTabbedPane().getInputMasterdataScope().reloadMasterdataScopes(documentAreaName);
             }
-        } );
-        messageBusConnection.subscribe( RootResourceIdChangedNotifier.ROOT_RESOURCE_ID_CHANGED_TOPIC, new RootResourceIdChangedNotifier( ) {
-            @Override
-            public void doAction( String documentAreaName ) {
-                QueryTab queryTab = getActiveQueryTab( );
-                if ( queryTab != null ) {
-                    queryTab.getQueryOptionsTabbedPane( ).getInputMasterdataScope( ).reloadMasterdataScopes( documentAreaName );
-                    PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher( PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC );
-                    notifier.doAction( );
-                }
+        });
+        messageBusConnection.subscribe(RootResourceIdChangedNotifier.ROOT_RESOURCE_ID_CHANGED_TOPIC, (RootResourceIdChangedNotifier) documentAreaName -> {
+            QueryTab queryTab = getActiveQueryTab();
+            if (queryTab != null) {
+                queryTab.getQueryOptionsTabbedPane().getInputMasterdataScope().reloadMasterdataScopes(documentAreaName);
+                PrepareQueryExecutionNotifier notifier = messageBus.syncPublisher(PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC);
+                notifier.doAction();
             }
-        } );
-        messageBusConnection.subscribe( OptimizeTableHeaderWidthNotifier.OPTIMIZE_TABLE_HEADER_WIDTH_TOPIC, new OptimizeTableHeaderWidthNotifier( ) {
-            @Override
-            public void doAction( ) {
-                QueryTab queryTab = getActiveQueryTab( );
-                if ( queryTab != null ) {
-                    queryTab.getQueryResultTablePanel( ).getQueryResultTable( ).calcHeaderWidth( );
-                }
+        });
+        messageBusConnection.subscribe(FontSettingsChangedNotifier.FONT_SETTINGS_CHANGED_TOPIC, (FontSettingsChangedNotifier) () -> {
+            QueryTab queryTab = getActiveQueryTab();
+            if (queryTab != null) {
+                queryTab.getQueryResultTablePanel().getQueryResultTable().fontSettingsChanged();
+                queryTab.getQueryTextboxPanel().getQueryTextbox().fontSettingsChanged();
             }
-        } );
-        messageBusConnection.subscribe( IncrementTableHeaderWidthNotifier.INCREMENT_TABLE_HEADER_WIDTH_TOPIC, new IncrementTableHeaderWidthNotifier( ) {
-            @Override
-            public void doAction( ) {
-                QueryTab queryTab = getActiveQueryTab( );
-                if ( queryTab != null ) {
-                    queryTab.getQueryResultTablePanel( ).getQueryResultTable( ).incrementHeaderWidth( );
-                }
-            }
-        } );
-        messageBusConnection.subscribe( FontSettingsChangedNotifier.FONT_SETTINGS_CHANGED_TOPIC, new FontSettingsChangedNotifier( ) {
-            @Override
-            public void doAction( ) {
-                QueryTab queryTab = getActiveQueryTab( );
-                if ( queryTab != null ) {
-                    queryTab.getQueryResultTablePanel( ).getQueryResultTable( ).fontSettingsChanged( );
-                    queryTab.getQueryTextboxPanel( ).getQueryTextbox( ).fontSettingsChanged( );
-                }
-            }
-        } );
+        });
     }
 }

@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.3.2] - 2022-12-26
+
+### Added
+
+- copy selected key value to clipboard
+- copy all selected values to clipboard
+
+### Changed
+
+- table column width now optimized by default
+- last open query tab prevent closing
+
+### Fixed
+
+- connection testing now displays the result of test
+- action "Search Parent" in context menu now enabled
+
+### Security
+
 ## [1.3.1] - 2022-10-31
 
 ### Added

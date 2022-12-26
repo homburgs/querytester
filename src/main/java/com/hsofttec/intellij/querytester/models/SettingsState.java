@@ -36,6 +36,7 @@ public class SettingsState {
     private boolean showDelete;
     private int maxHistorySize;
     private String fontFace;
+    private String fieldSeparator;
     private int fontSize;
 
     public SettingsState( ) {
@@ -45,6 +46,7 @@ public class SettingsState {
         maxHistorySize = 25;
         maxResultSize = 100;
         fontFace = "JetBrains Mono";
+        fieldSeparator = "|";
         fontSize = 14;
     }
 }
