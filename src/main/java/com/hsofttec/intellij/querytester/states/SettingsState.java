@@ -22,11 +22,31 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.ui.notifiers;
+package com.hsofttec.intellij.querytester.states;
 
-import com.intellij.util.messages.Topic;
+import lombok.Getter;
+import lombok.Setter;
 
-public interface IncrementTableHeaderWidthNotifier {
-    Topic<IncrementTableHeaderWidthNotifier> INCREMENT_TABLE_HEADER_WIDTH_TOPIC = Topic.create( "increment table header width", IncrementTableHeaderWidthNotifier.class );
-    void doAction( );
+@Getter
+@Setter
+public class SettingsState {
+    private boolean showIdColumn;
+    private boolean showKeyColumn;
+    private int maxResultSize;
+    private boolean showDelete;
+    private int maxHistorySize;
+    private String fontFace;
+    private String fieldSeparator;
+    private int fontSize;
+
+    public SettingsState( ) {
+        showKeyColumn = true;
+        showIdColumn = true;
+        showDelete = false;
+        maxHistorySize = 25;
+        maxResultSize = 100;
+        fontFace = "JetBrains Mono";
+        fieldSeparator = "|";
+        fontSize = 14;
+    }
 }

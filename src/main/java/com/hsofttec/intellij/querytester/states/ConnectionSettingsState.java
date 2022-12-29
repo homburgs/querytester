@@ -22,29 +22,11 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.models;
+package com.hsofttec.intellij.querytester.states;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.util.ArrayList;
+import java.util.List;
 
-@Getter
-@Setter
-public class SettingsState {
-    private boolean showIdColumn;
-    private boolean showKeyColumn;
-    private int maxResultSize;
-    private boolean showDelete;
-    private int maxHistorySize;
-    private String fontFace;
-    private int fontSize;
-
-    public SettingsState( ) {
-        showKeyColumn = true;
-        showIdColumn = true;
-        showDelete = false;
-        maxHistorySize = 25;
-        maxResultSize = 100;
-        fontFace = "JetBrains Mono";
-        fontSize = 14;
-    }
+public class ConnectionSettingsState {
+    public List<ConnectionSettings> connectionSettings = new ArrayList<>();
 }

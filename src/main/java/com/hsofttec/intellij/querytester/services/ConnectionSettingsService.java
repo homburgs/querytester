@@ -24,7 +24,8 @@
 
 package com.hsofttec.intellij.querytester.services;
 
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import com.hsofttec.intellij.querytester.states.ConnectionSettings;
+import com.hsofttec.intellij.querytester.states.ConnectionSettingsState;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -32,34 +33,32 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @State(
         name = "querytester",
-        storages = @Storage( "querytester.xml" )
+        storages = @Storage("querytester.xml")
 )
-public class ConnectionSettingsService implements PersistentStateComponent<ConnectionSettingsService.ConnectionSettingsState> {
+public class ConnectionSettingsService implements PersistentStateComponent<ConnectionSettingsState> {
 
-    public ConnectionSettingsService.ConnectionSettingsState connectionSettingsState = new ConnectionSettingsService.ConnectionSettingsState( );
+    public ConnectionSettingsState connectionSettingsState = new ConnectionSettingsState();
 
-    public ConnectionSettingsService( ) {
+    public ConnectionSettingsService() {
     }
 
-    public static ConnectionSettingsService getSettings( ) {
-        return ApplicationManager.getApplication( ).getService( ConnectionSettingsService.class );
+    public static ConnectionSettingsService getSettings() {
+        return ApplicationManager.getApplication().getService(ConnectionSettingsService.class);
     }
 
 
     @Override
-    public ConnectionSettingsService.ConnectionSettingsState getState( ) {
+    public ConnectionSettingsState getState() {
         return connectionSettingsState;
     }
 
     @Override
-    public void loadState( @NotNull ConnectionSettingsService.ConnectionSettingsState state ) {
-        XmlSerializerUtil.copyBean( state, this.connectionSettingsState );
+    public void loadState( @NotNull ConnectionSettingsState state ) {
+        XmlSerializerUtil.copyBean(state, this.connectionSettingsState);
     }
 
     public void removeConnection( String connectionId ) {
@@ -83,9 +82,4 @@ public class ConnectionSettingsService implements PersistentStateComponent<Conne
             }
         }
     }
-
-    public static class ConnectionSettingsState {
-        public List<ConnectionSettings> connectionSettings = new ArrayList<>( );
-    }
-
 }

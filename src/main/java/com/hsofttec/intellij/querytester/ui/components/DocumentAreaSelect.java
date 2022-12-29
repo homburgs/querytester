@@ -26,8 +26,8 @@ package com.hsofttec.intellij.querytester.ui.components;
 
 import com.ceyoniq.nscale.al.core.Session;
 import com.ceyoniq.nscale.al.core.cfg.DocumentArea;
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
+import com.hsofttec.intellij.querytester.states.ConnectionSettings;
 import com.hsofttec.intellij.querytester.ui.notifiers.DocumentAreaChangedNotifier;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;

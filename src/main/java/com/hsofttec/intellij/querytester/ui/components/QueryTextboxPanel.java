@@ -38,7 +38,13 @@ public class QueryTextboxPanel extends BorderLayoutPanel {
 
     public QueryTextboxPanel( QueryTab queryTab ) {
         this.queryTab = queryTab;
-        queryTextbox = new NqlQueryTextbox( queryTab );
-        add( new JBScrollPane( queryTextbox ), BorderLayout.CENTER );
+        queryTextbox = new NqlQueryTextbox(queryTab);
+        add(new JBScrollPane(queryTextbox), BorderLayout.CENTER);
+    }
+
+    @Override
+    public void setEnabled( boolean enabled ) {
+        super.setEnabled(enabled);
+        queryTextbox.setEnabled(enabled);
     }
 }

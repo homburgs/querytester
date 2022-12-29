@@ -24,7 +24,7 @@
 
 package com.hsofttec.intellij.querytester.renderer;
 
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import com.hsofttec.intellij.querytester.states.ConnectionSettings;
 
 import javax.swing.*;
 import java.awt.*;

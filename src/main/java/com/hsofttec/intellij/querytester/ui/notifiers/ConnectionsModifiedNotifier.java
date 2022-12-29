@@ -24,7 +24,7 @@
 
 package com.hsofttec.intellij.querytester.ui.notifiers;
 
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import com.hsofttec.intellij.querytester.states.ConnectionSettings;
 import com.intellij.util.messages.Topic;
 
 public interface ConnectionsModifiedNotifier {

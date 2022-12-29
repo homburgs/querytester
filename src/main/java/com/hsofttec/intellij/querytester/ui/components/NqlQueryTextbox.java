@@ -25,8 +25,8 @@
 package com.hsofttec.intellij.querytester.ui.components;
 
 import com.hsofttec.intellij.querytester.completion.NqlCompletionProvider;
-import com.hsofttec.intellij.querytester.models.SettingsState;
 import com.hsofttec.intellij.querytester.services.SettingsService;
+import com.hsofttec.intellij.querytester.states.SettingsState;
 import com.hsofttec.intellij.querytester.ui.QueryTester;
 import com.hsofttec.intellij.querytester.ui.notifiers.PrepareQueryExecutionNotifier;
 import com.intellij.openapi.actionSystem.AnAction;

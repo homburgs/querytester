@@ -38,64 +38,78 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
 public class QueryTabbedPane extends JBTabbedPane {
-    private final QueryTabMap queryTabMap = new QueryTabMap( );
+    private final QueryTabMap queryTabMap = new QueryTabMap();
     private final QueryTester queryTester;
 
     public QueryTabbedPane( QueryTester queryTester ) {
         this.queryTester = queryTester;
 
-        AnAction action1 = new AnAction( ) {
+        AnAction action1 = new AnAction() {
             @Override
             public void actionPerformed( @NotNull AnActionEvent anActionEvent ) {
-                QueryTab queryTab = getActiveQueryTab( );
-                if ( queryTab != null ) {
-                    NscaleTable queryResultTable = queryTab.getQueryResultTable( );
-                    queryResultTable.incrementHeaderWidth( );
+                QueryTab queryTab = getActiveQueryTab();
+                if (queryTab != null) {
+                    NscaleTable queryResultTable = queryTab.getQueryResultTable();
+                    queryResultTable.incrementHeaderWidth();
                 }
             }
         };
 
-        AnAction action2 = new AnAction( ) {
+        AnAction action2 = new AnAction() {
             @Override
             public void actionPerformed( @NotNull AnActionEvent anActionEvent ) {
-                QueryTab queryTab = getActiveQueryTab( );
-                if ( queryTab != null ) {
-                    NscaleTable queryResultTable = queryTab.getQueryResultTable( );
-                    queryResultTable.calcHeaderWidth( );
+                QueryTab queryTab = getActiveQueryTab();
+                if (queryTab != null) {
+                    NscaleTable queryResultTable = queryTab.getQueryResultTable();
+                    queryResultTable.calcHeaderWidth();
                 }
             }
         };
 
-        action1.registerCustomShortcutSet( new CustomShortcutSet( KeyStroke.getKeyStroke( KeyEvent.VK_I, InputEvent.CTRL_DOWN_MASK ) ), this );
-        action2.registerCustomShortcutSet( new CustomShortcutSet( KeyStroke.getKeyStroke( KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK ) ), this );
-
+        action1.registerCustomShortcutSet(new CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.CTRL_DOWN_MASK)), this);
+        action2.registerCustomShortcutSet(new CustomShortcutSet(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK)), this);
     }
 
-    public void createQueryTab( ) {
-        int tabId = getTabCount( );
-        String tabTitle = String.format( "Query %d", tabId + 1 );
-        QueryTab queryTab = new QueryTab( queryTester, this, tabTitle );
-        queryTabMap.put( tabId, queryTab );
-        ApplicationManager.getApplication( ).invokeLater( ( ) -> queryTab.getQueryTextbox( ).requestFocus( ) );
+    public void createQueryTab() {
+        int tabId = getTabCount();
+        String tabTitle = String.format("Query %d", tabId + 1);
+        QueryTab queryTab = new QueryTab(queryTester, this, tabTitle);
+        queryTabMap.put(tabId, queryTab);
+
+        if (getTabCount() > 1) {
+            for (Integer integer : queryTabMap.keySet()) {
+                QueryTab queryTab1 = queryTabMap.get(integer);
+                queryTab1.addCloseButton();
+            }
+        }
+
+        ApplicationManager.getApplication().invokeLater(() -> queryTab.getQueryTextbox().requestFocus());
     }
 
-    public QueryTab getActiveQueryTab( ) {
-        return queryTabMap.get( getSelectedIndex( ) );
+    public QueryTab getActiveQueryTab() {
+        return queryTabMap.get(getSelectedIndex());
     }
 
     @Override
     public void setEnabled( boolean enabled ) {
-        QueryTab activeQueryTab = getActiveQueryTab( );
-        if ( activeQueryTab != null ) {
-            activeQueryTab.getQueryResultTable( ).setEnabled( enabled );
-            activeQueryTab.getQueryTextbox( ).setEnabled( enabled );
+        QueryTab activeQueryTab = getActiveQueryTab();
+        if (activeQueryTab != null) {
+            activeQueryTab.getQueryResultTable().setEnabled(enabled);
+            activeQueryTab.getQueryTextbox().setEnabled(enabled);
         }
-        super.setEnabled( enabled );
+        super.setEnabled(enabled);
     }
 
     @Override
     public void removeTabAt( int index ) {
-        queryTabMap.remove( index );
-        super.removeTabAt( index );
+        queryTabMap.remove(index);
+        super.removeTabAt(index);
+
+        if (getTabCount() == 1) {
+            for (Integer integer : queryTabMap.keySet()) {
+                QueryTab queryTab1 = queryTabMap.get(integer);
+                queryTab1.removeCloseButton();
+            }
+        }
     }
 }

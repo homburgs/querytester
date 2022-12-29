@@ -40,7 +40,7 @@ import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
 import com.hsofttec.intellij.querytester.models.NscaleQueryInformation;
 import com.hsofttec.intellij.querytester.models.NscaleResult;
-import com.hsofttec.intellij.querytester.models.SettingsState;
+import com.hsofttec.intellij.querytester.states.SettingsState;
 import com.hsofttec.intellij.querytester.ui.Notifier;
 import org.apache.commons.beanutils.BasicDynaClass;
 import org.apache.commons.beanutils.DynaBean;
