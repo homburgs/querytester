@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.models;
+package com.hsofttec.intellij.querytester.states;
 
 import lombok.Getter;
 import lombok.Setter;

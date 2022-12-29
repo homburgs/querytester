@@ -26,6 +26,7 @@ package com.hsofttec.intellij.querytester.models;
 
 import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryType;
+import com.hsofttec.intellij.querytester.states.ConnectionSettings;
 import lombok.Data;
 
 @Data

@@ -27,9 +27,9 @@ package com.hsofttec.intellij.querytester.ui;
 import com.ceyoniq.nscale.al.core.cfg.MasterdataScope;
 import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryType;
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.models.NscaleQueryInformation;
 import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
+import com.hsofttec.intellij.querytester.states.ConnectionSettings;
 import com.hsofttec.intellij.querytester.ui.actions.AddQueryTabAction;
 import com.hsofttec.intellij.querytester.ui.actions.ExecuteActiveQueryAction;
 import com.hsofttec.intellij.querytester.ui.actions.ShowPluginSettingsAction;
@@ -73,6 +73,7 @@ public class QueryTester extends SimpleToolWindowPanel {
         setToolbar( createToolBar( ) );
         setContent( queryTabbedPane );
     }
+
 
     private JComponent createToolBar( ) {
         DefaultActionGroup actionGroup = new DefaultActionGroup( );
@@ -125,9 +126,10 @@ public class QueryTester extends SimpleToolWindowPanel {
                 UIUtil.invokeLaterIfNeeded( ( ) -> {
                     QueryTab queryTab = getActiveQueryTab( );
                     if ( queryTab != null ) {
-                        queryTab.getQueryResultTable( ).setEnabled( false );
-                        queryTab.getQueryTextboxPanel( ).setEnabled( false );
-                        queryTab.getQueryOptionsTabbedPane( ).setEnabled( false );
+                        queryTab.getQueryOptionsTabbedPane().setEnabled(false);
+                        queryTab.getQueryTextboxPanel().setEnabled(false);
+                        queryTab.getQueryResultTablePanel().setEnabled(false);
+                        queryTab.getQuerySettingsPanel().setEnabled(false);
                     }
                 } );
             }
@@ -137,12 +139,13 @@ public class QueryTester extends SimpleToolWindowPanel {
                 UIUtil.invokeLaterIfNeeded( ( ) -> {
                     QueryTab queryTab = getActiveQueryTab( );
                     if ( queryTab != null ) {
-                        if ( connectedSuccessful ) {
-                            queryTab.getQuerySettingsPanel( ).getInputDocumentArea( ).reloadDocumentAreas( settings );
+                        if (connectedSuccessful) {
+                            queryTab.getQuerySettingsPanel().getInputDocumentArea().reloadDocumentAreas(settings);
                         }
-                        queryTab.getQueryResultTable( ).setEnabled( true );
-                        queryTab.getQueryTextboxPanel( ).setEnabled( true );
-                        queryTab.getQueryOptionsTabbedPane( ).setEnabled( true );
+                        queryTab.getQueryOptionsTabbedPane().setEnabled(true);
+                        queryTab.getQueryTextboxPanel().setEnabled(true);
+                        queryTab.getQueryResultTablePanel().setEnabled(true);
+                        queryTab.getQuerySettingsPanel().setEnabled(true);
                     }
                 } );
             }

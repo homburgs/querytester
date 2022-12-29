@@ -26,11 +26,15 @@ package com.hsofttec.intellij.querytester.ui.components;
 
 import com.hsofttec.intellij.querytester.QueryType;
 import com.hsofttec.intellij.querytester.listeners.HistoryModifiedEventListener;
-import com.hsofttec.intellij.querytester.models.*;
+import com.hsofttec.intellij.querytester.models.DynaClassTableModel;
+import com.hsofttec.intellij.querytester.models.HistoryComboBoxModel;
+import com.hsofttec.intellij.querytester.models.NscaleQueryInformation;
+import com.hsofttec.intellij.querytester.models.NscaleResult;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.HistoryService;
 import com.hsofttec.intellij.querytester.services.QueryService;
 import com.hsofttec.intellij.querytester.services.SettingsService;
+import com.hsofttec.intellij.querytester.states.SettingsState;
 import com.hsofttec.intellij.querytester.ui.QueryTester;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.progress.ProgressIndicator;

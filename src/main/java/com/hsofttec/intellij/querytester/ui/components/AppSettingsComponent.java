@@ -24,9 +24,9 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.models.FontFaceComboBoxModel;
 import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
+import com.hsofttec.intellij.querytester.states.ConnectionSettings;
 import com.hsofttec.intellij.querytester.ui.ConnectionSetupDialog;
 import com.hsofttec.intellij.querytester.ui.notifiers.ConnectionsModifiedNotifier;
 import com.intellij.openapi.project.Project;

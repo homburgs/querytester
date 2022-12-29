@@ -24,9 +24,9 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
-import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
+import com.hsofttec.intellij.querytester.states.ConnectionSettings;
+import com.hsofttec.intellij.querytester.states.ConnectionSettingsState;
 import com.hsofttec.intellij.querytester.ui.Notifier;
 import com.intellij.ide.plugins.newui.LinkComponent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -174,7 +174,7 @@ public class ConnectionSetupComponent {
         return settings;
     }
 
-    public boolean isModified( ConnectionSettingsService.ConnectionSettingsState data ) {
+    public boolean isModified( ConnectionSettingsState data ) {
         return true;
     }
 }

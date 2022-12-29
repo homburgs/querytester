@@ -40,7 +40,7 @@ import com.ceyoniq.nscale.al.core.content.*;
 import com.ceyoniq.nscale.al.core.repository.ResourceKey;
 import com.ceyoniq.nscale.al.core.repository.ResourceKeyInfo;
 import com.hsofttec.intellij.querytester.models.BaseResource;
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import com.hsofttec.intellij.querytester.states.ConnectionSettings;
 import com.hsofttec.intellij.querytester.ui.Notifier;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;

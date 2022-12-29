@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.models;
+package com.hsofttec.intellij.querytester.states;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;

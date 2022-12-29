@@ -24,7 +24,7 @@
 
 package com.hsofttec.intellij.querytester.ui;
 
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
+import com.hsofttec.intellij.querytester.states.ConnectionSettings;
 import com.hsofttec.intellij.querytester.ui.components.ConnectionSetupComponent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;

@@ -25,7 +25,7 @@
 package com.hsofttec.intellij.querytester.services;
 
 import com.hsofttec.intellij.querytester.listeners.HistoryModifiedEventListener;
-import com.hsofttec.intellij.querytester.models.SettingsState;
+import com.hsofttec.intellij.querytester.states.SettingsState;
 import com.hsofttec.intellij.querytester.utils.DimensionConverter;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;

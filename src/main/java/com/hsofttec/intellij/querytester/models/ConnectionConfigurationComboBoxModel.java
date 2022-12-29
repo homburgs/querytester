@@ -24,6 +24,8 @@
 
 package com.hsofttec.intellij.querytester.models;
 
+import com.hsofttec.intellij.querytester.states.ConnectionSettings;
+
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collection;

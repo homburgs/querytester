@@ -24,9 +24,9 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.renderer.ConnectionListCellRenderer;
 import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
+import com.hsofttec.intellij.querytester.states.ConnectionSettings;
 import com.intellij.ui.components.JBList;
 
 import javax.swing.*;

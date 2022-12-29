@@ -22,17 +22,11 @@
  * THE SOFTWARE.
  */
 
-package com.hsofttec.intellij.querytester.ui.notifiers;
+package com.hsofttec.intellij.querytester.states;
 
-import com.hsofttec.intellij.querytester.states.ConnectionSettings;
-import com.intellij.util.messages.Topic;
+import java.util.ArrayList;
+import java.util.List;
 
-public interface ConnectionsModifiedNotifier {
-    Topic<ConnectionsModifiedNotifier> CONNECTION_MODIFIED_TOPIC = Topic.create( "connection modified", ConnectionsModifiedNotifier.class );
-
-    void connectionAdded( ConnectionSettings settings );
-
-    void connectionModified( ConnectionSettings settings );
-
-    void connectionRemoved( ConnectionSettings settings );
+public class ConnectionSettingsState {
+    public List<ConnectionSettings> connectionSettings = new ArrayList<>();
 }

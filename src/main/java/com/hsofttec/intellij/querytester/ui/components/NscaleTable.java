@@ -24,10 +24,10 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import com.hsofttec.intellij.querytester.models.SettingsState;
 import com.hsofttec.intellij.querytester.renderer.DynaPropertyTableCellRenderer;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.SettingsService;
+import com.hsofttec.intellij.querytester.states.SettingsState;
 import com.hsofttec.intellij.querytester.ui.QueryTester;
 import com.hsofttec.intellij.querytester.ui.TableColumnAdjuster;
 import com.intellij.ui.table.JBTable;
@@ -43,8 +43,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class NscaleTable extends JBTable {
-    private static final Logger logger = LoggerFactory.getLogger( NscaleTable.class );
-    private static final SettingsState SETTINGS = SettingsService.getSettings( );
+    private static final Logger logger = LoggerFactory.getLogger(NscaleTable.class);
+    private static final SettingsState SETTINGS = SettingsService.getSettings();
     private final ConnectionService connectionService;
     private final QueryTester queryTester;
     private final ResultTableContextMenu contextMenu;
@@ -55,6 +55,7 @@ public class NscaleTable extends JBTable {
         connectionService = ConnectionService.getInstance();
         setFont(new Font(SETTINGS.getFontFace(), Font.PLAIN, SETTINGS.getFontSize()));
         setAutoResizeMode(JBTable.AUTO_RESIZE_OFF);
+//        setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         setDefaultRenderer(Object.class, new DynaPropertyTableCellRenderer());
 
         tableColumnAdjuster = new TableColumnAdjuster(this);
@@ -68,20 +69,20 @@ public class NscaleTable extends JBTable {
                 // selects the row at which point the mouse is clicked
                 Point point = mouseEvent.getPoint();
                 int currentCol = columnAtPoint(point);
-                int currentRow = rowAtPoint( point );
-                if ( currentRow != -1 ) {
-                    if ( mouseEvent.getClickCount( ) == 1 ) {
+                int currentRow = rowAtPoint(point);
+                if (currentRow != -1) {
+                    if (mouseEvent.getClickCount() == 1) {
                         try {
-                            setRowSelectionInterval( currentRow, currentRow );
-                        } catch ( Exception e ) {
-                            logger.warn( ExceptionUtils.getRootCause( e ).getLocalizedMessage( ) );
+                            setRowSelectionInterval(currentRow, currentRow);
+                        } catch (Exception e) {
+                            logger.warn(ExceptionUtils.getRootCause(e).getLocalizedMessage());
                         }
                     }
                 }
-                if ( currentCol != -1 ) {
-                    if ( mouseEvent.getClickCount( ) == 2 ) {
-                        DynaBean selectedRowValue = ( DynaBean ) getValueAt( currentRow, currentCol );
-                        Object headerValue = getColumnModel( ).getColumn( currentCol ).getHeaderValue( );
+                if (currentCol != -1) {
+                    if (mouseEvent.getClickCount() == 2) {
+                        DynaBean selectedRowValue = (DynaBean) getValueAt(currentRow, currentCol);
+                        Object headerValue = getColumnModel().getColumn(currentCol).getHeaderValue();
 //                        ModifyResourceDialog modifyResourceDialog = new ModifyResourceDialog( queryTester );
 //                        modifyResourceDialog.setData( selectedRowValue, ( String ) headerValue );
 //                        if ( modifyResourceDialog.showAndGet( ) ) {
@@ -90,55 +91,35 @@ public class NscaleTable extends JBTable {
                     }
                 }
             }
-        } );
+        });
     }
 
-    public void fontSettingsChanged( ) {
-        setFont( new Font( SETTINGS.getFontFace( ), Font.PLAIN, SETTINGS.getFontSize( ) ) );
+    public void fontSettingsChanged() {
+        setFont(new Font(SETTINGS.getFontFace(), Font.PLAIN, SETTINGS.getFontSize()));
     }
 
     /**
      * Calculates the optimal width for the header of the given table. The
      * calculation is based on the preferred width of the header renderer.
      */
-    public void calcHeaderWidth( ) {
+    public void calcHeaderWidth() {
         tableColumnAdjuster.adjustColumns();
-//        JTableHeader header = this.getTableHeader( );
-//        TableCellRenderer defaultHeaderRenderer = null;
-//        if ( header != null ) {
-//            defaultHeaderRenderer = header.getDefaultRenderer( );
-//        }
-//        TableColumnModel columns = this.getColumnModel( );
-//        for ( int col = 0; col < columns.getColumnCount( ); col++ ) {
-//            TableColumn column = columns.getColumn( col );
-//            int width = -1;
-//            TableCellRenderer h = column.getHeaderRenderer( );
-//            if ( h == null ) {
-//                h = defaultHeaderRenderer;
-//            }
-//            if ( h != null ) {
-//                // Not explicitly impossible
-//                Component c = h.getTableCellRendererComponent( this, column.getHeaderValue( ), false, false, -1, col );
-//                width = c.getPreferredSize( ).width + 10;
-//                column.setPreferredWidth( width );
-//            }
-//        }
     }
 
     /**
      * increments every table column width except line no column.
      */
-    public void incrementHeaderWidth( ) {
-        TableColumnModel columns = this.getColumnModel( );
-        for ( int col = 0; col < columns.getColumnCount( ); col++ ) {
-            if ( col == 0 ) {
-                if ( SETTINGS.isShowIdColumn( ) ) {
+    public void incrementHeaderWidth() {
+        TableColumnModel columns = this.getColumnModel();
+        for (int col = 0; col < columns.getColumnCount(); col++) {
+            if (col == 0) {
+                if (SETTINGS.isShowIdColumn()) {
                     continue;
                 }
             }
-            TableColumn column = columns.getColumn( col );
-            int width = column.getPreferredWidth( );
-            column.setPreferredWidth( width + 100 );
+            TableColumn column = columns.getColumn(col);
+            int width = column.getPreferredWidth();
+            column.setPreferredWidth(width + 100);
         }
     }
 }

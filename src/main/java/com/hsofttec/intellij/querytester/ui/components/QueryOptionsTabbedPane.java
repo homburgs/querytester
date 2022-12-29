@@ -51,12 +51,12 @@ public class QueryOptionsTabbedPane extends JBTabbedPane {
     private MasterdataScopeSelect inputMasterdataScope;
 
     public QueryOptionsTabbedPane( QueryTab owner ) {
-        this.queryTester = owner.getQueryTester( );
+        this.queryTester = owner.getQueryTester();
         this.owner = owner;
-        setBorder( BorderFactory.createEmptyBorder( 5, 5, 5, 5 ) );
-        addTab( "Repository", createRepositoryPanel( ) );
-        addTab( "Masterdata", createMasterdataPanel( ) );
-        setBorder( BorderFactory.createEtchedBorder( ) );
+        setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        addTab("Repository", createRepositoryPanel());
+        addTab("Masterdata", createMasterdataPanel());
+        setBorder(BorderFactory.createEtchedBorder());
     }
 
     /**
@@ -64,22 +64,22 @@ public class QueryOptionsTabbedPane extends JBTabbedPane {
      *
      * @return repository options panel
      */
-    private JPanel createRepositoryPanel( ) {
-        CellConstraints cc = new CellConstraints( );
+    private JPanel createRepositoryPanel() {
+        CellConstraints cc = new CellConstraints();
         FormLayout formLayout = new FormLayout(
                 "5px, left:pref, 4dlu, pref:grow",
                 "pref, 3dlu, pref, 3dlu, pref"
         );
-        JPanel repositoryPanel = new JPanel( formLayout );
-        inputRepositoryRoot = new RepositoryRootTextField( queryTester.getProject( ) );
-        repositoryPanel.add( new JBLabel( "Root resource" ), cc.xy( 2, 1 ) );
-        repositoryPanel.add( inputRepositoryRoot, cc.xy( 4, 1 ) );
+        JPanel repositoryPanel = new JPanel(formLayout);
+        inputRepositoryRoot = new RepositoryRootTextField(queryTester.getProject());
+        repositoryPanel.add(new JBLabel("Root resource"), cc.xy(2, 1));
+        repositoryPanel.add(inputRepositoryRoot, cc.xy(4, 1));
 
-        inputAggregate = new JBCheckBox( "Aggregate" );
-        repositoryPanel.add( inputAggregate, cc.xy( 4, 3 ) );
+        inputAggregate = new JBCheckBox("Aggregate");
+        repositoryPanel.add(inputAggregate, cc.xy(4, 3));
 
-        inputVersion = new JBCheckBox( "Version" );
-        repositoryPanel.add( inputVersion, cc.xy( 4, 5 ) );
+        inputVersion = new JBCheckBox("Version");
+        repositoryPanel.add(inputVersion, cc.xy(4, 5));
 
         return repositoryPanel;
     }
@@ -89,26 +89,27 @@ public class QueryOptionsTabbedPane extends JBTabbedPane {
      *
      * @return masterdata options panel
      */
-    private JPanel createMasterdataPanel( ) {
-        CellConstraints cc = new CellConstraints( );
+    private JPanel createMasterdataPanel() {
+        CellConstraints cc = new CellConstraints();
         FormLayout formLayout = new FormLayout(
                 "5px, left:pref, 4dlu, pref:grow",
                 "pref, 3dlu, pref, 3dlu, pref"
         );
-        JPanel masterdataPanel = new JPanel( formLayout );
+        JPanel masterdataPanel = new JPanel(formLayout);
 
-        inputMasterdataScope = new MasterdataScopeSelect( queryTester.getProject( ) );
-        masterdataPanel.add( new JBLabel( "Scope" ), cc.xy( 2, 1 ) );
-        masterdataPanel.add( inputMasterdataScope, cc.xy( 4, 1 ) );
+        inputMasterdataScope = new MasterdataScopeSelect(queryTester.getProject());
+        masterdataPanel.add(new JBLabel("Scope"), cc.xy(2, 1));
+        masterdataPanel.add(inputMasterdataScope, cc.xy(4, 1));
 
         return masterdataPanel;
     }
 
     @Override
     public void setEnabled( boolean enabled ) {
-        super.setEnabled( enabled );
-        getInputAggregate( ).setEnabled( enabled );
-        getInputMasterdataScope( ).setEnabled( enabled );
-        getInputRepositoryRoot( ).setEnabled( enabled );
+        super.setEnabled(enabled);
+        inputRepositoryRoot.setEnabled(enabled);
+        inputAggregate.setEnabled(enabled);
+        inputMasterdataScope.setEnabled(enabled);
+        inputVersion.setEnabled(enabled);
     }
 }

@@ -30,9 +30,9 @@ import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
 import com.hsofttec.intellij.querytester.models.BaseResource;
 import com.hsofttec.intellij.querytester.models.ResourceDialogModel;
-import com.hsofttec.intellij.querytester.models.SettingsState;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.SettingsService;
+import com.hsofttec.intellij.querytester.states.SettingsState;
 import com.hsofttec.intellij.querytester.ui.CreateResourceDialog;
 import com.hsofttec.intellij.querytester.ui.Notifier;
 import com.hsofttec.intellij.querytester.ui.QueryTester;
@@ -41,6 +41,7 @@ import com.hsofttec.intellij.querytester.ui.notifiers.PrepareQueryExecutionNotif
 import com.hsofttec.intellij.querytester.ui.notifiers.RootResourceIdChangedNotifier;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.util.ui.UIUtil;
 import org.apache.commons.beanutils.BasicDynaBean;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -135,6 +136,9 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         lockMenuItem = new JBMenuItem("Lock");
         lockMenuItem.addActionListener(actionEvent -> {
             CONNECTION_SERVICE.lockResource(selectedResourceId);
+            UIUtil.invokeLaterIfNeeded(() -> {
+                Notifier.information("resource successful locked");
+            });
         });
         lockMenuItem.setEnabled(false);
 
@@ -142,6 +146,9 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         unlockMenuItem = new JBMenuItem("Unlock");
         unlockMenuItem.addActionListener(actionEvent -> {
             CONNECTION_SERVICE.unlockResource(selectedResourceId);
+            UIUtil.invokeLaterIfNeeded(() -> {
+                Notifier.information("resource successful un-locked");
+            });
         });
         unlockMenuItem.setEnabled(false);
 
@@ -152,7 +159,9 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
             public void actionPerformed( ActionEvent actionEvent ) {
                 BaseResource baseResource = CONNECTION_SERVICE.getBaseResource(selectedResourceId);
                 CONNECTION_SERVICE.deleteResource(baseResource);
-                Notifier.information("resource successful deleted");
+                UIUtil.invokeLaterIfNeeded(() -> {
+                    Notifier.information("resource successful deleted");
+                });
                 PrepareQueryExecutionNotifier notifier = queryTester.getProject().getMessageBus().syncPublisher(PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC);
                 notifier.doAction();
             }
@@ -170,7 +179,9 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
                 ResourceDialogModel data = createResourceDialog.getData();
                 ResourceKey resourceKey = CONNECTION_SERVICE.createDocument(data.getParentResource(), data.getObjectclassName(), data.getDisplayname(), data.getSelectedFileName());
                 if (resourceKey != null) {
-                    Notifier.information("folder successful created");
+                    UIUtil.invokeLaterIfNeeded(() -> {
+                        Notifier.information("document successful created");
+                    });
                     PrepareQueryExecutionNotifier notifier = queryTester.getProject().getMessageBus().syncPublisher(PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC);
                     notifier.doAction();
                 }
@@ -187,7 +198,9 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
                 ResourceDialogModel data = createResourceDialog.getData();
                 ResourceKey resourceKey = CONNECTION_SERVICE.createFolder(data.getParentResource(), data.getObjectclassName(), data.getDisplayname());
                 if (resourceKey != null) {
-                    Notifier.information("folder successful created");
+                    UIUtil.invokeLaterIfNeeded(() -> {
+                        Notifier.information("folder successful created");
+                    });
                     PrepareQueryExecutionNotifier notifier = queryTester.getProject().getMessageBus().syncPublisher(PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC);
                     notifier.doAction();
                 }

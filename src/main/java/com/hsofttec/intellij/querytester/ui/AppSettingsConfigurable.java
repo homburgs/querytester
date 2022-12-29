@@ -24,8 +24,8 @@
 
 package com.hsofttec.intellij.querytester.ui;
 
-import com.hsofttec.intellij.querytester.models.SettingsState;
 import com.hsofttec.intellij.querytester.services.SettingsService;
+import com.hsofttec.intellij.querytester.states.SettingsState;
 import com.hsofttec.intellij.querytester.ui.components.AppSettingsComponent;
 import com.hsofttec.intellij.querytester.ui.notifiers.FontSettingsChangedNotifier;
 import com.intellij.openapi.options.Configurable;

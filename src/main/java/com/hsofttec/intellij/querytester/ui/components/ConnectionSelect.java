@@ -25,10 +25,10 @@
 package com.hsofttec.intellij.querytester.ui.components;
 
 import com.google.common.eventbus.Subscribe;
-import com.hsofttec.intellij.querytester.models.ConnectionSettings;
 import com.hsofttec.intellij.querytester.renderer.ConnectionListCellRenderer;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
+import com.hsofttec.intellij.querytester.states.ConnectionSettings;
 import com.hsofttec.intellij.querytester.ui.notifiers.CheckServerConnectionNotifier;
 import com.hsofttec.intellij.querytester.ui.notifiers.ConnectionsModifiedNotifier;
 import com.intellij.openapi.application.ApplicationManager;
@@ -91,7 +91,7 @@ public class ConnectionSelect extends ComboBox<ConnectionSettings> implements It
         CheckServerConnectionNotifier checkServerConnectionNotifier = messageBus.syncPublisher(CheckServerConnectionNotifier.CHECK_SERVER_CONNECTION_TOPIC);
         checkServerConnectionNotifier.beforeAction(settings);
 
-        ApplicationManager.getApplication().invokeAndWait(() -> {
+        ApplicationManager.getApplication().invokeLater(() -> {
             boolean connectionUsable = CONNECTION_SERVICE.isConnectionUsable(settings);
             checkServerConnectionNotifier.afterAction(settings, connectionUsable);
         }, ModalityState.NON_MODAL);
