@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ * Copyright © 2023 Sven Homburg, <homburgs@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the “Software”), to deal
@@ -28,5 +28,6 @@ public class QueryTesterConstants {
     public static final String DBEAN_NAME = "record";
     public static final String DBEAN_PROPERTY_NAME_KEY = "<key>";
     public static final String DBEAN_PROPERTY_NAME_LINENO = "<lineno>";
+    public static final String DBEAN_PROPERTY_NAME_LOCKED = "<locked>";
     public static final String DBEAN_PROPERTY_PRE_NAME_FOR_NQL_FUNC = "NqlFunction_";
 }

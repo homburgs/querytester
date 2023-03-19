@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ * Copyright © 2023 Sven Homburg, <homburgs@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the “Software”), to deal
@@ -55,7 +55,6 @@ public class NscaleTable extends JBTable {
         connectionService = ConnectionService.getInstance();
         setFont(new Font(SETTINGS.getFontFace(), Font.PLAIN, SETTINGS.getFontSize()));
         setAutoResizeMode(JBTable.AUTO_RESIZE_OFF);
-//        setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         setDefaultRenderer(Object.class, new DynaPropertyTableCellRenderer());
 
         tableColumnAdjuster = new TableColumnAdjuster(this);

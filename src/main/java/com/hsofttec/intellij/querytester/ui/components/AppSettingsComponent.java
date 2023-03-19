@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ * Copyright © 2023 Sven Homburg, <homburgs@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the “Software”), to deal
@@ -60,6 +60,7 @@ public class AppSettingsComponent {
     private ConnectionList listConnections;
     private JPanel panelConnections;
     private JTextField inputFieldSeparator;
+    private JCheckBox inputDisplayLockIcon;
 
     public AppSettingsComponent( Project project ) {
         this.project = project;
@@ -156,6 +157,14 @@ public class AppSettingsComponent {
 
     public void setMaxResultSizeValue( int value ) {
         inputMaxResultSize.setText(Integer.toString(value));
+    }
+
+    public boolean getDisplayLockIcon() {
+        return inputDisplayLockIcon.isSelected();
+    }
+
+    public void setDisplayLockIcon( boolean displayLockIcon ) {
+        this.inputDisplayLockIcon.setSelected(displayLockIcon);
     }
 
     private void createConnectionsToolbar() {

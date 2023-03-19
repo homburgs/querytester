@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ * Copyright © 2023 Sven Homburg, <homburgs@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the “Software”), to deal
@@ -45,6 +45,9 @@ public class QueryOptionsTabbedPane extends JBTabbedPane {
     private JCheckBox inputAggregate;
 
     @Getter
+    private JCheckBox inputPrincipalsAggregate;
+
+    @Getter
     private JCheckBox inputVersion;
 
     @Getter
@@ -56,6 +59,7 @@ public class QueryOptionsTabbedPane extends JBTabbedPane {
         setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         addTab("Repository", createRepositoryPanel());
         addTab("Masterdata", createMasterdataPanel());
+        addTab("Principals", createPrincipalPanel());
         setBorder(BorderFactory.createEtchedBorder());
     }
 
@@ -104,11 +108,31 @@ public class QueryOptionsTabbedPane extends JBTabbedPane {
         return masterdataPanel;
     }
 
+    /**
+     * create panel for all principals query options
+     *
+     * @return principals options panel
+     */
+    private JPanel createPrincipalPanel() {
+        CellConstraints cc = new CellConstraints();
+        FormLayout formLayout = new FormLayout(
+                "5px, left:pref, 4dlu, pref:grow",
+                "pref, 3dlu, pref, 3dlu, pref"
+        );
+        JPanel principalPanel = new JPanel(formLayout);
+
+        inputPrincipalsAggregate = new JBCheckBox("Aggregate");
+        principalPanel.add(inputPrincipalsAggregate, cc.xy(4, 3));
+
+        return principalPanel;
+    }
+
     @Override
     public void setEnabled( boolean enabled ) {
         super.setEnabled(enabled);
         inputRepositoryRoot.setEnabled(enabled);
         inputAggregate.setEnabled(enabled);
+        inputPrincipalsAggregate.setEnabled(enabled);
         inputMasterdataScope.setEnabled(enabled);
         inputVersion.setEnabled(enabled);
     }

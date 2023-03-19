@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ * Copyright © 2023 Sven Homburg, <homburgs@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the “Software”), to deal
@@ -34,15 +34,17 @@ public class SettingsState {
     private boolean showKeyColumn;
     private int maxResultSize;
     private boolean showDelete;
+    private boolean displayLockItem;
     private int maxHistorySize;
     private String fontFace;
     private String fieldSeparator;
     private int fontSize;
 
-    public SettingsState( ) {
+    public SettingsState() {
         showKeyColumn = true;
         showIdColumn = true;
         showDelete = false;
+        displayLockItem = true;
         maxHistorySize = 25;
         maxResultSize = 100;
         fontFace = "JetBrains Mono";

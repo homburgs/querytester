@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ * Copyright © 2023 Sven Homburg, <homburgs@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the “Software”), to deal
@@ -32,30 +32,42 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.CollectionComboBoxModel;
 
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MasterdataScopeSelect extends ComboBox<MasterdataScope> {
-    private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
+    private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance();
 
-    private final List<MasterdataScope> scopes = new ArrayList<>( );
+    private final List<MasterdataScope> scopes = new ArrayList<>();
     private final Project project;
 
     public MasterdataScopeSelect( Project project ) {
         this.project = project;
-        setModel( new CollectionComboBoxModel<>( scopes ) );
-        setRenderer( new MasterdataListCellRenderer( ) );
+        setModel(new CollectionComboBoxModel<>(scopes));
+        setRenderer(new MasterdataListCellRenderer());
+        addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged( ItemEvent event ) {
+                if (event.getStateChange() == ItemEvent.SELECTED) {
+                    MasterdataScope item = (MasterdataScope) event.getItem();
+                    System.err.println(item);
+                }
+            }
+        });
     }
 
+
     public void reloadMasterdataScopes( String documentArea ) {
-        Session session = CONNECTION_SERVICE.getSession( );
-        scopes.clear( );
-        setSelectedIndex( -1 );
-        if ( session != null ) {
-            List<MasterdataScope> masterdataScopes = session.getConfigurationService( ).getMasterdataScopes( documentArea );
-            scopes.addAll( masterdataScopes );
-            if ( !scopes.isEmpty( ) ) {
-                setSelectedIndex( 0 );
+        Session session = CONNECTION_SERVICE.getSession();
+        scopes.clear();
+        setSelectedIndex(-1);
+        if (session != null) {
+            List<MasterdataScope> masterdataScopes = session.getConfigurationService().getMasterdataScopes(documentArea);
+            scopes.addAll(masterdataScopes);
+            if (!scopes.isEmpty()) {
+                setSelectedIndex(0);
             }
         }
     }
