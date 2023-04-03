@@ -24,6 +24,7 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
+import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryType;
 import com.hsofttec.intellij.querytester.listeners.HistoryModifiedEventListener;
 import com.hsofttec.intellij.querytester.models.DynaClassTableModel;
@@ -146,10 +147,12 @@ public class QueryTab {
                         column.setMinWidth(0);
                         column.setMaxWidth(0);
                     }
-                    if (!SETTINGS.isShowKeyColumn() || queryInformation.getQueryType() == QueryType.AGGREGATE) {
-                        TableColumn column = getQueryResultTable().getColumnModel().getColumn(1);
-                        column.setMinWidth(0);
-                        column.setMaxWidth(0);
+                    if (!SETTINGS.isShowKeyColumn()) {
+                        if (queryInformation.getQueryMode() == QueryMode.REPOSITORY && queryInformation.getQueryType() == QueryType.AGGREGATE) {
+                            TableColumn column = getQueryResultTable().getColumnModel().getColumn(1);
+                            column.setMinWidth(0);
+                            column.setMaxWidth(0);
+                        }
                     }
 
                     if (!SETTINGS.isDisplayLockItem()) {

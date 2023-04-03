@@ -34,6 +34,7 @@ import com.ceyoniq.nscale.al.core.masterdata.MasterdataResults;
 import com.ceyoniq.nscale.al.core.repository.ResourceKey;
 import com.ceyoniq.nscale.al.core.repository.ResourceResultTable;
 import com.ceyoniq.nscale.al.core.repository.ResourceResults;
+import com.ceyoniq.nscale.al.core.search.AggregateablePropertyName;
 import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
 import com.hsofttec.intellij.querytester.models.BaseResource;
@@ -95,7 +96,7 @@ public class QueryService {
             MasterdataResults masterdataResults = masterdataService.search(queryInformation.getMasterdataScope(),
                     queryInformation.getDocumentAreaName(),
                     prepareQuery(queryInformation.getNqlQuery(), pageNumber, queryInformation.getQueryMode()));
-            BasicDynaClass dynaClass = createDynaClass(masterdataResults.getResultTable().getPropertyNames());
+            BasicDynaClass dynaClass = createDynaClass(masterdataResults.getResultTable().getPropertyNames(), queryInformation.getQueryMode());
 
             int counter = 0;
             for (MasterdataKey masterdataKey : masterdataResults.getResultTable().getMasterdataKeys()) {
@@ -174,11 +175,10 @@ public class QueryService {
             return null;
         }
 
-        BasicDynaClass dynaClass = createDynaClass(resultTable.getPropertyNames());
+        BasicDynaClass dynaClass = createDynaClass(resultTable.getPropertyNames(), queryInformation.getQueryMode());
         int counter = 0;
         for (int rowCounter = 0; rowCounter < resultTable.getRowCount(); rowCounter++) {
             DynaBean dynaBean = dynaClass.newInstance();
-            int functionFieldPosition = 0;
 
             if (resultTable instanceof ResourceResultTable) {
                 ResourceKey resourceKey = ((ResourceResultTable) resultTable).getResourceKeys()[rowCounter];
@@ -188,11 +188,7 @@ public class QueryService {
             dynaBean.set(QueryTesterConstants.DBEAN_PROPERTY_NAME_LINENO, ++counter);
 
             for (int columnCounter = 0; columnCounter < resultTable.getColumnCount(); columnCounter++) {
-                String propertyName = resultTable.getPropertyNames()[columnCounter].getName();
-                if (propertyName.equals("*")) {
-                    propertyName = createFieldFunctionPropertyName(functionFieldPosition);
-                    functionFieldPosition++;
-                }
+                String propertyName = getPropertyName(resultTable.getPropertyNames()[columnCounter]);
                 dynaBean.set(propertyName, resultTable.getCell(columnCounter, rowCounter));
             }
             dynaBeans.add(dynaBean);
@@ -217,26 +213,25 @@ public class QueryService {
         ResultTable resultTable = null;
         try {
             switch (queryInformation.getQueryType()) {
-                case DEFAULT:
-                    PrincipalEntityResults results = userManagementService.search(queryInformation.getNqlQuery());
+                case DEFAULT -> {
+                    PrincipalEntityResults results = userManagementService.search(prepareQuery(queryInformation.getNqlQuery(), pageNumber, queryInformation.getQueryMode()));
                     itemsTotal = results.getResultCount();
                     resultTable = results.getResultTable();
-                    break;
-                case AGGREGATE:
-                    resultTable = userManagementService.searchAggregate(queryInformation.getNqlQuery());
+                }
+                case AGGREGATE -> {
+                    resultTable = userManagementService.searchAggregate(prepareQuery(queryInformation.getNqlQuery(), pageNumber, queryInformation.getQueryMode()));
                     itemsTotal = resultTable.getRowCount();
-                    break;
+                }
             }
         } catch (ServerException serverException) {
             Notifier.error(serverException.getLocalizedMessage());
             return null;
         }
 
-        BasicDynaClass dynaClass = createDynaClass(resultTable.getPropertyNames());
+        BasicDynaClass dynaClass = createDynaClass(resultTable.getPropertyNames(), queryInformation.getQueryMode());
         int counter = 0;
         for (int rowCounter = 0; rowCounter < resultTable.getRowCount(); rowCounter++) {
             DynaBean dynaBean = dynaClass.newInstance();
-            int functionFieldPosition = 0;
 
             if (resultTable instanceof ResourceResultTable) {
                 ResourceKey resourceKey = ((ResourceResultTable) resultTable).getResourceKeys()[rowCounter];
@@ -246,17 +241,23 @@ public class QueryService {
             dynaBean.set(QueryTesterConstants.DBEAN_PROPERTY_NAME_LINENO, ++counter);
 
             for (int columnCounter = 0; columnCounter < resultTable.getColumnCount(); columnCounter++) {
-                String propertyName = resultTable.getPropertyNames()[columnCounter].getName();
-                if (propertyName.equals("*")) {
-                    propertyName = createFieldFunctionPropertyName(functionFieldPosition);
-                    functionFieldPosition++;
-                }
-                dynaBean.set(propertyName, resultTable.getCell(columnCounter, rowCounter));
+                PropertyName propertyName = resultTable.getPropertyNames()[columnCounter];
+                String name = getPropertyName(propertyName); // resultTable.getPropertyNames()[columnCounter].getName();
+                dynaBean.set(name, resultTable.getCell(columnCounter, rowCounter));
             }
             dynaBeans.add(dynaBean);
         }
 
         return new NscaleResult(dynaClass, dynaBeans, itemsTotal);
+    }
+
+    private String getPropertyName( PropertyName propertyName ) {
+        String name = propertyName.getName();
+        if (propertyName instanceof AggregateablePropertyName) {
+            String functionName = ((AggregateablePropertyName) propertyName).getFunction().name();
+            name = String.format("%s_%s", functionName, name);
+        }
+        return name;
     }
 
     private boolean isResourceLocked( ResourceKey resourceKey ) {
@@ -299,24 +300,17 @@ public class QueryService {
      *
      * @param propertyNames property name array
      */
-    private BasicDynaClass createDynaClass( PropertyName[] propertyNames ) {
-        int fieldFunctionCounter = 0;
+    private BasicDynaClass createDynaClass( PropertyName[] propertyNames, QueryMode queryMode ) {
         List<DynaProperty> dynaProperties = new ArrayList<>();
         dynaProperties.add(new DynaProperty(QueryTesterConstants.DBEAN_PROPERTY_NAME_LINENO, Integer.class));
-        dynaProperties.add(new DynaProperty(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY, String.class));
-        dynaProperties.add(new DynaProperty(QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED, Boolean.class));
+        if (queryMode != QueryMode.PRINCIPALS) {
+            dynaProperties.add(new DynaProperty(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY, String.class));
+            dynaProperties.add(new DynaProperty(QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED, Boolean.class));
+        }
         for (PropertyName propertyName : propertyNames) {
-            String propName = propertyName.getName();
-            if (propName.equals("*")) {
-                propName = createFieldFunctionPropertyName(fieldFunctionCounter);
-                fieldFunctionCounter++;
-            }
+            String propName = getPropertyName(propertyName);
             dynaProperties.add(new DynaProperty(propName, Object.class));
         }
         return new BasicDynaClass(QueryTesterConstants.DBEAN_NAME, null, dynaProperties.toArray(new DynaProperty[0]));
-    }
-
-    public String createFieldFunctionPropertyName( int counter ) {
-        return String.format("%s%d", QueryTesterConstants.DBEAN_PROPERTY_PRE_NAME_FOR_NQL_FUNC, counter);
     }
 }

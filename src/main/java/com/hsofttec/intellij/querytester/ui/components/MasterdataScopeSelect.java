@@ -52,7 +52,6 @@ public class MasterdataScopeSelect extends ComboBox<MasterdataScope> {
             public void itemStateChanged( ItemEvent event ) {
                 if (event.getStateChange() == ItemEvent.SELECTED) {
                     MasterdataScope item = (MasterdataScope) event.getItem();
-                    System.err.println(item);
                 }
             }
         });

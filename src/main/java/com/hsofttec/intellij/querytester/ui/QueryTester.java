@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ * Copyright © 2023 Sven Homburg, <homburgs@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the “Software”), to deal
@@ -169,26 +169,28 @@ public class QueryTester extends SimpleToolWindowPanel {
 
                 MasterdataScope masterdataScope = ( MasterdataScope ) queryOptionsTabbedPane.getInputMasterdataScope( ).getSelectedItem( );
                 if ( masterdataScope != null ) {
-                    queryInformation.setMasterdataScope( masterdataScope.getAreaName( ) );
+                    queryInformation.setMasterdataScope(masterdataScope.getAreaName());
                 }
 
-                queryInformation.setRepositoryRoot( queryOptionsTabbedPane.getInputRepositoryRoot( ).getText( ) );
-                queryInformation.setNqlQuery( queryTextboxPanel.getQueryTextbox( ).getText( ) );
-                queryInformation.setQueryType( QueryType.DEFAULT );
-                boolean aggregate = queryOptionsTabbedPane.getInputAggregate( ).isSelected( );
-                boolean version = queryOptionsTabbedPane.getInputVersion( ).isSelected( );
-
-                if (aggregate && version) {
-                    queryInformation.setQueryType(QueryType.AGGREGATE_AND_VERSION);
-                } else if (aggregate) {
-                    queryInformation.setQueryType(QueryType.AGGREGATE);
-                } else if (version) {
-                    queryInformation.setQueryType(QueryType.VERSION);
-                }
+                queryInformation.setRepositoryRoot(queryOptionsTabbedPane.getInputRepositoryRoot().getText());
+                queryInformation.setNqlQuery(queryTextboxPanel.getQueryTextbox().getText());
+                queryInformation.setQueryType(QueryType.DEFAULT);
+                boolean aggregate = queryOptionsTabbedPane.getInputAggregate().isSelected();
+                boolean version = queryOptionsTabbedPane.getInputVersion().isSelected();
+                boolean principalAggregate = queryOptionsTabbedPane.getInputPrincipalsAggregate().isSelected();
 
                 String tabTitle = queryOptionsTabbedPane.getTitleAt(queryOptionsTabbedPane.getSelectedIndex());
                 switch (tabTitle) {
-                    case "Repository" -> queryInformation.setQueryMode(QueryMode.REPOSITORY);
+                    case "Repository" -> {
+                        if (aggregate && version) {
+                            queryInformation.setQueryType(QueryType.AGGREGATE_AND_VERSION);
+                        } else if (aggregate) {
+                            queryInformation.setQueryType(QueryType.AGGREGATE);
+                        } else if (version) {
+                            queryInformation.setQueryType(QueryType.VERSION);
+                        }
+                        queryInformation.setQueryMode(QueryMode.REPOSITORY);
+                    }
                     case "BPNM" -> queryInformation.setQueryMode(QueryMode.BPNM);
                     case "Masterdata" -> {
                         queryInformation.setQueryMode(QueryMode.MASTERDATA);
@@ -197,7 +199,12 @@ public class QueryTester extends SimpleToolWindowPanel {
                             return;
                         }
                     }
-                    case "Principals" -> queryInformation.setQueryMode(QueryMode.PRINCIPALS);
+                    case "Principals" -> {
+                        if (principalAggregate) {
+                            queryInformation.setQueryType(QueryType.AGGREGATE);
+                        }
+                        queryInformation.setQueryMode(QueryMode.PRINCIPALS);
+                    }
                     case "Workflow" -> queryInformation.setQueryMode(QueryMode.WORKFLOW);
                 }
 

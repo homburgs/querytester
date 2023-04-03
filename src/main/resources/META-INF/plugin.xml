@@ -1,7 +1,7 @@
 <!--
   ~ The MIT License (MIT)
   ~
-  ~ Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+  ~ Copyright © 2023 Sven Homburg, <homburgs@gmail.com>
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy
   ~ of this software and associated documentation files (the “Software”), to deal
@@ -59,7 +59,7 @@
 
     <vendor email="Sven.Homburg@hsofttec.com">S.Homburg</vendor>
 
-    <idea-version since-build="222" until-build="223.*"/>
+    <idea-version since-build="222" until-build="231.*"/>
 
     <depends>com.intellij.modules.lang</depends>
 

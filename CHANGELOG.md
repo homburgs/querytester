@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.0] - 2023-04-03
+
+### Added
+
+- principals now queryable
+
+### Changed
+
+- upgrade for IDEA 2023.1
+
+### Fixed
+
+### Security
+
 ## [1.3.2] - 2022-12-29
 
 ### Added
