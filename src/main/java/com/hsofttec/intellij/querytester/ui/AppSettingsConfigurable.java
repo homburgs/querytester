@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ * Copyright © 2023 Sven Homburg, <homburgs@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the “Software”), to deal
@@ -65,8 +65,9 @@ public class AppSettingsConfigurable implements Configurable {
     public boolean isModified( ) {
         SettingsState settings = SettingsService.getSettings( );
         boolean modified = appSettingsComponent.getShowIdColumnValue( ) != settings.isShowIdColumn( );
-        modified |= appSettingsComponent.getShowKeyColumnValue( ) != settings.isShowKeyColumn( );
-        modified |= appSettingsComponent.getShowDeleteValue( ) != settings.isShowDelete( );
+        modified |= appSettingsComponent.getShowKeyColumnValue() != settings.isShowKeyColumn();
+        modified |= appSettingsComponent.getDisplayLockIcon() != settings.isDisplayLockItem();
+        modified |= appSettingsComponent.getShowDeleteValue() != settings.isShowDelete();
         modified |= appSettingsComponent.getMaxHistorySizeValue( ) != settings.getMaxHistorySize( );
         modified |= appSettingsComponent.getMaxResultSizeValue( ) != settings.getMaxResultSize( );
         modified |= appSettingsComponent.getFontSizeValue( ) != settings.getFontSize( );
@@ -79,8 +80,9 @@ public class AppSettingsConfigurable implements Configurable {
     public void apply( ) {
         SettingsState settings = SettingsService.getSettings( );
         settings.setShowIdColumn( appSettingsComponent.getShowIdColumnValue( ) );
-        settings.setShowKeyColumn( appSettingsComponent.getShowKeyColumnValue( ) );
-        settings.setShowDelete( appSettingsComponent.getShowDeleteValue( ) );
+        settings.setShowKeyColumn(appSettingsComponent.getShowKeyColumnValue());
+        settings.setDisplayLockItem(appSettingsComponent.getDisplayLockIcon());
+        settings.setShowDelete(appSettingsComponent.getShowDeleteValue());
         settings.setMaxHistorySize( appSettingsComponent.getMaxHistorySizeValue( ) );
         settings.setMaxResultSize( appSettingsComponent.getMaxResultSizeValue( ) );
         settings.setFontFace( appSettingsComponent.getFontFaceValue( ) );
@@ -95,8 +97,9 @@ public class AppSettingsConfigurable implements Configurable {
         SettingsState settings = SettingsService.getSettings( );
         appSettingsComponent.setShowIdColumnValue( settings.isShowIdColumn( ) );
         appSettingsComponent.setShowKeyColumnValue( settings.isShowKeyColumn( ) );
-        appSettingsComponent.setShowDeleteValue( settings.isShowDelete( ) );
-        appSettingsComponent.setMaxHistorySizeValue( settings.getMaxHistorySize( ) );
+        appSettingsComponent.setShowDeleteValue(settings.isShowDelete());
+        appSettingsComponent.setDisplayLockIcon(settings.isDisplayLockItem());
+        appSettingsComponent.setMaxHistorySizeValue(settings.getMaxHistorySize());
         appSettingsComponent.setMaxResultSizeValue( settings.getMaxResultSize( ) );
         appSettingsComponent.setFontSizeValue( settings.getFontSize( ) );
         appSettingsComponent.setFontFaceValue(settings.getFontFace());

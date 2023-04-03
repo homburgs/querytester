@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ * Copyright © 2023 Sven Homburg, <homburgs@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the “Software”), to deal
@@ -24,6 +24,7 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
+import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryType;
 import com.hsofttec.intellij.querytester.listeners.HistoryModifiedEventListener;
 import com.hsofttec.intellij.querytester.models.DynaClassTableModel;
@@ -52,6 +53,7 @@ import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
 
 import javax.swing.*;
+import javax.swing.table.TableColumn;
 import java.awt.*;
 
 public class QueryTab {
@@ -138,16 +140,27 @@ public class QueryTab {
 //                        actionToolbarComponent.setEnabled( true );
 //                    }
 
-                    getQueryResultTable().setModel(new DynaClassTableModel(nscaleResult));
+                    getQueryResultTable().setModel(new DynaClassTableModel(SETTINGS, nscaleResult));
                     getQueryResultTable().calcHeaderWidth();
                     if (!SETTINGS.isShowIdColumn()) {
-                        getQueryResultTable().getColumnModel().getColumn(0).setMinWidth(0);
-                        getQueryResultTable().getColumnModel().getColumn(0).setMaxWidth(0);
+                        TableColumn column = getQueryResultTable().getColumnModel().getColumn(0);
+                        column.setMinWidth(0);
+                        column.setMaxWidth(0);
                     }
-                    if (!SETTINGS.isShowKeyColumn() || queryInformation.getQueryType() == QueryType.AGGREGATE) {
-                        getQueryResultTable().getColumnModel().getColumn(1).setMinWidth(0);
-                        getQueryResultTable().getColumnModel().getColumn(1).setMaxWidth(0);
+                    if (!SETTINGS.isShowKeyColumn()) {
+                        if (queryInformation.getQueryMode() == QueryMode.REPOSITORY && queryInformation.getQueryType() == QueryType.AGGREGATE) {
+                            TableColumn column = getQueryResultTable().getColumnModel().getColumn(1);
+                            column.setMinWidth(0);
+                            column.setMaxWidth(0);
+                        }
                     }
+
+                    if (!SETTINGS.isDisplayLockItem()) {
+                        TableColumn column = getQueryResultTable().getColumnModel().getColumn(2);
+                        column.setMinWidth(0);
+                        column.setMaxWidth(0);
+                    }
+
                     historyService.addQuery(queryInformation.getNqlQuery());
                 });
             }

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ * Copyright © 2023 Sven Homburg, <homburgs@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the “Software”), to deal
@@ -24,37 +24,56 @@
 
 package com.hsofttec.intellij.querytester.models;
 
+import com.hsofttec.intellij.querytester.QueryTesterConstants;
+import com.hsofttec.intellij.querytester.states.SettingsState;
+
+import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
 
 public class DynaClassTableModel extends AbstractTableModel {
+    private final SettingsState settingsState;
     private final NscaleResult result;
 
-    public DynaClassTableModel( NscaleResult result ) {
+    public DynaClassTableModel( SettingsState settingsState, NscaleResult result ) {
+        this.settingsState = settingsState;
         this.result = result;
     }
 
     @Override
     public String getColumnName( int column ) {
-        return result.getPropertyNames( ).get( column );
+        return result.getPropertyNames().get(column);
     }
 
     @Override
-    public int getRowCount( ) {
-        return result.getDynaBeans( ).size( );
+    public int getRowCount() {
+        return result.getDynaBeans().size();
     }
 
     @Override
-    public int getColumnCount( ) {
-        return result.getPropertyNames( ).size( );
+    public int getColumnCount() {
+        return result.getPropertyNames().size();
     }
 
     @Override
     public Object getValueAt( int rowIndex, int columnIndex ) {
-        return result.getDynaBeans( ).get( rowIndex );
+        return result.getDynaBeans().get(rowIndex);
     }
 
     @Override
     public boolean isCellEditable( int rowIndex, int columnIndex ) {
         return false;
+    }
+
+    @Override
+    public Class<?> getColumnClass( int columnIndex ) {
+        Class<?> columnClass = super.getColumnClass(columnIndex);
+
+        if (settingsState.isDisplayLockItem()) {
+            if (QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED.equals(getColumnName(columnIndex))) {
+                columnClass = Icon.class;
+            }
+        }
+
+        return columnClass;
     }
 }

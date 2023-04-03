@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ * Copyright © 2023 Sven Homburg, <homburgs@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the “Software”), to deal
@@ -25,6 +25,8 @@
 package com.hsofttec.intellij.querytester.renderer;
 
 import com.ceyoniq.nscale.al.core.common.ObjectclassName;
+import com.hsofttec.intellij.querytester.QueryTesterConstants;
+import com.intellij.icons.AllIcons;
 import org.apache.commons.beanutils.DynaBean;
 import org.apache.commons.beanutils.DynaProperty;
 import org.apache.commons.lang.time.DateFormatUtils;
@@ -47,60 +49,67 @@ public class DynaPropertyTableCellRenderer extends DefaultTableCellRenderer {
                                                     int row,
                                                     int column ) {
 
-        if ( value instanceof DynaBean ) {
-            DynaBean dynaBean = ( DynaBean ) value;
-            DynaProperty dynaProperty = dynaBean.getDynaClass( ).getDynaProperties( )[ column ];
-            value = convertValueToString( dynaBean.get( dynaProperty.getName( ) ) );
+        if (value instanceof DynaBean dynaBean) {
+            DynaProperty dynaProperty = dynaBean.getDynaClass().getDynaProperties()[column];
+            String name = dynaProperty.getName();
+            value = convertValueToString(dynaBean.get(name));
+
+            if (QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED.equals(name)) {
+                boolean locked = (boolean) dynaBean.get(name);
+                if (locked) {
+                    value = AllIcons.RunConfigurations.TestState.Run;
+                }
+            }
         }
 
-        return super.getTableCellRendererComponent( table, value, isSelected, hasFocus, row, column );
+        return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
     }
 
     private String convertValueToString( Object rawValue ) {
         String stringValue = "";
 
-        if ( rawValue == null ) {
+        if (rawValue == null) {
             stringValue = "null";
         } else {
-            if ( rawValue instanceof ArrayList ) {
-                List arrayList = ( ( ArrayList ) rawValue );
-                if ( arrayList.isEmpty( ) ) {
+            if (rawValue instanceof ArrayList) {
+                List arrayList = ((ArrayList) rawValue);
+                if (arrayList.isEmpty()) {
                     stringValue = "<Empty>";
                 } else {
-                    StringBuilder valueBuilder = new StringBuilder( "[" );
-                    for ( Object element : arrayList ) {
-                        if ( element == null ) {
-                            valueBuilder.append( "<null>" );
+                    StringBuilder valueBuilder = new StringBuilder("[");
+                    for (Object element : arrayList) {
+                        if (element == null) {
+                            valueBuilder.append("<null>");
                         } else {
-                            valueBuilder.append( convertValueToString( element ) ).append( ";" );
+                            valueBuilder.append(convertValueToString(element)).append(";");
                         }
                     }
 
-                    if ( !arrayList.isEmpty( ) ) {
-                        valueBuilder.deleteCharAt( valueBuilder.length( ) - 1 );
+                    if (!arrayList.isEmpty()) {
+                        valueBuilder.deleteCharAt(valueBuilder.length() - 1);
                     }
 
-                    valueBuilder.append( "]" );
-                    stringValue = valueBuilder.toString( );
+                    valueBuilder.append("]");
+                    stringValue = valueBuilder.toString();
                 }
-            } else if ( rawValue instanceof ObjectclassName ) {
-                stringValue = ( ( ObjectclassName ) rawValue ).getName( );
-            } else if ( rawValue instanceof DateTime ) {
-                stringValue = ( ( DateTime ) rawValue ).toString( "yyyy-MM-dd hh:mm:ss" );
-            } else if ( rawValue instanceof Date ) {
-                stringValue = DateFormatUtils.format( ( Date ) rawValue, "yyyy-MM-dd" );
-            } else if ( rawValue instanceof YearMonthDay ) {
-                stringValue = ( ( YearMonthDay ) rawValue ).toString( "yyyy-MM-dd" );
-            } else if ( rawValue instanceof Boolean ) {
-                stringValue = ( ( Boolean ) rawValue ).toString( );
-            } else if ( rawValue instanceof Integer ) {
-                stringValue = ( ( Integer ) rawValue ).toString( );
-            } else if ( rawValue instanceof Double ) {
-                stringValue = ( ( Double ) rawValue ).toString( );
-            } else if ( rawValue instanceof Long ) {
-                stringValue = ( ( Long ) rawValue ).toString( );
+            } else if (rawValue instanceof ObjectclassName) {
+                stringValue = ((ObjectclassName) rawValue).getName();
+            } else if (rawValue instanceof DateTime) {
+                stringValue = ((DateTime) rawValue).toString("yyyy-MM-dd hh:mm:ss");
+            } else if (rawValue instanceof Date) {
+                stringValue = DateFormatUtils.format((Date) rawValue, "yyyy-MM-dd");
+            } else if (rawValue instanceof YearMonthDay) {
+                stringValue = ((YearMonthDay) rawValue).toString("yyyy-MM-dd");
+            } else if (rawValue instanceof Boolean) {
+                stringValue = ((Boolean) rawValue).toString();
+            } else if (rawValue instanceof Integer) {
+                stringValue = ((Integer) rawValue).toString();
+            } else if (rawValue instanceof Double) {
+                stringValue = ((Double) rawValue).toString();
+            } else if (rawValue instanceof Long) {
+                stringValue = ((Long) rawValue).toString();
             } else {
-                stringValue = String.valueOf( rawValue );
+                stringValue = String.valueOf(rawValue);
             }
         }
 

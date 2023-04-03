@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright © 2022 Sven Homburg, <homburgs@gmail.com>
+ * Copyright © 2023 Sven Homburg, <homburgs@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the “Software”), to deal
@@ -299,32 +299,35 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
 
         // if resource id found, enable some menu items
         if (basicDynaBean != null) {
-            selectedResourceId = (String) basicDynaBean.get(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY);
-            QueryMode queryMode = queryTester.getActiveQueryTab().getQueryInformation().getQueryMode();
-            if (queryMode == QueryMode.REPOSITORY) {
-                BaseResource baseResource = CONNECTION_SERVICE.getBaseResource(selectedResourceId);
-                if (!baseResource.isLocked()) {
-                    lockMenuItem.setEnabled(true);
-                    unlockMenuItem.setEnabled(false);
-                } else {
-                    lockMenuItem.setEnabled(false);
-                    unlockMenuItem.setEnabled(true);
-                }
+            // check if resource key is exists
+            if (basicDynaBean.getMap().containsKey(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY)) {
+                selectedResourceId = (String) basicDynaBean.get(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY);
+                QueryMode queryMode = queryTester.getActiveQueryTab().getQueryInformation().getQueryMode();
+                if (queryMode == QueryMode.REPOSITORY) {
+                    BaseResource baseResource = CONNECTION_SERVICE.getBaseResource(selectedResourceId);
+                    if (!baseResource.isLocked()) {
+                        lockMenuItem.setEnabled(true);
+                        unlockMenuItem.setEnabled(false);
+                    } else {
+                        lockMenuItem.setEnabled(false);
+                        unlockMenuItem.setEnabled(true);
+                    }
 
-                if (SETTINGS.isShowDelete()) {
-                    deleteResourceMenuItem.setEnabled(true);
-                }
+                    if (SETTINGS.isShowDelete()) {
+                        deleteResourceMenuItem.setEnabled(true);
+                    }
 
-                if (baseResource.getResourcetype() == ResourceType.FOLDER.getId()) {
-                    addFolderMenuItem.setEnabled(true);
-                    addDocumentMenuItem.setEnabled(true);
-                    addLinkMenuItem.setEnabled(true);
+                    if (baseResource.getResourcetype() == ResourceType.FOLDER.getId()) {
+                        addFolderMenuItem.setEnabled(true);
+                        addDocumentMenuItem.setEnabled(true);
+                        addLinkMenuItem.setEnabled(true);
+                    }
+                    showPathMenuItem.setEnabled(true);
+                    searchParentMenuItem.setEnabled(true);
+                    copyKeyMenuItem.setEnabled(true);
+                    copySelectedValuesMenuItem.setEnabled(true);
+                    selectParentFolderId.setEnabled(baseResource.getResourcetype() == ResourceType.FOLDER.getId());
                 }
-                showPathMenuItem.setEnabled(true);
-                searchParentMenuItem.setEnabled(true);
-                copyKeyMenuItem.setEnabled(true);
-                copySelectedValuesMenuItem.setEnabled(true);
-                selectParentFolderId.setEnabled(baseResource.getResourcetype() == ResourceType.FOLDER.getId());
             }
         }
     }
