@@ -59,7 +59,7 @@
 
     <vendor email="Sven.Homburg@hsofttec.com">S.Homburg</vendor>
 
-    <idea-version since-build="222" until-build="232.*"/>
+    <idea-version since-build="222" until-build="233.*"/>
 
     <depends>com.intellij.modules.lang</depends>
 
