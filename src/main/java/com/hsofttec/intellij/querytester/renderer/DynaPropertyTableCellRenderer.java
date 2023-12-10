@@ -29,7 +29,7 @@ import com.hsofttec.intellij.querytester.QueryTesterConstants;
 import com.intellij.icons.AllIcons;
 import org.apache.commons.beanutils.DynaBean;
 import org.apache.commons.beanutils.DynaProperty;
-import org.apache.commons.lang.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.joda.time.DateTime;
 import org.joda.time.YearMonthDay;
 

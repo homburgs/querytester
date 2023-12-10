@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.2] - 2023-12-10
+
+### Added
+
+### Changed
+
+- upgrade for IDEA 2023.3
+
+### Fixed
+
+### Security
+
 ## [1.4.1] - 2023-08-14
 
 ### Added

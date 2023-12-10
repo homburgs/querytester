@@ -31,7 +31,7 @@ import com.hsofttec.intellij.querytester.ui.Notifier;
 import com.intellij.ide.plugins.newui.LinkComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.AnimatedIcon;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
