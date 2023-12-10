@@ -32,7 +32,7 @@ import com.hsofttec.intellij.querytester.ui.QueryTester;
 import com.hsofttec.intellij.querytester.ui.TableColumnAdjuster;
 import com.intellij.ui.table.JBTable;
 import org.apache.commons.beanutils.DynaBean;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

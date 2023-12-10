@@ -24,8 +24,9 @@
 
 package com.hsofttec.intellij.querytester.states;
 
-import org.apache.commons.lang.RandomStringUtils;
-import org.apache.commons.lang.StringUtils;
+
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class ConnectionSettings {
     private String id;
