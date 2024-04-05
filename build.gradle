@@ -2,7 +2,7 @@ import java.text.SimpleDateFormat
 
 plugins {
     id("java")
-    id("org.jetbrains.intellij") version "1.16.1"
+    id("org.jetbrains.intellij") version "1.17.3"
     id("org.jetbrains.changelog") version "2.2.0"
 }
 
@@ -38,7 +38,7 @@ intellij {
     downloadSources = false
     patchPluginXml {
         sinceBuild.set("231")
-        untilBuild.set("233.*")
+        untilBuild.set("241.*")
         changeNotes.set(provider { changelog.getLatest().toHTML() })
     }
 }
