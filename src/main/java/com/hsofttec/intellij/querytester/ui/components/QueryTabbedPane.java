@@ -31,6 +31,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -43,6 +44,7 @@ public class QueryTabbedPane extends JBTabbedPane {
 
     public QueryTabbedPane( QueryTester queryTester ) {
         this.queryTester = queryTester;
+        setTabComponentInsets(JBUI.emptyInsets());
 
         AnAction action1 = new AnAction() {
             @Override

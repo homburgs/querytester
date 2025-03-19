@@ -44,11 +44,12 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 public class QueryTester extends SimpleToolWindowPanel {
-    private static final ConnectionSettingsService connectionSettingsService = ConnectionSettingsService.getSettings( );
+    private final ConnectionSettingsService connectionSettingsService = ConnectionSettingsService.getSettings();
 
     @Getter
     private final Project project;
@@ -81,7 +82,7 @@ public class QueryTester extends SimpleToolWindowPanel {
         actionGroup.add( new AddQueryTabAction( this ) );
         actionGroup.add( new AnAction( "Add Connection", "Show the connection settings dialog", AllIcons.General.Add ) {
             @Override
-            public void actionPerformed( AnActionEvent actionEvent ) {
+            public void actionPerformed(@NotNull AnActionEvent actionEvent) {
                 Project currentProject = actionEvent.getProject( );
                 ConnectionSettings connectionSettings = new ConnectionSettings( );
                 ConnectionSetupDialog connectionSetupDialog = new ConnectionSetupDialog( currentProject );
@@ -101,7 +102,10 @@ public class QueryTester extends SimpleToolWindowPanel {
     }
 
     /**
-     * create all GUI components
+     * Creates and initializes the QueryTabbedPane component.
+     * Initializes the tabbed pane and creates the first query tab.
+     *
+     * @return the initialized QueryTabbedPane component
      */
     private QueryTabbedPane createUIComponents( ) {
         queryTabbedPane = new QueryTabbedPane( this );

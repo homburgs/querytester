@@ -57,7 +57,7 @@ import javax.swing.table.TableColumn;
 import java.awt.*;
 
 public class QueryTab {
-    private static final SettingsState SETTINGS = SettingsService.getSettings();
+    private static SettingsState SETTINGS;
 
     private final HistoryService historyService;
     private final ConnectionService connectionService;
@@ -107,6 +107,7 @@ public class QueryTab {
         queryService = queryTester.getProject().getService(QueryService.class);
         historyService = HistoryService.getSettings(queryTester.getProject());
         connectionService = ConnectionService.getInstance();
+        SETTINGS = SettingsService.getSettings();
 
         createUI();
 

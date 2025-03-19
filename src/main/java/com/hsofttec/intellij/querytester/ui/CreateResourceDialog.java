@@ -64,7 +64,7 @@ public class CreateResourceDialog extends DialogWrapper {
     protected JComponent createCenterPanel( ) {
         dlgComponent = new CreateResourceComponent( );
         dlgComponent.getInputObjectclass( ).requestFocus( );
-        dlgComponent.getInputContent( ).addBrowseFolderListener( "Select File", "Select file as content for new document", project, new FileChooserDescriptor( true, false, true, true, false, false ) );
+        dlgComponent.getInputContent().addBrowseFolderListener(project, new FileChooserDescriptor(true, false, true, true, false, false));
         return dlgComponent.getMainPanel( );
     }
 

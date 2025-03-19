@@ -25,7 +25,6 @@
 package com.hsofttec.intellij.querytester.services;
 
 import com.hsofttec.intellij.querytester.states.SettingsState;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
@@ -38,13 +37,13 @@ import org.jetbrains.annotations.NotNull;
 )
 public class SettingsService implements PersistentStateComponent<SettingsState> {
 
-    public SettingsState settingsState = new SettingsState( );
+    public static SettingsState settingsState = new SettingsState();
 
     public SettingsService( ) {
     }
 
     public static SettingsState getSettings( ) {
-        return ApplicationManager.getApplication( ).getService( SettingsService.class ).settingsState;
+        return SettingsService.settingsState;
     }
 
 

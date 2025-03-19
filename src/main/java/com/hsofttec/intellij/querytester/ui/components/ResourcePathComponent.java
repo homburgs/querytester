@@ -39,77 +39,77 @@ import java.util.List;
 import java.util.Optional;
 
 public class ResourcePathComponent {
-    private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
+    private final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance();
 
     private JPanel mainPanel;
     private com.intellij.ui.treeStructure.Tree resourceTree;
 
-    public ResourcePathComponent( ) {
-        resourceTree.setCellRenderer( new DefaultTreeCellRenderer( ) {
+    public ResourcePathComponent() {
+        resourceTree.setCellRenderer(new DefaultTreeCellRenderer() {
 
             @Override
-            public Color getBackgroundNonSelectionColor( ) {
+            public Color getBackgroundNonSelectionColor() {
                 return null;
             }
 
             @Override
-            public Color getBackground( ) {
+            public Color getBackground() {
                 return null;
             }
 
             @Override
-            public Component getTreeCellRendererComponent( JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus ) {
-                DefaultMutableTreeNode node = ( DefaultMutableTreeNode ) value;
-                BaseResource baseResource = ( BaseResource ) node.getUserObject( );
-                setIcon( AllIcons.Nodes.Folder );
-                return super.getTreeCellRendererComponent( tree, baseResource.getDisplayname( ), sel, expanded, leaf, row, hasFocus );
+            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+                BaseResource baseResource = (BaseResource) node.getUserObject();
+                setIcon(AllIcons.Nodes.Folder);
+                return super.getTreeCellRendererComponent(tree, baseResource.getDisplayname(), sel, expanded, leaf, row, hasFocus);
             }
-        } );
+        });
     }
 
-    public JPanel getMainPanel( ) {
+    public JPanel getMainPanel() {
         return mainPanel;
     }
 
-    public com.intellij.ui.treeStructure.Tree getResourceLIst( ) {
+    public com.intellij.ui.treeStructure.Tree getResourceLIst() {
         return resourceTree;
     }
 
-    public void setData( String data ) {
-        if ( data != null ) {
-            List<BaseResource> list = CONNECTION_SERVICE.getParentsUntilRootFolder( data );
-
-            Collections.reverse( list );
-
-            DefaultMutableTreeNode top = new DefaultMutableTreeNode( list.get( 0 ) );
-            DefaultMutableTreeNode lastNode = top;
-            for ( int i = 1; i < list.size( ); i++ ) {
-                BaseResource baseResource = list.get( i );
-                DefaultMutableTreeNode newNode = new DefaultMutableTreeNode( baseResource );
-                lastNode.add( newNode );
-                lastNode = newNode;
-            }
-
-            resourceTree.setModel( new DefaultTreeModel( top ) );
-            for ( int i = 0; i < resourceTree.getRowCount( ); i++ ) {
-                resourceTree.expandRow( i );
-            }
-        }
-    }
-
-    public BaseResource getData( ) {
-        DefaultMutableTreeNode[] selectedNodes = getResourceLIst( ).getSelectedNodes( DefaultMutableTreeNode.class, null );
-        Optional<DefaultMutableTreeNode> first = Arrays.stream( selectedNodes ).findFirst( );
+    public BaseResource getData() {
+        DefaultMutableTreeNode[] selectedNodes = getResourceLIst().getSelectedNodes(DefaultMutableTreeNode.class, null);
+        Optional<DefaultMutableTreeNode> first = Arrays.stream(selectedNodes).findFirst();
         BaseResource selectedBaseResource = null;
 
-        if ( first.isPresent( ) ) {
-            selectedBaseResource = ( BaseResource ) first.get( ).getUserObject( );
+        if (first.isPresent()) {
+            selectedBaseResource = (BaseResource) first.get().getUserObject();
         }
 
         return selectedBaseResource;
     }
 
-    public boolean isModified( String data ) {
+    public void setData(String data) {
+        if (data != null) {
+            List<BaseResource> list = CONNECTION_SERVICE.getParentsUntilRootFolder(data);
+
+            Collections.reverse(list);
+
+            DefaultMutableTreeNode top = new DefaultMutableTreeNode(list.get(0));
+            DefaultMutableTreeNode lastNode = top;
+            for (int i = 1; i < list.size(); i++) {
+                BaseResource baseResource = list.get(i);
+                DefaultMutableTreeNode newNode = new DefaultMutableTreeNode(baseResource);
+                lastNode.add(newNode);
+                lastNode = newNode;
+            }
+
+            resourceTree.setModel(new DefaultTreeModel(top));
+            for (int i = 0; i < resourceTree.getRowCount(); i++) {
+                resourceTree.expandRow(i);
+            }
+        }
+    }
+
+    public boolean isModified(String data) {
         return true;
     }
 }

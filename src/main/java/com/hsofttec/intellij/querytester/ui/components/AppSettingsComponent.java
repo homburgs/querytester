@@ -39,9 +39,9 @@ import javax.swing.*;
 import java.awt.*;
 
 public class AppSettingsComponent {
-    private static final ConnectionSettingsService connectionSettingsService = ConnectionSettingsService.getSettings();
+    private final ConnectionSettingsService connectionSettingsService = ConnectionSettingsService.getSettings();
 
-    private static final ProjectManager projectManager = ProjectManager.getInstance();
+    private final ProjectManager projectManager = ProjectManager.getInstance();
 
     private final Project project;
 
@@ -62,7 +62,7 @@ public class AppSettingsComponent {
     private JTextField inputFieldSeparator;
     private JCheckBox inputDisplayLockIcon;
 
-    public AppSettingsComponent( Project project ) {
+    public AppSettingsComponent(Project project) {
         this.project = project;
         inputFontFace.setModel(new FontFaceComboBoxModel());
         createConnectionsToolbar();
@@ -80,7 +80,7 @@ public class AppSettingsComponent {
         return inputShowIdColumn.isSelected();
     }
 
-    public void setShowIdColumnValue( boolean value ) {
+    public void setShowIdColumnValue(boolean value) {
         inputShowIdColumn.setSelected(value);
     }
 
@@ -88,7 +88,7 @@ public class AppSettingsComponent {
         return inputShowDelete.isSelected();
     }
 
-    public void setShowDeleteValue( boolean selected ) {
+    public void setShowDeleteValue(boolean selected) {
         inputShowDelete.setSelected(selected);
     }
 
@@ -96,7 +96,7 @@ public class AppSettingsComponent {
         return inputShowKeyColumn.isSelected();
     }
 
-    public void setShowKeyColumnValue( boolean value ) {
+    public void setShowKeyColumnValue(boolean value) {
         inputShowKeyColumn.setSelected(value);
     }
 
@@ -104,7 +104,7 @@ public class AppSettingsComponent {
         return inputFieldSeparator.getText();
     }
 
-    public void setFieldSeparator( String value ) {
+    public void setFieldSeparator(String value) {
         inputFieldSeparator.setText(value);
     }
 
@@ -112,7 +112,7 @@ public class AppSettingsComponent {
         return (String) inputFontFace.getSelectedItem();
     }
 
-    public void setFontFaceValue( String value ) {
+    public void setFontFaceValue(String value) {
         ComboBoxModel<String> model = inputFontFace.getModel();
         for (int i = 0; i < model.getSize(); i++) {
             if (model.getElementAt(i).equals(value)) {
@@ -131,7 +131,7 @@ public class AppSettingsComponent {
         return Integer.parseInt(text);
     }
 
-    public void setFontSizeValue( int value ) {
+    public void setFontSizeValue(int value) {
         inputFontSize.setText(Integer.toString(value));
     }
 
@@ -143,7 +143,7 @@ public class AppSettingsComponent {
         return Integer.parseInt(text);
     }
 
-    public void setMaxHistorySizeValue( int value ) {
+    public void setMaxHistorySizeValue(int value) {
         inputMaxHistorySize.setText(Integer.toString(value));
     }
 
@@ -155,7 +155,7 @@ public class AppSettingsComponent {
         return Integer.parseInt(text);
     }
 
-    public void setMaxResultSizeValue( int value ) {
+    public void setMaxResultSizeValue(int value) {
         inputMaxResultSize.setText(Integer.toString(value));
     }
 
@@ -163,7 +163,7 @@ public class AppSettingsComponent {
         return inputDisplayLockIcon.isSelected();
     }
 
-    public void setDisplayLockIcon( boolean displayLockIcon ) {
+    public void setDisplayLockIcon(boolean displayLockIcon) {
         this.inputDisplayLockIcon.setSelected(displayLockIcon);
     }
 

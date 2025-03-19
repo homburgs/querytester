@@ -38,7 +38,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class ConnectionSetupComponent {
-    private final static ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance();
+    private final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance();
 
     private ConnectionSettings settings;
     private JTextField inputConnectionName;

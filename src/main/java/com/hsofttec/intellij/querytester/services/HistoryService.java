@@ -48,7 +48,7 @@ import java.util.zip.Checksum;
 )
 public class HistoryService implements PersistentStateComponent<HistoryService.HistoryState> {
 
-    private static final SettingsState SETTINGS_STATE = SettingsService.getSettings( );
+    private SettingsState SETTINGS_STATE = SettingsService.getSettings();
 
     private final Project project;
     private HistoryState historyState = new HistoryState( );

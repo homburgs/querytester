@@ -1,9 +1,11 @@
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+
 import java.text.SimpleDateFormat
 
 plugins {
-    id("java")
-    id("org.jetbrains.intellij") version "1.17.3"
-    id("org.jetbrains.changelog") version "2.2.0"
+    id "java"
+    id 'org.jetbrains.intellij.platform' version '2.2.1'
+    id "org.jetbrains.changelog" version "2.2.1"
 }
 
 group = "com.hsofttec.intellij"
@@ -15,6 +17,9 @@ targetCompatibility = javaTargetVersion
 repositories {
     mavenLocal()
     mavenCentral()
+    intellijPlatform {
+        defaultRepositories()
+    }
     maven {
         authentication {
             basic(BasicAuthentication)
@@ -27,36 +32,42 @@ repositories {
     }
 }
 
-apply plugin: 'org.jetbrains.intellij'
+apply plugin: 'org.jetbrains.intellij.platform'
 apply plugin: 'org.jetbrains.changelog'
 
-intellij {
-    pluginName = "QueryTester"
-    version = "${ideaVersion}"
-    updateSinceUntilBuild = false
-    buildSearchableOptions.enabled = false
-    downloadSources = false
-    patchPluginXml {
-        sinceBuild.set("231")
-        untilBuild.set("241.*")
-        changeNotes.set(provider { changelog.getLatest().toHTML() })
+intellijPlatform {
+    pluginConfiguration {
+        name = "QueryTester"
+        version = "${ideaVersion}"
+//        updateSinceUntilBuild = false
+        buildSearchableOptions = false
+//        downloadSources = false
+        vendor {
+            name = 'Sven Homburg'
+            email = 'Sven.Homburg@hsofttec.com'
+        }
+        ideaVersion {
+            sinceBuild = '243'
+        }
+        patchPluginXml {
+            sinceBuild.set("243")
+            changeNotes.set(provider { changelog.getLatest().toHTML() })
+        }
+        signing {
+            certificateChain = System.getenv("CERTIFICATE_CHAIN")
+            privateKey = System.getenv("PRIVATE_KEY")
+            password = System.getenv("PRIVATE_KEY_PASSWORD")
+        }
+        changelog {
+            path = "${project.projectDir}/CHANGELOG.md"
+            header = "[${-> version.get()}] - ${new SimpleDateFormat("yyyy-MM-dd").format(new Date())}"
+            headerParserRegex = ~/(\d+\.\d+\.\d+)/
+            itemPrefix = "-"
+            keepUnreleasedSection = true
+            unreleasedTerm = "[Unreleased]"
+            groups = ["Added", "Changed", "Fixed", "Security"]
+        }
     }
-}
-
-signPlugin {
-    certificateChain = System.getenv("CERTIFICATE_CHAIN")
-    privateKey = System.getenv("PRIVATE_KEY")
-    password = System.getenv("PRIVATE_KEY_PASSWORD")
-}
-
-changelog {
-    path = "${project.projectDir}/CHANGELOG.md"
-    header = "[${-> version.get()}] - ${new SimpleDateFormat("yyyy-MM-dd").format(new Date())}"
-    headerParserRegex = ~/(\d+\.\d+\.\d+)/
-    itemPrefix = "-"
-    keepUnreleasedSection = true
-    unreleasedTerm = "[Unreleased]"
-    groups = ["Added", "Changed", "Fixed", "Security"]
 }
 
 dependencies {
@@ -70,16 +81,30 @@ dependencies {
         exclude group: "org.slf4j"
     }
 
-    compileOnly 'org.projectlombok:lombok:1.18.24'
-    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
-    testCompileOnly 'org.projectlombok:lombok:1.18.24'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+    testCompileOnly 'org.projectlombok:lombok:1.18.34'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+    intellijPlatform {
+        intellijIdeaCommunity '2024.3.3'
+
+        bundledPlugin 'com.intellij.java'
+
+        pluginVerifier()
+        zipSigner()
+        instrumentationTools()
+
+        testFramework TestFrameworkType.Platform.INSTANCE
+    }
+
+    testImplementation 'junit:junit:4.13.2'
 }
 
 // check for existing property
-if (findProperty("jetbrains_marketplace_token_querytester")) {
-    publishPlugin {
-        token = "${jetbrains_marketplace_token_querytester}"
-    }
-}
+//if (findProperty("jetbrains_marketplace_token_querytester")) {
+//    publishPlugin {
+//        token = "${jetbrains_marketplace_token_querytester}"
+//    }
+//}
