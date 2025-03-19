@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.4.5] - 2025-03-20
+
+### Added
+
+### Changed
+
+- upgrade for IDEA 2024.3
+
+### Fixed
+
+### Security
+
 ## [1.4.4] - 2024-08-27
 
 ### Added
