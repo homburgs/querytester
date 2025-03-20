@@ -1,10 +1,11 @@
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 import java.text.SimpleDateFormat
 
 plugins {
     id "java"
-    id 'org.jetbrains.intellij.platform' version '2.2.1'
+    id 'org.jetbrains.intellij.platform' version '2.3.0'
     id "org.jetbrains.changelog" version "2.2.1"
 }
 
@@ -38,7 +39,7 @@ apply plugin: 'org.jetbrains.changelog'
 intellijPlatform {
     pluginConfiguration {
         name = "QueryTester"
-        version = "${ideaVersion}"
+        version = "${pluginVersion}"
 //        updateSinceUntilBuild = false
         buildSearchableOptions = false
 //        downloadSources = false
@@ -67,6 +68,14 @@ intellijPlatform {
             unreleasedTerm = "[Unreleased]"
             groups = ["Added", "Changed", "Fixed", "Security"]
         }
+    }
+    pluginVerification {
+        ides {
+            ide IntelliJPlatformType.IntellijIdeaCommunity, "2024.3"
+        }
+    }
+    publishing {
+        token = "${jetbrains_marketplace_token_querytester}"
     }
 }
 
