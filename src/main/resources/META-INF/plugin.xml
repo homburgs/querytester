@@ -23,7 +23,7 @@
   -->
 
 <idea-plugin>
-    <id>com.hsofttec.intellij.querytester</id>
+    <id>com.hsofttec.querytester</id>
     <name>nscale Query Tester</name>
     <depends>com.intellij.modules.platform</depends>
 
@@ -59,7 +59,7 @@
 
     <vendor email="Sven.Homburg@hsofttec.com">S.Homburg</vendor>
 
-    <idea-version since-build="222" until-build="243.*"/>
+    <idea-version since-build="243" until-build="243.*"/>
 
     <depends>com.intellij.modules.lang</depends>
 
