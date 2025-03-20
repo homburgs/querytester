@@ -28,10 +28,9 @@ import com.hsofttec.intellij.querytester.listeners.HistoryModifiedEventListener;
 import com.hsofttec.intellij.querytester.states.SettingsState;
 import com.hsofttec.intellij.querytester.utils.DimensionConverter;
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.intellij.util.xmlb.annotations.OptionTag;
 import org.jetbrains.annotations.NotNull;
@@ -42,85 +41,75 @@ import java.util.List;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
+@Service(Service.Level.PROJECT)
 @State(
         name = "QueryHistory",
-        storages = { @Storage( "querytester.xml" ) }
+        storages = {@Storage("querytester.xml")}
 )
-public class HistoryService implements PersistentStateComponent<HistoryService.HistoryState> {
+public final class HistoryService implements PersistentStateComponent<HistoryService.HistoryState> {
 
-    private SettingsState SETTINGS_STATE = SettingsService.getSettings();
-
-    private final Project project;
-    private HistoryState historyState = new HistoryState( );
-
-    public HistoryService( Project project ) {
-        this.project = project;
-    }
-
-    private static final List<HistoryModifiedEventListener> listeners = new ArrayList<>( );
-
-    public static HistoryService getSettings( Project project ) {
-        return ServiceManager.getService( project, HistoryService.class );
-    }
+    private static final List<HistoryModifiedEventListener> listeners = new ArrayList<>();
+    private final SettingsState SETTINGS_STATE = SettingsService.getSettings();
+    private final HistoryState historyState = new HistoryState();
 
     @Override
-    public HistoryState getState( ) {
+    public HistoryState getState() {
         return historyState;
     }
 
     @Override
-    public void loadState( @NotNull HistoryService.HistoryState state ) {
-        XmlSerializerUtil.copyBean( state, this.historyState );
+    public void loadState(@NotNull HistoryService.HistoryState state) {
+        XmlSerializerUtil.copyBean(state, this.historyState);
     }
 
-    public Dimension getDialogDimension( ) {
+    public Dimension getDialogDimension() {
         return historyState.dialogDimension;
     }
 
-    public void setDialogDimension( Dimension dialogDimension ) {
+    public void setDialogDimension(Dimension dialogDimension) {
         historyState.dialogDimension = dialogDimension;
     }
 
-    public List<String> getQueryList( ) {
+    public List<String> getQueryList() {
         return historyState.historyList;
     }
 
-    public void addListener( HistoryModifiedEventListener listener ) {
-        listeners.add( listener );
+    public void addListener(HistoryModifiedEventListener listener) {
+        listeners.add(listener);
     }
 
-    public void addQuery( @NotNull String nqlQuery ) {
-        if ( nqlQuery.trim( ).isEmpty( ) ) {
+    public void addQuery(@NotNull String nqlQuery) {
+        if (nqlQuery.trim().isEmpty()) {
             return;
         }
 
-        nqlQuery = nqlQuery.replaceAll( "\\t\\n\\r", " " );
+        nqlQuery = nqlQuery.replaceAll("\\t\\n\\r", " ");
 
-        for ( String query : historyState.historyList ) {
-            if ( query.equals( nqlQuery ) ) {
+        for (String query : historyState.historyList) {
+            if (query.equals(nqlQuery)) {
                 return;
             }
         }
 
-        if ( historyState.historyList.size( ) >= SETTINGS_STATE.getMaxHistorySize( ) ) {
-            historyState.historyList.remove( 0 );
+        if (historyState.historyList.size() >= SETTINGS_STATE.getMaxHistorySize()) {
+            historyState.historyList.removeFirst();
         }
-        historyState.historyList.add( nqlQuery );
+        historyState.historyList.add(nqlQuery);
 
-        for ( HistoryModifiedEventListener listener : listeners ) {
-            listener.notifyAdd( nqlQuery );
+        for (HistoryModifiedEventListener listener : listeners) {
+            listener.notifyAdd(nqlQuery);
         }
     }
 
-    private long getCRC32Checksum( byte[] bytes ) {
-        Checksum crc32 = new CRC32( );
-        crc32.update( bytes, 0, bytes.length );
-        return crc32.getValue( );
+    private long getCRC32Checksum(byte[] bytes) {
+        Checksum crc32 = new CRC32();
+        crc32.update(bytes, 0, bytes.length);
+        return crc32.getValue();
     }
 
     public static class HistoryState {
-        public List<String> historyList = new ArrayList<>( );
-        @OptionTag( converter = DimensionConverter.class )
-        public Dimension dialogDimension = new Dimension( 200, 200 );
+        public List<String> historyList = new ArrayList<>();
+        @OptionTag(converter = DimensionConverter.class)
+        public Dimension dialogDimension = new Dimension(200, 200);
     }
 }
