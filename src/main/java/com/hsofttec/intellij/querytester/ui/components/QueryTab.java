@@ -105,7 +105,7 @@ public class QueryTab {
         messageBus = queryTester.getProject().getMessageBus();
         resultPageNumber = 1;
         queryService = queryTester.getProject().getService(QueryService.class);
-        historyService = HistoryService.getSettings(queryTester.getProject());
+        historyService = queryTester.getProject().getService(HistoryService.class);
         connectionService = ConnectionService.getInstance();
         SETTINGS = SettingsService.getSettings();
 
