@@ -94,7 +94,7 @@ public class ConnectionSelect extends ComboBox<ConnectionSettings> implements It
         ApplicationManager.getApplication().invokeLater(() -> {
             boolean connectionUsable = CONNECTION_SERVICE.isConnectionUsable(settings);
             checkServerConnectionNotifier.afterAction(settings, connectionUsable);
-        }, ModalityState.NON_MODAL);
+        }, ModalityState.nonModal());
     }
 
     public void modifyConnection( ConnectionSettings settings ) {
