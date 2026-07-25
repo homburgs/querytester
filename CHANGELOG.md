@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- NQL autocompletion now covers the full language surface from the NQL reference: query functions, aggregate keywords,
+  named operators, and convenience `$`-constants. Completions show a category (type text + icon), and functions insert
+  with parentheses and the caret placed inside.
+
+### Changed
+
+### Fixed
+
+### Security
+
 ## [1.4.5] - 2025-03-20
 
 ### Added

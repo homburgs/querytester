@@ -5,15 +5,17 @@ import java.text.SimpleDateFormat
 
 plugins {
     id "java"
-    id 'org.jetbrains.intellij.platform' version '2.3.0'
+    id 'org.jetbrains.intellij.platform' version '2.18.1'
     id "org.jetbrains.changelog" version "2.2.1"
 }
 
 group = "com.hsofttec.intellij"
 version = "${pluginVersion}"
 
-sourceCompatibility = javaSourceVersion
-targetCompatibility = javaTargetVersion
+java {
+    sourceCompatibility = javaSourceVersion
+    targetCompatibility = javaTargetVersion
+}
 
 repositories {
     mavenLocal()
@@ -32,9 +34,6 @@ repositories {
         url "https://artifact.nscale.eu/repository/nscale-java-advanced-connector"
     }
 }
-
-apply plugin: 'org.jetbrains.intellij.platform'
-apply plugin: 'org.jetbrains.changelog'
 
 intellijPlatform {
     pluginConfiguration {
@@ -71,7 +70,7 @@ intellijPlatform {
     }
     pluginVerification {
         ides {
-            ide IntelliJPlatformType.IntellijIdeaCommunity, "2024.3"
+            create IntelliJPlatformType.IntellijIdeaCommunity, "2024.3"
         }
     }
     publishing {
@@ -103,7 +102,6 @@ dependencies {
 
         pluginVerifier()
         zipSigner()
-        instrumentationTools()
 
         testFramework TestFrameworkType.Platform.INSTANCE
     }
