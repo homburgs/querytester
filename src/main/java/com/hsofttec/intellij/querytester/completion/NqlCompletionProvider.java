@@ -31,10 +31,15 @@ import com.hsofttec.intellij.querytester.ui.notifiers.DocumentAreaChangedNotifie
 import com.hsofttec.intellij.querytester.utils.NqlLiterals;
 import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.EditorModificationUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.TextFieldCompletionProviderDumbAware;
 import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,9 +79,18 @@ public class NqlCompletionProvider extends TextFieldCompletionProviderDumbAware 
             myResult = result;
         }
 
-        for ( String literal : NqlLiterals.LITERALS ) {
-            final LookupElementBuilder element = LookupElementBuilder.create( literal );
-            myResult.addElement( element.withLookupString( element.getLookupString( ) ) );
+        for (NqlLiterals.Literal literal : NqlLiterals.LITERALS) {
+            LookupElementBuilder element = LookupElementBuilder.create(literal.text())
+                    .withTypeText(typeTextFor(literal.category()))
+                    .withIcon(iconFor(literal.category()));
+            if (literal.isFunction()) {
+                element = element.withInsertHandler((ctx, item) -> {
+                    Editor editor = ctx.getEditor();
+                    EditorModificationUtil.insertStringAtCaret(editor, "()");
+                    editor.getCaretModel().moveCaretRelatively(-1, 0, false, false, true);
+                });
+            }
+            myResult.addElement(element);
         }
 
         for ( IndexingPropertyDefinition indexingPropertyDefinition : indexingPropertyDefinitions ) {
@@ -94,5 +108,25 @@ public class NqlCompletionProvider extends TextFieldCompletionProviderDumbAware 
             List<IndexingPropertyDefinition> definitions = session.getConfigurationService( ).getIndexingPropertyDefinitions( selectedDocumentAreaName );
             indexingPropertyDefinitions.addAll( definitions );
         }
+    }
+
+    private static String typeTextFor(NqlLiterals.Category category) {
+        return switch (category) {
+            case KEYWORD -> "keyword";
+            case OPERATOR -> "operator";
+            case CONSTANT -> "constant";
+            case CONTEXT_VARIABLE -> "context var";
+            case FUNCTION -> "function";
+        };
+    }
+
+    private static Icon iconFor(NqlLiterals.Category category) {
+        return switch (category) {
+            case KEYWORD -> AllIcons.Nodes.Static;
+            case OPERATOR -> AllIcons.Nodes.Parameter;
+            case CONSTANT -> AllIcons.Nodes.Constant;
+            case CONTEXT_VARIABLE -> AllIcons.Nodes.Variable;
+            case FUNCTION -> AllIcons.Nodes.Function;
+        };
     }
 }
