@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -63,6 +64,9 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
     private static final SettingsState SETTINGS = SettingsService.getSettings();
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance();
     private String selectedResourceId;
+    private BasicDynaBean selectedDynaBean;
+    private JTable selectedTable;
+    private int selectedTableRow = -1;
     private JBMenuItem selectParentFolderId;
     private JBMenuItem searchParentMenuItem;
     private JBMenuItem showPathMenuItem;
@@ -136,6 +140,7 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         lockMenuItem = new JBMenuItem("Lock");
         lockMenuItem.addActionListener(actionEvent -> {
             CONNECTION_SERVICE.lockResource(selectedResourceId);
+            updateLockedColumn(true);
             UIUtil.invokeLaterIfNeeded(() -> {
                 Notifier.information("resource successful locked");
             });
@@ -146,6 +151,7 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         unlockMenuItem = new JBMenuItem("Unlock");
         unlockMenuItem.addActionListener(actionEvent -> {
             CONNECTION_SERVICE.unlockResource(selectedResourceId);
+            updateLockedColumn(false);
             UIUtil.invokeLaterIfNeeded(() -> {
                 Notifier.information("resource successful un-locked");
             });
@@ -259,6 +265,26 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
     }
 
     /**
+     * refresh the lock column of the selected row without re-running the query
+     *
+     * @param locked new lock state of the selected resource
+     */
+    private void updateLockedColumn(boolean locked) {
+        if (selectedDynaBean == null || selectedTable == null || selectedTableRow < 0) {
+            return;
+        }
+
+        if (selectedDynaBean.getDynaClass().getDynaProperty(QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED) == null) {
+            return;
+        }
+
+        selectedDynaBean.set(QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED, locked);
+        if (selectedTable.getModel() instanceof AbstractTableModel tableModel) {
+            UIUtil.invokeLaterIfNeeded(() -> tableModel.fireTableRowsUpdated(selectedTableRow, selectedTableRow));
+        }
+    }
+
+    /**
      * disable all menu items
      */
     private void disableAllMenuItems() {
@@ -285,12 +311,19 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         // disable all menu items
         disableAllMenuItems();
 
+        selectedDynaBean = null;
+        selectedTable = null;
+        selectedTableRow = -1;
+
         // get selected table row and search for selected resource id
         try {
             int selectedRow = invoker.getSelectedRow();
             int selectedColumn = invoker.getSelectedColumn();
             if (selectedRow > -1) {
                 basicDynaBean = (BasicDynaBean) invoker.getValueAt(selectedRow, selectedColumn);
+                selectedDynaBean = basicDynaBean;
+                selectedTable = invoker;
+                selectedTableRow = invoker.convertRowIndexToModel(selectedRow);
             }
         } catch (Exception e) {
             logger.warn(ExceptionUtils.getRootCause(e).getLocalizedMessage());

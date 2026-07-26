@@ -36,6 +36,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
@@ -55,7 +56,9 @@ public class NscaleTable extends JBTable {
         connectionService = ConnectionService.getInstance();
         setFont(new Font(SETTINGS.getFontFace(), Font.PLAIN, SETTINGS.getFontSize()));
         setAutoResizeMode(JBTable.AUTO_RESIZE_OFF);
-        setDefaultRenderer(Object.class, new DynaPropertyTableCellRenderer());
+        DynaPropertyTableCellRenderer dynaPropertyTableCellRenderer = new DynaPropertyTableCellRenderer();
+        setDefaultRenderer(Object.class, dynaPropertyTableCellRenderer);
+        setDefaultRenderer(Icon.class, dynaPropertyTableCellRenderer);
 
         tableColumnAdjuster = new TableColumnAdjuster(this);
 

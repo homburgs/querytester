@@ -49,20 +49,26 @@ public class DynaPropertyTableCellRenderer extends DefaultTableCellRenderer {
                                                     int row,
                                                     int column ) {
 
+        Icon lockIcon = null;
+
         if (value instanceof DynaBean dynaBean) {
             DynaProperty dynaProperty = dynaBean.getDynaClass().getDynaProperties()[column];
             String name = dynaProperty.getName();
-            value = convertValueToString(dynaBean.get(name));
 
             if (QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED.equals(name)) {
-                boolean locked = (boolean) dynaBean.get(name);
-                if (locked) {
-                    value = AllIcons.RunConfigurations.TestState.Run;
+                if (Boolean.TRUE.equals(dynaBean.get(name))) {
+                    lockIcon = AllIcons.Nodes.Locked;
                 }
+                value = "";
+            } else {
+                value = convertValueToString(dynaBean.get(name));
             }
         }
 
-        return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        Component component = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        setIcon(lockIcon);
+        setHorizontalAlignment(lockIcon != null ? CENTER : LEADING);
+        return component;
     }
 
     private String convertValueToString( Object rawValue ) {

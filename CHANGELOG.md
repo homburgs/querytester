@@ -12,6 +12,12 @@
 
 ### Fixed
 
+- Locking or unlocking a resource from the result table context menu now updates the lock column immediately; previously
+  the padlock icon only changed after the query was re-run.
+- The lock indicator column now shows a padlock icon for locked resources. Previously the locked column rendered blank
+  (the column was routed to the platform's built-in icon renderer, which received the row bean instead of an icon), and
+  unlocked rows showed the literal text `false`.
+
 ### Security
 
 ## [1.4.5] - 2025-03-20
