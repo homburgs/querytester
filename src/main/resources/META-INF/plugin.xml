@@ -23,7 +23,7 @@
   -->
 
 <idea-plugin>
-    <id>com.hsofttec.querytester</id>
+    <id>com.hsofttec.intellij.querytester</id>
     <name>nscale Query Tester</name>
     <depends>com.intellij.modules.platform</depends>
 
