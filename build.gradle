@@ -48,6 +48,7 @@ intellijPlatform {
         }
         ideaVersion {
             sinceBuild = '243'
+            untilBuild = provider { null }
         }
         patchPluginXml {
             sinceBuild.set("243")
@@ -65,12 +66,13 @@ intellijPlatform {
             itemPrefix = "-"
             keepUnreleasedSection = true
             unreleasedTerm = "[Unreleased]"
-            groups = ["Added", "Changed", "Fixed", "Security"]
+            groups = ["Added", "Changed", "Removed", "Fixed", "Security"]
         }
     }
     pluginVerification {
         ides {
             create IntelliJPlatformType.IntellijIdeaCommunity, "2024.3"
+            recommended()
         }
     }
     publishing {

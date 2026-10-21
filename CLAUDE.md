@@ -15,7 +15,7 @@ IntelliJ Platform Gradle plugin 2.x.
 ./gradlew build                 # compile + assemble the plugin
 ./gradlew buildPlugin           # produce the distributable zip in build/distributions/
 ./gradlew runIde                # launch a sandbox IDE with the plugin loaded
-./gradlew verifyPlugin          # run the JetBrains plugin verifier (IDEA Community 2024.3)
+./gradlew verifyPlugin          # run the JetBrains plugin verifier (IDEA Community 2024.3 + recommended IDEs)
 ./gradlew publishPlugin         # publish to the JetBrains Marketplace (needs token)
 ```
 
@@ -23,7 +23,7 @@ There are no tests in this repo (`src/test` does not exist), despite the JUnit t
 `build.gradle`. Verify changes via `runIde`.
 
 Key version knobs live in `gradle.properties`: `pluginVersion`, `ideaVersion`, `javaSourceVersion`/
-`javaTargetVersion` (Java 21). `sinceBuild`/`until-build` are pinned to `243` (see `build.gradle`
+`javaTargetVersion` (Java 21). `sinceBuild` is `243`, there is no `until-build` (open-ended; see `build.gradle`
 and `plugin.xml`).
 
 ### Required credentials

@@ -57,19 +57,23 @@ including basic repository operations such as creating, locking and deleting res
 
 ### Repository operations
 
-Right-click any result row:
+Right-click any result row. Select multiple rows with <kbd>Ctrl</kbd>/<kbd>Shift</kbd>; *Lock*, *Unlock* and *Delete*
+apply to all selected rows, the other actions need a single selection.
 
-| Action                           | Description                                                     |
-|----------------------------------|-----------------------------------------------------------------|
-| Search From Here / Search Parent | Re-run the query rooted at the selected folder or its parent    |
-| Show Path                        | Show the full repository path and optionally navigate to a node |
-| Lock / Unlock                    | Lock or unlock the selected resource                            |
-| Add Document / Add Folder        | Create a new resource below the selected folder                 |
-| Delete Document/Folder           | Delete the selected resource (must be enabled in the settings)  |
+| Action                           | Description                                                                  |
+|----------------------------------|------------------------------------------------------------------------------|
+| Search From Here / Search Parent | Re-run the query rooted at the selected folder or its parent                 |
+| Show Path                        | Show the full repository path and optionally navigate to a node              |
+| Lock / Unlock                    | Lock or unlock the selected resources                                        |
+| Add Document / Add Folder        | Create a new resource below the selected folder                              |
+| Delete                           | Delete the selected resources, logically or physically (also <kbd>Del</kbd>) |
+
+In *Masterdata* mode, *Delete* (and <kbd>Del</kbd>) physically deletes the selected masterdata entries. Every delete
+asks for confirmation.
 
 ## Requirements
 
-- IntelliJ IDEA **2024.3** (build 243)
+- IntelliJ IDEA **2024.3** (build 243) or later
 - A reachable nscale Application Layer instance and valid credentials
 
 ## Installation
@@ -107,7 +111,6 @@ Download the latest release [from GitHub][3] and follow the JetBrains guide on
 | Show id column    | on                      | Show the synthetic line number column               |
 | Show key column   | on                      | Show the resource key column                        |
 | Display lock icon | on                      | Show the padlock column for locked resources        |
-| Show delete       | off                     | Enable *Delete Document/Folder* in the context menu |
 | Font face / size  | `JetBrains Mono` / `14` | Font of the result table                            |
 | Field separator   | <code>&#124;</code>     | Separator used by *Copy Selected Values*            |
 

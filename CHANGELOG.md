@@ -4,6 +4,18 @@
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [1.5.0] - 2026-10-21
+
+### Added
+
 - NQL autocompletion now covers the full language surface from the NQL reference: query functions, aggregate keywords,
   named operators, and convenience `$`-constants. Completions show a category (type text + icon), and functions insert
   with parentheses and the caret placed inside.
@@ -15,6 +27,8 @@
   Delete key, for single and multi selection. The context menu item is now labelled "Delete".
 
 ### Changed
+
+- Compatible with IntelliJ IDEA 2024.3 and later (no upper build limit).
 
 ### Removed
 
@@ -29,69 +43,37 @@
   (the column was routed to the platform's built-in icon renderer, which received the row bean instead of an icon), and
   unlocked rows showed the literal text `false`.
 
-### Security
-
-## [1.4.5] - 2025-03-20
-
-### Added
+## 1.4.5 - 2025-03-20
 
 ### Changed
 
 - upgrade for IDEA 2024.3
 
-### Fixed
-
-### Security
-
-## [1.4.4] - 2024-08-27
-
-### Added
+## 1.4.4 - 2024-08-27
 
 ### Changed
 
 - upgrade for IDEA 2024.2
 
-### Fixed
-
-### Security
-
-## [1.4.3] - 2024-04-05
-
-### Added
+## 1.4.3 - 2024-04-05
 
 ### Changed
 
 - upgrade for IDEA 2024.1
 
-### Fixed
-
-### Security
-
-## [1.4.2] - 2023-12-10
-
-### Added
+## 1.4.2 - 2023-12-10
 
 ### Changed
 
 - upgrade for IDEA 2023.3
 
-### Fixed
-
-### Security
-
-## [1.4.1] - 2023-08-14
-
-### Added
+## 1.4.1 - 2023-08-14
 
 ### Changed
 
 - upgrade for IDEA 2023.2
 
-### Fixed
-
-### Security
-
-## [1.4.0] - 2023-04-03
+## 1.4.0 - 2023-04-03
 
 ### Added
 
@@ -101,11 +83,7 @@
 
 - upgrade for IDEA 2023.1
 
-### Fixed
-
-### Security
-
-## [1.3.2] - 2022-12-29
+## 1.3.2 - 2022-12-29
 
 ### Added
 
@@ -122,21 +100,13 @@
 - connection testing now displays the result of test
 - action "Search Parent" in context menu now enabled
 
-### Security
-
-## [1.3.1] - 2022-10-31
-
-### Added
-
-### Changed
+## 1.3.1 - 2022-10-31
 
 ### Fixed
 
 - make plugin usable for IDEA 2022.3+
 
-### Security
-
-## [1.3.0] - 2022-10-31
+## 1.3.0 - 2022-10-31
 
 ### Added
 
@@ -152,9 +122,7 @@
 
 - use scope area name instead of scope displayname
 
-### Security
-
-## [1.2.0] - 2022-10-08
+## 1.2.0 - 2022-10-08
 
 ### Added
 
@@ -168,9 +136,7 @@
 
 - some minor bugs fixed
 
-### Security
-
-## [1.1.0] - 2022-10-04
+## 1.1.0 - 2022-10-04
 
 ### Added
 
@@ -180,17 +146,13 @@
 
 - exception throws by masterdata query now displays as error bubble
 
-### Fixed
-
-### Security
-
-## [1.0.1] - 2022-10-03
+## 1.0.1 - 2022-10-03
 
 ### Changed
 
 - ui redesign
 
-## [1.0.0] - 2022-09-20
+## 1.0.0 - 2022-09-20
 
 ### Added
 
