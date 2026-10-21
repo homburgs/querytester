@@ -1,3 +1,4 @@
+import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
@@ -52,21 +53,19 @@ intellijPlatform {
         }
         patchPluginXml {
             sinceBuild.set("243")
-            changeNotes.set(provider { changelog.getLatest().toHTML() })
+            changeNotes = provider {
+                changelog.renderItem(
+                        (changelog.getOrNull(project.version.toString()) ?: changelog.getUnreleased())
+                                .withHeader(false)
+                                .withEmptySections(false),
+                        Changelog.OutputType.HTML
+                )
+            }
         }
         signing {
             certificateChain = System.getenv("CERTIFICATE_CHAIN")
             privateKey = System.getenv("PRIVATE_KEY")
             password = System.getenv("PRIVATE_KEY_PASSWORD")
-        }
-        changelog {
-            path = "${project.projectDir}/CHANGELOG.md"
-            header = "[${-> version.get()}] - ${new SimpleDateFormat("yyyy-MM-dd").format(new Date())}"
-            headerParserRegex = ~/(\d+\.\d+\.\d+)/
-            itemPrefix = "-"
-            keepUnreleasedSection = true
-            unreleasedTerm = "[Unreleased]"
-            groups = ["Added", "Changed", "Removed", "Fixed", "Security"]
         }
     }
     pluginVerification {
@@ -78,6 +77,16 @@ intellijPlatform {
     publishing {
         token = "${jetbrains_marketplace_token_querytester}"
     }
+}
+
+changelog {
+    path = "${project.projectDir}/CHANGELOG.md"
+    header = "[${-> version.get()}] - ${new SimpleDateFormat("yyyy-MM-dd").format(new Date())}"
+    headerParserRegex = ~/(\d+\.\d+\.\d+)/
+    itemPrefix = "-"
+    keepUnreleasedSection = true
+    unreleasedTerm = "[Unreleased]"
+    groups = ["Added", "Changed", "Removed", "Fixed", "Security"]
 }
 
 dependencies {
