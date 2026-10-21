@@ -5,8 +5,8 @@ import java.text.SimpleDateFormat
 
 plugins {
     id "java"
-    id 'org.jetbrains.intellij.platform' version '2.18.1'
-    id "org.jetbrains.changelog" version "2.2.1"
+    id 'org.jetbrains.intellij.platform' version '2.19.0'
+    id "org.jetbrains.changelog" version "2.5.0"
 }
 
 group = "com.hsofttec.intellij"
@@ -81,8 +81,8 @@ intellijPlatform {
 }
 
 dependencies {
-    implementation 'org.apache.commons:commons-lang3:3.12.0'
-    implementation('commons-beanutils:commons-beanutils:1.9.4') {
+    implementation 'org.apache.commons:commons-lang3:3.18.0'
+    implementation('commons-beanutils:commons-beanutils:1.11.0') {
         exclude group: "commons-collections"
     }
     implementation 'org.apache.commons:commons-collections4:4.4'
