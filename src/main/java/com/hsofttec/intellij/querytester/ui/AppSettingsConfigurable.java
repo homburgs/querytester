@@ -67,7 +67,6 @@ public class AppSettingsConfigurable implements Configurable {
         boolean modified = appSettingsComponent.getShowIdColumnValue( ) != settings.isShowIdColumn( );
         modified |= appSettingsComponent.getShowKeyColumnValue() != settings.isShowKeyColumn();
         modified |= appSettingsComponent.getDisplayLockIcon() != settings.isDisplayLockItem();
-        modified |= appSettingsComponent.getShowDeleteValue() != settings.isShowDelete();
         modified |= appSettingsComponent.getMaxHistorySizeValue( ) != settings.getMaxHistorySize( );
         modified |= appSettingsComponent.getMaxResultSizeValue( ) != settings.getMaxResultSize( );
         modified |= appSettingsComponent.getFontSizeValue( ) != settings.getFontSize( );
@@ -82,7 +81,6 @@ public class AppSettingsConfigurable implements Configurable {
         settings.setShowIdColumn( appSettingsComponent.getShowIdColumnValue( ) );
         settings.setShowKeyColumn(appSettingsComponent.getShowKeyColumnValue());
         settings.setDisplayLockItem(appSettingsComponent.getDisplayLockIcon());
-        settings.setShowDelete(appSettingsComponent.getShowDeleteValue());
         settings.setMaxHistorySize( appSettingsComponent.getMaxHistorySizeValue( ) );
         settings.setMaxResultSize( appSettingsComponent.getMaxResultSizeValue( ) );
         settings.setFontFace( appSettingsComponent.getFontFaceValue( ) );
@@ -97,7 +95,6 @@ public class AppSettingsConfigurable implements Configurable {
         SettingsState settings = SettingsService.getSettings( );
         appSettingsComponent.setShowIdColumnValue( settings.isShowIdColumn( ) );
         appSettingsComponent.setShowKeyColumnValue( settings.isShowKeyColumn( ) );
-        appSettingsComponent.setShowDeleteValue(settings.isShowDelete());
         appSettingsComponent.setDisplayLockIcon(settings.isDisplayLockItem());
         appSettingsComponent.setMaxHistorySizeValue(settings.getMaxHistorySize());
         appSettingsComponent.setMaxResultSizeValue( settings.getMaxResultSize( ) );

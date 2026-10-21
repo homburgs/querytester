@@ -33,7 +33,6 @@ public class SettingsState {
     private boolean showIdColumn;
     private boolean showKeyColumn;
     private int maxResultSize;
-    private boolean showDelete;
     private boolean displayLockItem;
     private int maxHistorySize;
     private String fontFace;
@@ -43,7 +42,6 @@ public class SettingsState {
     public SettingsState() {
         showKeyColumn = true;
         showIdColumn = true;
-        showDelete = false;
         displayLockItem = true;
         maxHistorySize = 25;
         maxResultSize = 100;

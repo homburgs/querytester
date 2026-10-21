@@ -48,7 +48,6 @@ public class AppSettingsComponent {
     private JCheckBox inputShowIdColumn;
     private JCheckBox inputShowKeyColumn;
     private JPanel settingsPanel;
-    private JCheckBox inputShowDelete;
     private NumericTextField inputMaxResultSize;
     private JLabel labelMaxResultSize;
     private JLabel labelMaxHistorySize;
@@ -82,14 +81,6 @@ public class AppSettingsComponent {
 
     public void setShowIdColumnValue(boolean value) {
         inputShowIdColumn.setSelected(value);
-    }
-
-    public boolean getShowDeleteValue() {
-        return inputShowDelete.isSelected();
-    }
-
-    public void setShowDeleteValue(boolean selected) {
-        inputShowDelete.setSelected(selected);
     }
 
     public boolean getShowKeyColumnValue() {

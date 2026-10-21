@@ -37,6 +37,7 @@ import com.ceyoniq.nscale.al.core.common.ObjectclassName;
 import com.ceyoniq.nscale.al.core.common.Property;
 import com.ceyoniq.nscale.al.core.common.PropertyName;
 import com.ceyoniq.nscale.al.core.content.*;
+import com.ceyoniq.nscale.al.core.masterdata.MasterdataKey;
 import com.ceyoniq.nscale.al.core.repository.ResourceKey;
 import com.ceyoniq.nscale.al.core.repository.ResourceKeyInfo;
 import com.hsofttec.intellij.querytester.models.BaseResource;
@@ -388,10 +389,33 @@ public class ConnectionService {
         return clasz;
     }
 
-    public void deleteResource( BaseResource baseResource ) {
+    /**
+     * delete a nscale repository resource
+     *
+     * @param baseResource resource to delete
+     * @param physical     true: delete physically, false: delete logically (recycle bin)
+     */
+    public void deleteResource(BaseResource baseResource, boolean physical) {
         Session localSession = getSession( );
         if ( localSession != null ) {
-            localSession.getRepositoryService( ).deletePhysical( new ResourceKey( baseResource.getResourceid( ) ) );
+            ResourceKey resourceKey = new ResourceKey(baseResource.getResourceid());
+            if (physical) {
+                localSession.getRepositoryService().deletePhysical(resourceKey);
+            } else {
+                localSession.getRepositoryService().deleteLogical(resourceKey);
+            }
+        }
+    }
+
+    /**
+     * physically delete a nscale masterdata entry
+     *
+     * @param masterdataId masterdata id
+     */
+    public void deleteMasterdata(String masterdataId) {
+        Session localSession = getSession();
+        if (localSession != null) {
+            localSession.getMasterdataService().delete(new MasterdataKey<>(masterdataId));
         }
     }
 }

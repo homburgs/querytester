@@ -37,6 +37,7 @@ import com.hsofttec.intellij.querytester.ui.CreateResourceDialog;
 import com.hsofttec.intellij.querytester.ui.Notifier;
 import com.hsofttec.intellij.querytester.ui.QueryTester;
 import com.hsofttec.intellij.querytester.ui.ResourcePathDialog;
+import com.hsofttec.intellij.querytester.ui.components.ResultTableSelectionActions.SelectedRow;
 import com.hsofttec.intellij.querytester.ui.notifiers.PrepareQueryExecutionNotifier;
 import com.hsofttec.intellij.querytester.ui.notifiers.RootResourceIdChangedNotifier;
 import com.intellij.openapi.ui.JBMenuItem;
@@ -50,12 +51,12 @@ import org.slf4j.LoggerFactory;
 import javax.swing.*;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
-import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 import java.util.Map;
 
 public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuListener {
@@ -64,9 +65,8 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
     private static final SettingsState SETTINGS = SettingsService.getSettings();
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance();
     private String selectedResourceId;
-    private BasicDynaBean selectedDynaBean;
+    private List<SelectedRow> selectedRows = List.of();
     private JTable selectedTable;
-    private int selectedTableRow = -1;
     private JBMenuItem selectParentFolderId;
     private JBMenuItem searchParentMenuItem;
     private JBMenuItem showPathMenuItem;
@@ -138,40 +138,17 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
 
         // lock item
         lockMenuItem = new JBMenuItem("Lock");
-        lockMenuItem.addActionListener(actionEvent -> {
-            CONNECTION_SERVICE.lockResource(selectedResourceId);
-            updateLockedColumn(true);
-            UIUtil.invokeLaterIfNeeded(() -> {
-                Notifier.information("resource successful locked");
-            });
-        });
+        lockMenuItem.addActionListener(actionEvent -> ResultTableSelectionActions.lock(selectedTable, rowsToChange(true), true));
         lockMenuItem.setEnabled(false);
 
         // unlock item
         unlockMenuItem = new JBMenuItem("Unlock");
-        unlockMenuItem.addActionListener(actionEvent -> {
-            CONNECTION_SERVICE.unlockResource(selectedResourceId);
-            updateLockedColumn(false);
-            UIUtil.invokeLaterIfNeeded(() -> {
-                Notifier.information("resource successful un-locked");
-            });
-        });
+        unlockMenuItem.addActionListener(actionEvent -> ResultTableSelectionActions.lock(selectedTable, rowsToChange(false), false));
         unlockMenuItem.setEnabled(false);
 
-        deleteResourceMenuItem = new JBMenuItem("Delete Document/Folder");
+        deleteResourceMenuItem = new JBMenuItem("Delete");
         deleteResourceMenuItem.setEnabled(false);
-        deleteResourceMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed( ActionEvent actionEvent ) {
-                BaseResource baseResource = CONNECTION_SERVICE.getBaseResource(selectedResourceId);
-                CONNECTION_SERVICE.deleteResource(baseResource);
-                UIUtil.invokeLaterIfNeeded(() -> {
-                    Notifier.information("resource successful deleted");
-                });
-                PrepareQueryExecutionNotifier notifier = queryTester.getProject().getMessageBus().syncPublisher(PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC);
-                notifier.doAction();
-            }
-        });
+        deleteResourceMenuItem.addActionListener(actionEvent -> ResultTableSelectionActions.delete(queryTester, selectedRows));
         add(deleteResourceMenuItem);
         addSeparator();
 
@@ -265,23 +242,16 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
     }
 
     /**
-     * refresh the lock column of the selected row without re-running the query
+     * rows affected by lock/unlock: a single row always (state checked on server),
+     * on multi selection only rows whose lock column differs from the target state
      *
-     * @param locked new lock state of the selected resource
+     * @param locked target lock state
      */
-    private void updateLockedColumn(boolean locked) {
-        if (selectedDynaBean == null || selectedTable == null || selectedTableRow < 0) {
-            return;
+    private List<SelectedRow> rowsToChange(boolean locked) {
+        if (selectedRows.size() == 1) {
+            return selectedRows;
         }
-
-        if (selectedDynaBean.getDynaClass().getDynaProperty(QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED) == null) {
-            return;
-        }
-
-        selectedDynaBean.set(QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED, locked);
-        if (selectedTable.getModel() instanceof AbstractTableModel tableModel) {
-            UIUtil.invokeLaterIfNeeded(() -> tableModel.fireTableRowsUpdated(selectedTableRow, selectedTableRow));
-        }
+        return selectedRows.stream().filter(row -> row.isLocked() != locked).toList();
     }
 
     /**
@@ -304,64 +274,69 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
 
     @Override
     public void popupMenuWillBecomeVisible( PopupMenuEvent popupMenuEvent ) {
-        BasicDynaBean basicDynaBean = null;
         ResultTableContextMenu menu = (ResultTableContextMenu) popupMenuEvent.getSource();
         JTable invoker = (JTable) menu.getInvoker();
 
         // disable all menu items
         disableAllMenuItems();
 
-        selectedDynaBean = null;
-        selectedTable = null;
-        selectedTableRow = -1;
+        selectedTable = invoker;
 
-        // get selected table row and search for selected resource id
+        // get selected table rows with resource id
         try {
-            int selectedRow = invoker.getSelectedRow();
-            int selectedColumn = invoker.getSelectedColumn();
-            if (selectedRow > -1) {
-                basicDynaBean = (BasicDynaBean) invoker.getValueAt(selectedRow, selectedColumn);
-                selectedDynaBean = basicDynaBean;
-                selectedTable = invoker;
-                selectedTableRow = invoker.convertRowIndexToModel(selectedRow);
-            }
+            selectedRows = ResultTableSelectionActions.collect(invoker);
         } catch (Exception e) {
+            selectedRows = List.of();
             logger.warn(ExceptionUtils.getRootCause(e).getLocalizedMessage());
             return;
         }
 
-        // if resource id found, enable some menu items
-        if (basicDynaBean != null) {
-            // check if resource key is exists
-            if (basicDynaBean.getMap().containsKey(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY)) {
-                selectedResourceId = (String) basicDynaBean.get(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY);
-                QueryMode queryMode = queryTester.getActiveQueryTab().getQueryInformation().getQueryMode();
-                if (queryMode == QueryMode.REPOSITORY) {
-                    BaseResource baseResource = CONNECTION_SERVICE.getBaseResource(selectedResourceId);
-                    if (!baseResource.isLocked()) {
-                        lockMenuItem.setEnabled(true);
-                        unlockMenuItem.setEnabled(false);
-                    } else {
-                        lockMenuItem.setEnabled(false);
-                        unlockMenuItem.setEnabled(true);
-                    }
+        if (selectedRows.isEmpty()) {
+            return;
+        }
 
-                    if (SETTINGS.isShowDelete()) {
-                        deleteResourceMenuItem.setEnabled(true);
-                    }
+        QueryMode queryMode = queryTester.getActiveQueryTab().getQueryInformation().getQueryMode();
 
-                    if (baseResource.getResourcetype() == ResourceType.FOLDER.getId()) {
-                        addFolderMenuItem.setEnabled(true);
-                        addDocumentMenuItem.setEnabled(true);
-                        addLinkMenuItem.setEnabled(true);
-                    }
-                    showPathMenuItem.setEnabled(true);
-                    searchParentMenuItem.setEnabled(true);
-                    copyKeyMenuItem.setEnabled(true);
-                    copySelectedValuesMenuItem.setEnabled(true);
-                    selectParentFolderId.setEnabled(baseResource.getResourcetype() == ResourceType.FOLDER.getId());
-                }
+        // masterdata: only delete (single and multi selection)
+        if (queryMode == QueryMode.MASTERDATA) {
+            deleteResourceMenuItem.setEnabled(ResultTableSelectionActions.isDeleteAllowed(queryTester));
+            return;
+        }
+
+        // multi selection: only lock, unlock and delete, lock state taken from lock column
+        if (selectedRows.size() > 1) {
+            if (queryMode == QueryMode.REPOSITORY) {
+                lockMenuItem.setEnabled(selectedRows.stream().anyMatch(row -> !row.isLocked()));
+                unlockMenuItem.setEnabled(selectedRows.stream().anyMatch(SelectedRow::isLocked));
+                deleteResourceMenuItem.setEnabled(ResultTableSelectionActions.isDeleteAllowed(queryTester));
             }
+            return;
+        }
+
+        // single selection: enable menu items depending on resource
+        selectedResourceId = selectedRows.get(0).resourceId();
+        if (queryMode == QueryMode.REPOSITORY) {
+            BaseResource baseResource = CONNECTION_SERVICE.getBaseResource(selectedResourceId);
+            if (!baseResource.isLocked()) {
+                lockMenuItem.setEnabled(true);
+                unlockMenuItem.setEnabled(false);
+            } else {
+                lockMenuItem.setEnabled(false);
+                unlockMenuItem.setEnabled(true);
+            }
+
+            deleteResourceMenuItem.setEnabled(true);
+
+            if (baseResource.getResourcetype() == ResourceType.FOLDER.getId()) {
+                addFolderMenuItem.setEnabled(true);
+                addDocumentMenuItem.setEnabled(true);
+                addLinkMenuItem.setEnabled(true);
+            }
+            showPathMenuItem.setEnabled(true);
+            searchParentMenuItem.setEnabled(true);
+            copyKeyMenuItem.setEnabled(true);
+            copySelectedValuesMenuItem.setEnabled(true);
+            selectParentFolderId.setEnabled(baseResource.getResourcetype() == ResourceType.FOLDER.getId());
         }
     }
 

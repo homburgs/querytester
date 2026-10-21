@@ -40,6 +40,8 @@ import javax.swing.*;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -65,14 +67,24 @@ public class NscaleTable extends JBTable {
         contextMenu = new ResultTableContextMenu(queryTester);
         setComponentPopupMenu(contextMenu);
 
+        getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "deleteResources");
+        getActionMap().put("deleteResources", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                if (ResultTableSelectionActions.isDeleteAllowed(queryTester)) {
+                    ResultTableSelectionActions.delete(queryTester, ResultTableSelectionActions.collect(NscaleTable.this));
+                }
+            }
+        });
+
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed( MouseEvent mouseEvent ) {
-                // selects the row at which point the mouse is clicked
+                // on right click selects the row at which point the mouse is clicked, keeps an existing multi selection
                 Point point = mouseEvent.getPoint();
                 int currentCol = columnAtPoint(point);
                 int currentRow = rowAtPoint(point);
-                if (currentRow != -1) {
+                if (currentRow != -1 && SwingUtilities.isRightMouseButton(mouseEvent) && !isRowSelected(currentRow)) {
                     if (mouseEvent.getClickCount() == 1) {
                         try {
                             setRowSelectionInterval(currentRow, currentRow);

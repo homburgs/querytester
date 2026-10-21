@@ -7,8 +7,19 @@
 - NQL autocompletion now covers the full language surface from the NQL reference: query functions, aggregate keywords,
   named operators, and convenience `$`-constants. Completions show a category (type text + icon), and functions insert
   with parentheses and the caret placed inside.
+- The result table supports multi selection (Ctrl/Shift). Lock, Unlock and Delete from the context menu apply to all
+  selected resources; the other context menu items stay single selection only.
+- Selected resources can be deleted with the Delete key. Deleting now asks
+  for confirmation, where the user chooses between logical (restorable) and physical deletion.
+- Masterdata entries can be deleted (physically only) from the result table in masterdata mode, via context menu or
+  Delete key, for single and multi selection. The context menu item is now labelled "Delete".
 
 ### Changed
+
+### Removed
+
+- The setting "enable Delete" was removed. Delete is always available in repository and masterdata mode and is guarded
+  by a confirmation dialog.
 
 ### Fixed
 
