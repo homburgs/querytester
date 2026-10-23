@@ -13,6 +13,8 @@ plugins {
 group = "com.hsofttec.intellij"
 version = "${pluginVersion}"
 
+def lombokVersion = '1.18.48'
+
 java {
     sourceCompatibility = javaSourceVersion
     targetCompatibility = javaTargetVersion
@@ -29,44 +31,39 @@ repositories {
             basic(BasicAuthentication)
         }
         credentials {
-            username ceyoniq_artifact_username
-            password ceyoniq_artifact_password
+            username = providers.gradleProperty('ceyoniq_artifact_username').getOrNull()
+            password = providers.gradleProperty('ceyoniq_artifact_password').getOrNull()
         }
-        url "https://artifact.nscale.eu/repository/nscale-java-advanced-connector"
+        url = "https://artifact.nscale.eu/repository/nscale-java-advanced-connector"
     }
 }
 
 intellijPlatform {
+    buildSearchableOptions = false
     pluginConfiguration {
         name = "QueryTester"
         version = "${pluginVersion}"
-//        updateSinceUntilBuild = false
-        buildSearchableOptions = false
-//        downloadSources = false
         vendor {
             name = 'Sven Homburg'
             email = 'Sven.Homburg@hsofttec.com'
         }
         ideaVersion {
             sinceBuild = '243'
-            untilBuild = provider { null }
+            untilBuild = '262.*'
         }
-        patchPluginXml {
-            sinceBuild.set("243")
-            changeNotes = provider {
-                changelog.renderItem(
-                        (changelog.getOrNull(project.version.toString()) ?: changelog.getUnreleased())
-                                .withHeader(false)
-                                .withEmptySections(false),
-                        Changelog.OutputType.HTML
-                )
-            }
+        changeNotes = provider {
+            changelog.renderItem(
+                    (changelog.getOrNull(project.version.toString()) ?: changelog.getUnreleased())
+                            .withHeader(false)
+                            .withEmptySections(false),
+                    Changelog.OutputType.HTML
+            )
         }
-        signing {
-            certificateChain = System.getenv("CERTIFICATE_CHAIN")
-            privateKey = System.getenv("PRIVATE_KEY")
-            password = System.getenv("PRIVATE_KEY_PASSWORD")
-        }
+    }
+    signing {
+        certificateChain = System.getenv("CERTIFICATE_CHAIN")
+        privateKey = System.getenv("PRIVATE_KEY")
+        password = System.getenv("PRIVATE_KEY_PASSWORD")
     }
     pluginVerification {
         ides {
@@ -75,7 +72,7 @@ intellijPlatform {
         }
     }
     publishing {
-        token = "${jetbrains_marketplace_token_querytester}"
+        token = providers.gradleProperty('jetbrains_marketplace_token_querytester')
     }
 }
 
@@ -90,26 +87,24 @@ changelog {
 }
 
 dependencies {
-    implementation 'org.apache.commons:commons-lang3:3.18.0'
+    implementation 'org.apache.commons:commons-lang3:3.20.0'
     implementation('commons-beanutils:commons-beanutils:1.11.0') {
         exclude group: "commons-collections"
     }
-    implementation 'org.apache.commons:commons-collections4:4.4'
+    implementation 'org.apache.commons:commons-collections4:4.5.0'
     implementation 'com.github.lgooddatepicker:LGoodDatePicker:11.2.1'
     implementation("com.ceyoniq.nscale.applicationlayer:al-advanced-connector:8.2.1100") {
         exclude group: "org.slf4j"
     }
 
-    compileOnly 'org.projectlombok:lombok:1.18.34'
-    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
-    testCompileOnly 'org.projectlombok:lombok:1.18.34'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
+    testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     intellijPlatform {
-        intellijIdeaCommunity '2024.3.3'
-
-        bundledPlugin 'com.intellij.java'
+        intellijIdeaCommunity '2024.3.6'
 
         pluginVerifier()
         zipSigner()
@@ -119,10 +114,3 @@ dependencies {
 
     testImplementation 'junit:junit:4.13.2'
 }
-
-// check for existing property
-//if (findProperty("jetbrains_marketplace_token_querytester")) {
-//    publishPlugin {
-//        token = "${jetbrains_marketplace_token_querytester}"
-//    }
-//}

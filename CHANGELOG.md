@@ -6,7 +6,13 @@
 
 ### Changed
 
+- Compatible with IntelliJ IDEA 2024.3 up to 2026.2 (`until-build` 262.*).
+- Updated dependencies: commons-lang3 3.20.0, commons-collections4 4.5.0, Lombok 1.18.48; build against IntelliJ IDEA
+  Community 2024.3.6.
+
 ### Removed
+
+- Unused dependency on the bundled Java plugin.
 
 ### Fixed
 

@@ -22,15 +22,16 @@ IntelliJ Platform Gradle plugin 2.x.
 There are no tests in this repo (`src/test` does not exist), despite the JUnit test dependencies declared in
 `build.gradle`. Verify changes via `runIde`.
 
-Key version knobs live in `gradle.properties`: `pluginVersion`, `ideaVersion`, `javaSourceVersion`/
-`javaTargetVersion` (Java 21). `sinceBuild` is `243`, there is no `until-build` (open-ended; see `build.gradle`
-and `plugin.xml`).
+Key version knobs live in `gradle.properties`: `pluginVersion`, `javaSourceVersion`/`javaTargetVersion` (Java 21).
+The target platform (`intellijIdeaCommunity`), `sinceBuild` (`243`), `untilBuild` (`262.*`), plugin name, vendor
+and change-notes are set only in `build.gradle` and patched into `plugin.xml` at build time — don't duplicate them
+in `plugin.xml`.
 
 ### Required credentials
 
 The nscale connector (`com.ceyoniq.nscale.applicationlayer:al-advanced-connector`) is pulled from a private Maven repo.
-`build.gradle` reads these Gradle properties, which must be set (e.g. in
-`~/.gradle/gradle.properties`), or the build cannot resolve dependencies:
+`build.gradle` reads these Gradle properties via `providers.gradleProperty(...)` (e.g. set in
+`~/.gradle/gradle.properties`); without the repo credentials the build cannot resolve dependencies:
 
 - `ceyoniq_artifact_username`, `ceyoniq_artifact_password` — nscale artifact repo auth
 - `jetbrains_marketplace_token_querytester` — only needed for publishing
