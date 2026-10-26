@@ -4,6 +4,9 @@
 
 ### Added
 
+- Edit result cells inline by double click (repository and masterdata results); the value is saved to the server
+  after confirmation.
+
 ### Changed
 
 - Compatible with IntelliJ IDEA 2024.3 up to 2026.2 (`until-build` 262.*).
@@ -13,6 +16,7 @@
 ### Removed
 
 - Unused dependency on the bundled Java plugin.
+- Unused dependency LGoodDatePicker.
 
 ### Fixed
 

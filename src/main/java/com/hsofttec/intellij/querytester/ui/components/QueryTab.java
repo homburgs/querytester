@@ -141,7 +141,7 @@ public class QueryTab {
 //                        actionToolbarComponent.setEnabled( true );
 //                    }
 
-                    getQueryResultTable().setModel(new DynaClassTableModel(SETTINGS, nscaleResult));
+                    getQueryResultTable().setModel(new DynaClassTableModel(SETTINGS, nscaleResult, queryInformation));
                     getQueryResultTable().calcHeaderWidth();
                     if (!SETTINGS.isShowIdColumn()) {
                         hideColumn(0);

@@ -21,20 +21,8 @@ java {
 }
 
 repositories {
-    mavenLocal()
-    mavenCentral()
     intellijPlatform {
         defaultRepositories()
-    }
-    maven {
-        authentication {
-            basic(BasicAuthentication)
-        }
-        credentials {
-            username = providers.gradleProperty('ceyoniq_artifact_username').getOrNull()
-            password = providers.gradleProperty('ceyoniq_artifact_password').getOrNull()
-        }
-        url = "https://artifact.nscale.eu/repository/nscale-java-advanced-connector"
     }
 }
 
@@ -92,8 +80,7 @@ dependencies {
         exclude group: "commons-collections"
     }
     implementation 'org.apache.commons:commons-collections4:4.5.0'
-    implementation 'com.github.lgooddatepicker:LGoodDatePicker:11.2.1'
-    implementation("com.ceyoniq.nscale.applicationlayer:al-advanced-connector:8.2.1100") {
+    implementation("com.ceyoniq.nscale.applicationlayer:al-advanced-connector:10.2.1300") {
         exclude group: "org.slf4j"
     }
 

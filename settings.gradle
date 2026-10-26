@@ -1,1 +1,23 @@
+plugins {
+    id("io.github.eyadabdullah.gradle-repository-manager") version("3.0.4")
+}
+
+RepositoryManager {
+
+    repository("Ceyoniq Group on Gitlab", "https://source.ceyoniq.com/api/v4/groups/570/-/packages/maven") {
+        setRequireAuthentication(true)
+    }
+    repository("Ceyoniq FE Group on Gitlab", "https://source.ceyoniq.com/api/v4/groups/15/-/packages/maven") {
+        setRequireAuthentication(true)
+    }
+
+    // Use the following to point to a local repository:
+    // repository("local-maven-repository", "$rootDir\\maven-cache")
+
+    setupResolutionStrategyToLoadGradlePlugin("com.ceyoniq.gradle")
+
+    gradlePluginPortal()
+    mavenCentral()
+}
+
 rootProject.name = "querytester"

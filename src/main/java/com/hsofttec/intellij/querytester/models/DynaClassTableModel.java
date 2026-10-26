@@ -24,19 +24,46 @@
 
 package com.hsofttec.intellij.querytester.models;
 
+import com.ceyoniq.nscale.al.core.cfg.PropertyDefinition;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
+import com.hsofttec.intellij.querytester.QueryType;
+import com.hsofttec.intellij.querytester.services.PropertyUpdateService;
 import com.hsofttec.intellij.querytester.states.SettingsState;
+import lombok.Getter;
+import org.apache.commons.beanutils.DynaBean;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.table.AbstractTableModel;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class DynaClassTableModel extends AbstractTableModel {
+    private static final Logger logger = LoggerFactory.getLogger(DynaClassTableModel.class);
+    private static final Set<String> READ_ONLY_COLUMNS = Set.of(
+            QueryTesterConstants.DBEAN_PROPERTY_NAME_LINENO,
+            QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY,
+            QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED);
+
     private final SettingsState settingsState;
     private final NscaleResult result;
 
-    public DynaClassTableModel( SettingsState settingsState, NscaleResult result ) {
+    @Getter
+    private final NscaleQueryInformation queryInformation;
+
+    /**
+     * property definitions per column name, loaded on first edit attempt
+     */
+    private final Map<String, Optional<PropertyDefinition>> propertyDefinitions = new HashMap<>();
+
+    public DynaClassTableModel(SettingsState settingsState, NscaleResult result, NscaleQueryInformation queryInformation) {
         this.settingsState = settingsState;
         this.result = result;
+        this.queryInformation = queryInformation;
     }
 
     @Override
@@ -61,7 +88,50 @@ public class DynaClassTableModel extends AbstractTableModel {
 
     @Override
     public boolean isCellEditable( int rowIndex, int columnIndex ) {
-        return false;
+        if (!isEditableQuery() || READ_ONLY_COLUMNS.contains(getColumnName(columnIndex))) {
+            return false;
+        }
+        DynaBean dynaBean = result.getDynaBeans().get(rowIndex);
+        if (dynaBean.get(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY) == null) {
+            return false;
+        }
+        return PropertyUpdateService.isEditable(getPropertyDefinition(columnIndex));
+    }
+
+    @Override
+    public void setValueAt(Object value, int rowIndex, int columnIndex) {
+        result.getDynaBeans().get(rowIndex).set(getColumnName(columnIndex), value);
+        fireTableCellUpdated(rowIndex, columnIndex);
+    }
+
+    /**
+     * server side definition of the column property, null if it could not be loaded
+     */
+    public PropertyDefinition getPropertyDefinition(int columnIndex) {
+        return propertyDefinitions.computeIfAbsent(getColumnName(columnIndex), this::loadPropertyDefinition).orElse(null);
+    }
+
+    private Optional<PropertyDefinition> loadPropertyDefinition(String propertyName) {
+        try {
+            return Optional.ofNullable(PropertyUpdateService.getDefinition(queryInformation, propertyName));
+        } catch (Exception e) {
+            logger.warn("no property definition for '{}': {}", propertyName, ExceptionUtils.getRootCauseMessage(e));
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * only plain repository results and masterdata results carry a key to save changes
+     */
+    private boolean isEditableQuery() {
+        if (queryInformation == null) {
+            return false;
+        }
+        return switch (queryInformation.getQueryMode()) {
+            case REPOSITORY -> queryInformation.getQueryType() == QueryType.DEFAULT;
+            case MASTERDATA -> true;
+            default -> false;
+        };
     }
 
     @Override

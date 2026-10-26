@@ -31,7 +31,6 @@ import com.hsofttec.intellij.querytester.states.SettingsState;
 import com.hsofttec.intellij.querytester.ui.QueryTester;
 import com.hsofttec.intellij.querytester.ui.TableColumnAdjuster;
 import com.intellij.ui.table.JBTable;
-import org.apache.commons.beanutils.DynaBean;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +61,10 @@ public class NscaleTable extends JBTable {
         setDefaultRenderer(Object.class, dynaPropertyTableCellRenderer);
         setDefaultRenderer(Icon.class, dynaPropertyTableCellRenderer);
 
+        // cells are edited on double click only, editability is decided by DynaClassTableModel
+        setDefaultEditor(Object.class, new ResultCellEditor(queryTester));
+        putClientProperty("JTable.autoStartsEdit", Boolean.FALSE);
+
         tableColumnAdjuster = new TableColumnAdjuster(this);
 
         contextMenu = new ResultTableContextMenu(queryTester);
@@ -82,7 +85,6 @@ public class NscaleTable extends JBTable {
             public void mousePressed( MouseEvent mouseEvent ) {
                 // on right click selects the row at which point the mouse is clicked, keeps an existing multi selection
                 Point point = mouseEvent.getPoint();
-                int currentCol = columnAtPoint(point);
                 int currentRow = rowAtPoint(point);
                 if (currentRow != -1 && SwingUtilities.isRightMouseButton(mouseEvent) && !isRowSelected(currentRow)) {
                     if (mouseEvent.getClickCount() == 1) {
@@ -91,17 +93,6 @@ public class NscaleTable extends JBTable {
                         } catch (Exception e) {
                             logger.warn(ExceptionUtils.getRootCause(e).getLocalizedMessage());
                         }
-                    }
-                }
-                if (currentCol != -1) {
-                    if (mouseEvent.getClickCount() == 2) {
-                        DynaBean selectedRowValue = (DynaBean) getValueAt(currentRow, currentCol);
-                        Object headerValue = getColumnModel().getColumn(currentCol).getHeaderValue();
-//                        ModifyResourceDialog modifyResourceDialog = new ModifyResourceDialog( queryTester );
-//                        modifyResourceDialog.setData( selectedRowValue, ( String ) headerValue );
-//                        if ( modifyResourceDialog.showAndGet( ) ) {
-//
-//                        }
                     }
                 }
             }
