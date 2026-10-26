@@ -28,15 +28,17 @@ import com.ceyoniq.nscale.al.core.cfg.MasterdataScope;
 import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryType;
 import com.hsofttec.intellij.querytester.models.NscaleQueryInformation;
-import com.hsofttec.intellij.querytester.services.ConnectionSettingsService;
 import com.hsofttec.intellij.querytester.states.ConnectionSettings;
+import com.hsofttec.intellij.querytester.ui.actions.AddConnectionAction;
 import com.hsofttec.intellij.querytester.ui.actions.AddQueryTabAction;
 import com.hsofttec.intellij.querytester.ui.actions.ExecuteActiveQueryAction;
 import com.hsofttec.intellij.querytester.ui.actions.ShowPluginSettingsAction;
 import com.hsofttec.intellij.querytester.ui.components.*;
 import com.hsofttec.intellij.querytester.ui.notifiers.*;
-import com.intellij.icons.AllIcons;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.util.messages.MessageBus;
@@ -44,13 +46,10 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
 public class QueryTester extends SimpleToolWindowPanel {
-    private final ConnectionSettingsService connectionSettingsService = ConnectionSettingsService.getSettings();
-
     @Getter
     private final Project project;
 
@@ -80,21 +79,7 @@ public class QueryTester extends SimpleToolWindowPanel {
         DefaultActionGroup actionGroup = new DefaultActionGroup( );
         actionGroup.add( new ExecuteActiveQueryAction( this ) );
         actionGroup.add( new AddQueryTabAction( this ) );
-        actionGroup.add( new AnAction( "Add Connection", "Show the connection settings dialog", AllIcons.General.Add ) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent actionEvent) {
-                Project currentProject = actionEvent.getProject( );
-                ConnectionSettings connectionSettings = new ConnectionSettings( );
-                ConnectionSetupDialog connectionSetupDialog = new ConnectionSetupDialog( currentProject );
-                connectionSetupDialog.setData( connectionSettings );
-                if ( connectionSetupDialog.showAndGet( ) ) {
-                    connectionSettings = connectionSetupDialog.getData( );
-                    connectionSettingsService.connectionSettingsState.connectionSettings.add( connectionSettings );
-                    ConnectionsModifiedNotifier notifier = project.getMessageBus( ).syncPublisher( ConnectionsModifiedNotifier.CONNECTION_MODIFIED_TOPIC );
-                    notifier.connectionAdded( connectionSettings );
-                }
-            }
-        } );
+        actionGroup.add(new AddConnectionAction(this));
         actionGroup.add( new ShowPluginSettingsAction( this ) );
         ActionToolbar actionToolbar = ActionManager.getInstance( ).createActionToolbar( ActionPlaces.TOOLBAR, actionGroup, true );
         actionToolbar.setTargetComponent( queryTabbedPane );
@@ -130,10 +115,7 @@ public class QueryTester extends SimpleToolWindowPanel {
                 UIUtil.invokeLaterIfNeeded( ( ) -> {
                     QueryTab queryTab = getActiveQueryTab( );
                     if ( queryTab != null ) {
-                        queryTab.getQueryOptionsTabbedPane().setEnabled(false);
-                        queryTab.getQueryTextboxPanel().setEnabled(false);
-                        queryTab.getQueryResultTablePanel().setEnabled(false);
-                        queryTab.getQuerySettingsPanel().setEnabled(false);
+                        setQueryTabEnabled(queryTab, false);
                     }
                 } );
             }
@@ -146,10 +128,7 @@ public class QueryTester extends SimpleToolWindowPanel {
                         if (connectedSuccessful) {
                             queryTab.getQuerySettingsPanel().getInputDocumentArea().reloadDocumentAreas(settings);
                         }
-                        queryTab.getQueryOptionsTabbedPane().setEnabled(true);
-                        queryTab.getQueryTextboxPanel().setEnabled(true);
-                        queryTab.getQueryResultTablePanel().setEnabled(true);
-                        queryTab.getQuerySettingsPanel().setEnabled(true);
+                        setQueryTabEnabled(queryTab, true);
                     }
                 } );
             }
@@ -157,63 +136,11 @@ public class QueryTester extends SimpleToolWindowPanel {
         messageBusConnection.subscribe(PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC, (PrepareQueryExecutionNotifier) () -> {
             QueryTab queryTab = getActiveQueryTab();
             if (queryTab != null) {
-                QuerySettingsPanel querySettingsPanel = queryTab.getQuerySettingsPanel();
-                QueryOptionsTabbedPane queryOptionsTabbedPane = queryTab.getQueryOptionsTabbedPane();
-                QueryTextboxPanel queryTextboxPanel = queryTab.getQueryTextboxPanel();
-                NscaleQueryInformation queryInformation = new NscaleQueryInformation();
-                queryInformation.setQueryMode(QueryMode.REPOSITORY);
-
-                if (querySettingsPanel.getInputDocumentArea().getSelectedIndex() == -1 || querySettingsPanel.getInputSelectedConnection().getSelectedIndex() == -1) {
-                    Notifier.warning("no connection or/and no document area selected");
-                    return;
+                NscaleQueryInformation queryInformation = buildQueryInformation(queryTab);
+                if (queryInformation != null) {
+                    StartQueryExecutionNotifier notifier = messageBus.syncPublisher(StartQueryExecutionNotifier.START_QUERY_EXECUTION_TOPIC);
+                    notifier.doAction(queryInformation);
                 }
-
-                queryInformation.setConnectionSettings( ( ConnectionSettings ) querySettingsPanel.getInputSelectedConnection( ).getSelectedItem( ) );
-                queryInformation.setDocumentAreaName( ( String ) querySettingsPanel.getInputDocumentArea( ).getSelectedItem( ) );
-
-                MasterdataScope masterdataScope = ( MasterdataScope ) queryOptionsTabbedPane.getInputMasterdataScope( ).getSelectedItem( );
-                if ( masterdataScope != null ) {
-                    queryInformation.setMasterdataScope(masterdataScope.getAreaName());
-                }
-
-                queryInformation.setRepositoryRoot(queryOptionsTabbedPane.getInputRepositoryRoot().getText());
-                queryInformation.setNqlQuery(queryTextboxPanel.getQueryTextbox().getText());
-                queryInformation.setQueryType(QueryType.DEFAULT);
-                boolean aggregate = queryOptionsTabbedPane.getInputAggregate().isSelected();
-                boolean version = queryOptionsTabbedPane.getInputVersion().isSelected();
-                boolean principalAggregate = queryOptionsTabbedPane.getInputPrincipalsAggregate().isSelected();
-
-                String tabTitle = queryOptionsTabbedPane.getTitleAt(queryOptionsTabbedPane.getSelectedIndex());
-                switch (tabTitle) {
-                    case "Repository" -> {
-                        if (aggregate && version) {
-                            queryInformation.setQueryType(QueryType.AGGREGATE_AND_VERSION);
-                        } else if (aggregate) {
-                            queryInformation.setQueryType(QueryType.AGGREGATE);
-                        } else if (version) {
-                            queryInformation.setQueryType(QueryType.VERSION);
-                        }
-                        queryInformation.setQueryMode(QueryMode.REPOSITORY);
-                    }
-                    case "BPNM" -> queryInformation.setQueryMode(QueryMode.BPNM);
-                    case "Masterdata" -> {
-                        queryInformation.setQueryMode(QueryMode.MASTERDATA);
-                        if (StringUtils.isEmpty(queryInformation.getMasterdataScope())) {
-                            Notifier.warning("masterdata scope not selected, query execution stopped");
-                            return;
-                        }
-                    }
-                    case "Principals" -> {
-                        if (principalAggregate) {
-                            queryInformation.setQueryType(QueryType.AGGREGATE);
-                        }
-                        queryInformation.setQueryMode(QueryMode.PRINCIPALS);
-                    }
-                    case "Workflow" -> queryInformation.setQueryMode(QueryMode.WORKFLOW);
-                }
-
-                StartQueryExecutionNotifier notifier = messageBus.syncPublisher(StartQueryExecutionNotifier.START_QUERY_EXECUTION_TOPIC);
-                notifier.doAction(queryInformation);
             }
         } );
         messageBusConnection.subscribe( ConnectionsModifiedNotifier.CONNECTION_MODIFIED_TOPIC, new ConnectionsModifiedNotifier( ) {
@@ -269,5 +196,80 @@ public class QueryTester extends SimpleToolWindowPanel {
                 queryTab.getQueryTextboxPanel().getQueryTextbox().fontSettingsChanged();
             }
         });
+    }
+
+    /**
+     * enable or disable all input panels of a query tab
+     */
+    private void setQueryTabEnabled(QueryTab queryTab, boolean enabled) {
+        queryTab.getQueryOptionsTabbedPane().setEnabled(enabled);
+        queryTab.getQueryTextboxPanel().setEnabled(enabled);
+        queryTab.getQueryResultTablePanel().setEnabled(enabled);
+        queryTab.getQuerySettingsPanel().setEnabled(enabled);
+    }
+
+    /**
+     * collect the UI state of a query tab into the query information needed for execution
+     *
+     * @param queryTab query tab to read from
+     * @return query information, null if the UI state does not allow a query execution
+     */
+    private NscaleQueryInformation buildQueryInformation(QueryTab queryTab) {
+        QuerySettingsPanel querySettingsPanel = queryTab.getQuerySettingsPanel();
+        QueryOptionsTabbedPane queryOptionsTabbedPane = queryTab.getQueryOptionsTabbedPane();
+        QueryTextboxPanel queryTextboxPanel = queryTab.getQueryTextboxPanel();
+
+        if (querySettingsPanel.getInputDocumentArea().getSelectedIndex() == -1 || querySettingsPanel.getInputSelectedConnection().getSelectedIndex() == -1) {
+            Notifier.warning("no connection or/and no document area selected");
+            return null;
+        }
+
+        NscaleQueryInformation queryInformation = new NscaleQueryInformation();
+        queryInformation.setQueryMode(QueryMode.REPOSITORY);
+        queryInformation.setConnectionSettings((ConnectionSettings) querySettingsPanel.getInputSelectedConnection().getSelectedItem());
+        queryInformation.setDocumentAreaName((String) querySettingsPanel.getInputDocumentArea().getSelectedItem());
+
+        MasterdataScope masterdataScope = (MasterdataScope) queryOptionsTabbedPane.getInputMasterdataScope().getSelectedItem();
+        if (masterdataScope != null) {
+            queryInformation.setMasterdataScope(masterdataScope.getAreaName());
+        }
+
+        queryInformation.setRepositoryRoot(queryOptionsTabbedPane.getInputRepositoryRoot().getText());
+        queryInformation.setNqlQuery(queryTextboxPanel.getQueryTextbox().getText());
+        queryInformation.setQueryType(QueryType.DEFAULT);
+        boolean aggregate = queryOptionsTabbedPane.getInputAggregate().isSelected();
+        boolean version = queryOptionsTabbedPane.getInputVersion().isSelected();
+        boolean principalAggregate = queryOptionsTabbedPane.getInputPrincipalsAggregate().isSelected();
+
+        String tabTitle = queryOptionsTabbedPane.getTitleAt(queryOptionsTabbedPane.getSelectedIndex());
+        switch (tabTitle) {
+            case "Repository" -> {
+                if (aggregate && version) {
+                    queryInformation.setQueryType(QueryType.AGGREGATE_AND_VERSION);
+                } else if (aggregate) {
+                    queryInformation.setQueryType(QueryType.AGGREGATE);
+                } else if (version) {
+                    queryInformation.setQueryType(QueryType.VERSION);
+                }
+                queryInformation.setQueryMode(QueryMode.REPOSITORY);
+            }
+            case "BPNM" -> queryInformation.setQueryMode(QueryMode.BPNM);
+            case "Masterdata" -> {
+                queryInformation.setQueryMode(QueryMode.MASTERDATA);
+                if (StringUtils.isEmpty(queryInformation.getMasterdataScope())) {
+                    Notifier.warning("masterdata scope not selected, query execution stopped");
+                    return null;
+                }
+            }
+            case "Principals" -> {
+                if (principalAggregate) {
+                    queryInformation.setQueryType(QueryType.AGGREGATE);
+                }
+                queryInformation.setQueryMode(QueryMode.PRINCIPALS);
+            }
+            case "Workflow" -> queryInformation.setQueryMode(QueryMode.WORKFLOW);
+        }
+
+        return queryInformation;
     }
 }

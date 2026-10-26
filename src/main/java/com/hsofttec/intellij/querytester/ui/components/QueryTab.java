@@ -129,7 +129,7 @@ public class QueryTab {
             final ProgressIndicator progressIndicator = progressManager.getProgressIndicator();
             progressIndicator.setText("Execute query ...");
 
-            NscaleResult nscaleResult = queryService.proccessQuery(queryInformation, resultPageNumber);
+            NscaleResult nscaleResult = queryService.processQuery(queryInformation, resultPageNumber);
 
             if (nscaleResult != null) {
 
@@ -144,22 +144,16 @@ public class QueryTab {
                     getQueryResultTable().setModel(new DynaClassTableModel(SETTINGS, nscaleResult));
                     getQueryResultTable().calcHeaderWidth();
                     if (!SETTINGS.isShowIdColumn()) {
-                        TableColumn column = getQueryResultTable().getColumnModel().getColumn(0);
-                        column.setMinWidth(0);
-                        column.setMaxWidth(0);
+                        hideColumn(0);
                     }
                     if (!SETTINGS.isShowKeyColumn()) {
                         if (queryInformation.getQueryMode() == QueryMode.REPOSITORY && queryInformation.getQueryType() == QueryType.AGGREGATE) {
-                            TableColumn column = getQueryResultTable().getColumnModel().getColumn(1);
-                            column.setMinWidth(0);
-                            column.setMaxWidth(0);
+                            hideColumn(1);
                         }
                     }
 
                     if (!SETTINGS.isDisplayLockItem()) {
-                        TableColumn column = getQueryResultTable().getColumnModel().getColumn(2);
-                        column.setMinWidth(0);
-                        column.setMaxWidth(0);
+                        hideColumn(2);
                     }
 
                     historyService.addQuery(queryInformation.getNqlQuery());
@@ -167,6 +161,17 @@ public class QueryTab {
             }
         }, "Executing query", true, queryTester.getProject());
 
+    }
+
+    /**
+     * hide a result table column by collapsing its width
+     *
+     * @param columnIndex index of the column
+     */
+    private void hideColumn(int columnIndex) {
+        TableColumn column = getQueryResultTable().getColumnModel().getColumn(columnIndex);
+        column.setMinWidth(0);
+        column.setMaxWidth(0);
     }
 
     /**

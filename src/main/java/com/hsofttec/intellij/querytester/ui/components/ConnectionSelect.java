@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ConnectionSelect extends ComboBox<ConnectionSettings> implements ItemListener {
-    private static final ConnectionSettingsService CONNECTION_SETTINGS_SERVICE = ConnectionSettingsService.getSettings();
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance();
     private final Project project;
     private final MessageBus messageBus;
@@ -62,7 +61,7 @@ public class ConnectionSelect extends ComboBox<ConnectionSettings> implements It
     }
 
     public void reloadItems() {
-        List<ConnectionSettings> connectionSettings = CONNECTION_SETTINGS_SERVICE.connectionSettingsState.connectionSettings.stream()
+        List<ConnectionSettings> connectionSettings = ConnectionSettingsService.getSettings().connectionSettingsState.connectionSettings.stream()
                 .filter(ConnectionSettings::isActive).collect(Collectors.toList());
 
         connections.clear();

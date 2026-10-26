@@ -199,37 +199,34 @@ public class ConnectionService {
     }
 
     public List<ObjectclassName> getPossibleObjectclassesForFolderCreation( BaseResource parentFolder ) {
-        Session localSession = getSession( );
-        List<ObjectclassName> allowedFolderObjectclassNames = new ArrayList<>( );
-
-        if ( localSession != null ) {
-            List<FolderObjectclass> folderObjectclasses = localSession.getConfigurationService( ).getFolderObjectclasses( parentFolder.getObjectclass( ).getAreaName( ) );
-            for ( FolderObjectclass folderObjectclass : folderObjectclasses ) {
-                if ( folderObjectclass.getName( ).getName( ).equals( parentFolder.getObjectclass( ).getName( ) ) ) {
-                    allowedFolderObjectclassNames.addAll( folderObjectclass.getAllowedFolderObjectclassNames( ) );
-                    break;
-                }
-            }
-        }
-
-        return allowedFolderObjectclassNames;
+        FolderObjectclass folderObjectclass = findFolderObjectclass(parentFolder);
+        return folderObjectclass != null ? new ArrayList<>(folderObjectclass.getAllowedFolderObjectclassNames()) : new ArrayList<>();
     }
 
-    public List<ObjectclassName> getPossibleObjectclassesForDocumentCreation( BaseResource parentFolder ) {
-        Session localSession = getSession( );
-        List<ObjectclassName> allowedDocumentObjectclassNames = new ArrayList<>( );
+    public List<ObjectclassName> getPossibleObjectclassesForDocumentCreation(BaseResource parentFolder) {
+        FolderObjectclass folderObjectclass = findFolderObjectclass(parentFolder);
+        return folderObjectclass != null ? new ArrayList<>(folderObjectclass.getAllowedDocumentObjectclassNames()) : new ArrayList<>();
+    }
 
-        if ( localSession != null ) {
-            List<FolderObjectclass> objectclasses = localSession.getConfigurationService( ).getFolderObjectclasses( parentFolder.getObjectclass( ).getAreaName( ) );
-            for ( FolderObjectclass objectclass : objectclasses ) {
-                if ( objectclass.getName( ).getName( ).equals( parentFolder.getObjectclass( ).getName( ) ) ) {
-                    allowedDocumentObjectclassNames.addAll( objectclass.getAllowedDocumentObjectclassNames( ) );
-                    break;
-                }
-            }
+    /**
+     * objectclass configuration of a folder
+     *
+     * @param folder folder resource
+     * @return objectclass configuration, null if no session or objectclass not found
+     */
+    private FolderObjectclass findFolderObjectclass(BaseResource folder) {
+        Session localSession = getSession( );
+        if (localSession == null) {
+            return null;
         }
 
-        return allowedDocumentObjectclassNames;
+        List<FolderObjectclass> folderObjectclasses = localSession.getConfigurationService().getFolderObjectclasses(folder.getObjectclass().getAreaName());
+        for (FolderObjectclass folderObjectclass : folderObjectclasses) {
+            if (folderObjectclass.getName().getName().equals(folder.getObjectclass().getName())) {
+                return folderObjectclass;
+            }
+        }
+        return null;
     }
 
     public ResourceKey createFolder( BaseResource parentResource, ObjectclassName objectclassName, String displayname ) {
@@ -245,38 +242,13 @@ public class ConnectionService {
     }
 
     /**
-     * // create document as child of a folder
-     * <p>
-     * // build properties
-     * List props = new ArrayList ();
-     * IndexingPropertyName ipn = new IndexingPropertyName ( "displayname", "myDocumentAreaName" );
-     * Property prop = new Property ( ipn, "Hello world!" );
-     * props.add ( prop );
-     * <p>
-     * ObjectclassName docOcnD1 = new ObjectclassName ( "D1", "myDocumentAreaName" );
-     * <p>
-     * // build extended content item and its properties
-     * ContentItemProperties cips = new ContentItemProperties();
-     * cips.setProperty ( ContentItemBaseProperty.name, "my_name" );
-     * cips.setProperty ( ContentItemBaseProperty.displayName, "my_displayname" );
-     * cips.setProperty ( ContentItemBaseProperty.contentType, "text/plain; charset=\"iso-8859-1\"" );
-     * DefaultExtendedContentItem deci = new DefaultExtendedContentItem ( cips, "TestCreateDocument text." );
-     * List items = new ArrayList();
-     * items.add ( deci );
-     * <p>
-     * // build extended content and its properties
-     * ContentProperties cps = new ContentProperties();
-     * cps.setProperty ( ContentBaseProperty.contentType, "text/plain; charset=\"iso-8859-1\"" );
-     * ExtendedContent content = new DefaultExtendedContent ( cps, items );
-     * <p>
-     * // create document
-     * ResourceKey newDocumentRk = repositoryService.createDocument ( docOcnD1, existingFolderRk, props, false, content );
+     * create a document with the content of a local file as child of a folder
      *
-     * @param parentResource
-     * @param objectclassName
-     * @param displayname
-     * @param selectedFileName
-     * @return
+     * @param parentResource   parent folder
+     * @param objectclassName  objectclass of the new document
+     * @param displayname      displayname of the document and its content item
+     * @param selectedFileName path of the local content file, content type is probed from it
+     * @return key of the created document, null if no session
      */
     public ResourceKey createDocument( BaseResource parentResource, ObjectclassName objectclassName, String displayname, String selectedFileName ) {
         Session localSession = getSession( );

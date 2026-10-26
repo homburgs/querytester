@@ -34,6 +34,7 @@ import com.hsofttec.intellij.querytester.services.ConnectionService;
 import com.hsofttec.intellij.querytester.services.SettingsService;
 import com.hsofttec.intellij.querytester.states.SettingsState;
 import com.hsofttec.intellij.querytester.ui.CreateResourceDialog;
+import com.hsofttec.intellij.querytester.ui.CreateResourceDialog.CreationMode;
 import com.hsofttec.intellij.querytester.ui.Notifier;
 import com.hsofttec.intellij.querytester.ui.QueryTester;
 import com.hsofttec.intellij.querytester.ui.ResourcePathDialog;
@@ -54,8 +55,6 @@ import javax.swing.event.PopupMenuListener;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Map;
 
@@ -80,13 +79,6 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
     private JBMenuItem copyKeyMenuItem;
     private JBMenuItem copySelectedValuesMenuItem;
 
-    private ActionListener actionListener = new AbstractAction() {
-        @Override
-        public void actionPerformed( ActionEvent e ) {
-
-        }
-    };
-
     public ResultTableContextMenu( QueryTester queryTester ) {
         super();
         this.queryTester = queryTester;
@@ -96,11 +88,9 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         selectParentFolderId.addActionListener(actionEvent -> {
             QueryTab queryTab = queryTester.getQueryTabbedPane().getActiveQueryTab();
             if (queryTab != null) {
-                BasicDynaBean basicDynaBean = (BasicDynaBean) queryTab.getQueryResultTable().getValueAt(queryTab.getQueryResultTable().getSelectedRow(), queryTab.getQueryResultTable().getSelectedColumn());
-                String parentResourceId = (String) basicDynaBean.get(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY);
+                String parentResourceId = (String) getSelectedBean(queryTab).get(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY);
                 queryTab.getQueryOptionsTabbedPane().getInputRepositoryRoot().setText(parentResourceId);
-                PrepareQueryExecutionNotifier notifier = queryTester.getProject().getMessageBus().syncPublisher(PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC);
-                notifier.doAction();
+                executeQuery();
             }
         });
 
@@ -109,14 +99,12 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         searchParentMenuItem.addActionListener(actionEvent -> {
             QueryTab queryTab = queryTester.getQueryTabbedPane().getActiveQueryTab();
             if (queryTab != null) {
-                BasicDynaBean basicDynaBean = (BasicDynaBean) queryTab.getQueryResultTable().getValueAt(queryTab.getQueryResultTable().getSelectedRow(), queryTab.getQueryResultTable().getSelectedColumn());
-                String resourceId = (String) basicDynaBean.get(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY);
+                String resourceId = (String) getSelectedBean(queryTab).get(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY);
                 BaseResource parentFolder = CONNECTION_SERVICE.getBaseResource(resourceId);
                 BaseResource baseResource = CONNECTION_SERVICE.getBaseResource(parentFolder.getParentresourceid());
                 if (baseResource != null) {
                     queryTab.getQueryOptionsTabbedPane().getInputRepositoryRoot().setText(baseResource.getParentresourceid());
-                    PrepareQueryExecutionNotifier notifier = queryTester.getProject().getMessageBus().syncPublisher(PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC);
-                    notifier.doAction();
+                    executeQuery();
                 }
             }
         });
@@ -154,41 +142,11 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
 
         addDocumentMenuItem = new JBMenuItem("Add Document");
         addDocumentMenuItem.setEnabled(false);
-        addDocumentMenuItem.addActionListener(actionEvent -> {
-            BaseResource baseResource = CONNECTION_SERVICE.getBaseResource(selectedResourceId);
-            CreateResourceDialog createResourceDialog = new CreateResourceDialog(queryTester.getProject(), CreateResourceDialog.CreationMode.DOCUMENT);
-            createResourceDialog.setData(baseResource);
-            if (createResourceDialog.showAndGet()) {
-                ResourceDialogModel data = createResourceDialog.getData();
-                ResourceKey resourceKey = CONNECTION_SERVICE.createDocument(data.getParentResource(), data.getObjectclassName(), data.getDisplayname(), data.getSelectedFileName());
-                if (resourceKey != null) {
-                    UIUtil.invokeLaterIfNeeded(() -> {
-                        Notifier.information("document successful created");
-                    });
-                    PrepareQueryExecutionNotifier notifier = queryTester.getProject().getMessageBus().syncPublisher(PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC);
-                    notifier.doAction();
-                }
-            }
-        });
+        addDocumentMenuItem.addActionListener(actionEvent -> createResource(CreationMode.DOCUMENT));
 
         addFolderMenuItem = new JBMenuItem("Add Folder");
         addFolderMenuItem.setEnabled(false);
-        addFolderMenuItem.addActionListener(actionEvent -> {
-            BaseResource baseResource = CONNECTION_SERVICE.getBaseResource(selectedResourceId);
-            CreateResourceDialog createResourceDialog = new CreateResourceDialog(queryTester.getProject(), CreateResourceDialog.CreationMode.FOLDER);
-            createResourceDialog.setData(baseResource);
-            if (createResourceDialog.showAndGet()) {
-                ResourceDialogModel data = createResourceDialog.getData();
-                ResourceKey resourceKey = CONNECTION_SERVICE.createFolder(data.getParentResource(), data.getObjectclassName(), data.getDisplayname());
-                if (resourceKey != null) {
-                    UIUtil.invokeLaterIfNeeded(() -> {
-                        Notifier.information("folder successful created");
-                    });
-                    PrepareQueryExecutionNotifier notifier = queryTester.getProject().getMessageBus().syncPublisher(PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC);
-                    notifier.doAction();
-                }
-            }
-        });
+        addFolderMenuItem.addActionListener(actionEvent -> createResource(CreationMode.FOLDER));
 
         addLinkMenuItem = new JBMenuItem("Add Link");
         addLinkMenuItem.setEnabled(false);
@@ -206,7 +164,7 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         copySelectedValuesMenuItem.addActionListener(actionEvent -> {
             QueryTab queryTab = queryTester.getQueryTabbedPane().getActiveQueryTab();
             if (queryTab != null) {
-                BasicDynaBean basicDynaBean = (BasicDynaBean) queryTab.getQueryResultTable().getValueAt(queryTab.getQueryResultTable().getSelectedRow(), queryTab.getQueryResultTable().getSelectedColumn());
+                BasicDynaBean basicDynaBean = getSelectedBean(queryTab);
                 StringBuilder stringBuilder1 = new StringBuilder();
                 StringBuilder stringBuilder2 = new StringBuilder();
                 for (Map.Entry<String, Object> entry : basicDynaBean.getMap().entrySet()) {
@@ -239,6 +197,45 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         add(copySelectedValuesMenuItem);
 
         addPopupMenuListener(this);
+    }
+
+    /**
+     * row bean of the selected cell in the result table of the given query tab
+     */
+    private BasicDynaBean getSelectedBean(QueryTab queryTab) {
+        NscaleTable resultTable = queryTab.getQueryResultTable();
+        return (BasicDynaBean) resultTable.getValueAt(resultTable.getSelectedRow(), resultTable.getSelectedColumn());
+    }
+
+    /**
+     * re-run the query of the active query tab
+     */
+    private void executeQuery() {
+        PrepareQueryExecutionNotifier notifier = queryTester.getProject().getMessageBus().syncPublisher(PrepareQueryExecutionNotifier.PREPARE_QUERY_EXECUTION_TOPIC);
+        notifier.doAction();
+    }
+
+    /**
+     * show the create dialog and create a document or folder below the selected resource
+     *
+     * @param creationMode DOCUMENT or FOLDER
+     */
+    private void createResource(CreationMode creationMode) {
+        BaseResource baseResource = CONNECTION_SERVICE.getBaseResource(selectedResourceId);
+        CreateResourceDialog createResourceDialog = new CreateResourceDialog(queryTester.getProject(), creationMode);
+        createResourceDialog.setData(baseResource);
+        if (createResourceDialog.showAndGet()) {
+            ResourceDialogModel data = createResourceDialog.getData();
+            boolean document = creationMode == CreationMode.DOCUMENT;
+            ResourceKey resourceKey = document
+                    ? CONNECTION_SERVICE.createDocument(data.getParentResource(), data.getObjectclassName(), data.getDisplayname(), data.getSelectedFileName())
+                    : CONNECTION_SERVICE.createFolder(data.getParentResource(), data.getObjectclassName(), data.getDisplayname());
+            if (resourceKey != null) {
+                String message = document ? "document successful created" : "folder successful created";
+                UIUtil.invokeLaterIfNeeded(() -> Notifier.information(message));
+                executeQuery();
+            }
+        }
     }
 
     /**

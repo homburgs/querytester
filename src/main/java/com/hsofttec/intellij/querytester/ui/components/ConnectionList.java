@@ -32,10 +32,8 @@ import com.intellij.ui.components.JBList;
 import javax.swing.*;
 
 public class ConnectionList extends JBList<ConnectionSettings> {
-    private static final ConnectionSettingsService connectionSettingsService = ConnectionSettingsService.getSettings( );
-
     public ConnectionList( ) {
-        super( connectionSettingsService.connectionSettingsState.connectionSettings );
+        super(ConnectionSettingsService.getSettings().connectionSettingsState.connectionSettings);
         setCellRenderer( new ConnectionListCellRenderer( ) );
     }
 
