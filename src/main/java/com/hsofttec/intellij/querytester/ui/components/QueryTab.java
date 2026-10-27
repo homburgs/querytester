@@ -24,8 +24,7 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import com.hsofttec.intellij.querytester.QueryMode;
-import com.hsofttec.intellij.querytester.QueryType;
+import com.hsofttec.intellij.querytester.QueryTesterConstants;
 import com.hsofttec.intellij.querytester.listeners.HistoryModifiedEventListener;
 import com.hsofttec.intellij.querytester.models.DynaClassTableModel;
 import com.hsofttec.intellij.querytester.models.HistoryComboBoxModel;
@@ -53,7 +52,6 @@ import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
-import javax.swing.table.TableColumn;
 import java.awt.*;
 
 public class QueryTab {
@@ -144,16 +142,14 @@ public class QueryTab {
                     getQueryResultTable().setModel(new DynaClassTableModel(SETTINGS, nscaleResult, queryInformation));
                     getQueryResultTable().calcHeaderWidth();
                     if (!SETTINGS.isShowIdColumn()) {
-                        hideColumn(0);
+                        getQueryResultTable().hideColumn(QueryTesterConstants.DBEAN_PROPERTY_NAME_LINENO);
                     }
                     if (!SETTINGS.isShowKeyColumn()) {
-                        if (queryInformation.getQueryMode() == QueryMode.REPOSITORY && queryInformation.getQueryType() == QueryType.AGGREGATE) {
-                            hideColumn(1);
-                        }
+                        getQueryResultTable().hideColumn(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY);
                     }
 
                     if (!SETTINGS.isDisplayLockItem()) {
-                        hideColumn(2);
+                        getQueryResultTable().hideColumn(QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED);
                     }
 
                     historyService.addQuery(queryInformation.getNqlQuery());
@@ -161,17 +157,6 @@ public class QueryTab {
             }
         }, "Executing query", true, queryTester.getProject());
 
-    }
-
-    /**
-     * hide a result table column by collapsing its width
-     *
-     * @param columnIndex index of the column
-     */
-    private void hideColumn(int columnIndex) {
-        TableColumn column = getQueryResultTable().getColumnModel().getColumn(columnIndex);
-        column.setMinWidth(0);
-        column.setMaxWidth(0);
     }
 
     /**

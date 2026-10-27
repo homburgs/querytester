@@ -56,7 +56,9 @@ public class QueryResultTablePanel extends BorderLayoutPanel {
         actionToolbarComponent.setEnabled(false);
 
         add(actionToolbarComponent, BorderLayout.NORTH);
-        add(new JBScrollPane(queryResultTable), BorderLayout.CENTER);
+        JBScrollPane scrollPane = new JBScrollPane(queryResultTable);
+        queryResultTable.installFixedColumns(scrollPane);
+        add(scrollPane, BorderLayout.CENTER);
     }
 
     private ActionGroup createActionGroup() {

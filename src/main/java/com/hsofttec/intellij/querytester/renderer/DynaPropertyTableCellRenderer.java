@@ -52,7 +52,7 @@ public class DynaPropertyTableCellRenderer extends DefaultTableCellRenderer {
         Icon lockIcon = null;
 
         if (value instanceof DynaBean dynaBean) {
-            DynaProperty dynaProperty = dynaBean.getDynaClass().getDynaProperties()[column];
+            DynaProperty dynaProperty = dynaBean.getDynaClass().getDynaProperties()[table.convertColumnIndexToModel(column)];
             String name = dynaProperty.getName();
 
             if (QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED.equals(name)) {

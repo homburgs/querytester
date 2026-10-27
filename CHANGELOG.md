@@ -6,6 +6,7 @@
 
 - Edit result cells inline by double click (repository and masterdata results); the value is saved to the server
   after confirmation.
+- Columns lineno, key and locked stay fixed when scrolling the result table horizontally.
 
 ### Changed
 
@@ -19,6 +20,9 @@
 - Unused dependency LGoodDatePicker.
 
 ### Fixed
+
+- Setting "show key column" now hides the key column for all queries, not only for repository aggregate queries.
+- Hiding the id, key or lock column no longer hides data columns of principal queries.
 
 ### Security
 
