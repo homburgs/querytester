@@ -45,11 +45,19 @@ import java.util.Set;
 public class DynaClassTableModel extends AbstractTableModel {
     private static final Logger logger = LoggerFactory.getLogger(DynaClassTableModel.class);
     /**
-     * synthetic columns: read-only and fixed on the left side of the result table
+     * synthetic columns fixed on the left side of the result table
      */
     public static final Set<String> FIXED_COLUMNS = Set.of(
             QueryTesterConstants.DBEAN_PROPERTY_NAME_LINENO,
             QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY);
+
+    /**
+     * synthetic columns without a server side property, never editable
+     */
+    private static final Set<String> READ_ONLY_COLUMNS = Set.of(
+            QueryTesterConstants.DBEAN_PROPERTY_NAME_LINENO,
+            QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY,
+            QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED);
 
     private final SettingsState settingsState;
     private final NscaleResult result;
@@ -90,7 +98,7 @@ public class DynaClassTableModel extends AbstractTableModel {
 
     @Override
     public boolean isCellEditable( int rowIndex, int columnIndex ) {
-        if (!isEditableQuery() || FIXED_COLUMNS.contains(getColumnName(columnIndex))) {
+        if (!isEditableQuery() || READ_ONLY_COLUMNS.contains(getColumnName(columnIndex))) {
             return false;
         }
         DynaBean dynaBean = result.getDynaBeans().get(rowIndex);

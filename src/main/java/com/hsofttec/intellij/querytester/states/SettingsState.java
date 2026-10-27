@@ -34,6 +34,7 @@ public class SettingsState {
     private boolean showKeyColumn;
     private int maxResultSize;
     private boolean displayLockItem;
+    private boolean fixedColumns;
     private int maxHistorySize;
     private String fontFace;
     private String fieldSeparator;
@@ -43,6 +44,7 @@ public class SettingsState {
         showKeyColumn = true;
         showIdColumn = true;
         displayLockItem = true;
+        fixedColumns = true;
         maxHistorySize = 25;
         maxResultSize = 100;
         fontFace = "JetBrains Mono";

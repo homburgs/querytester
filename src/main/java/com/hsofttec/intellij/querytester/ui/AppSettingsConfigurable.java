@@ -67,6 +67,7 @@ public class AppSettingsConfigurable implements Configurable {
         boolean modified = appSettingsComponent.getShowIdColumnValue( ) != settings.isShowIdColumn( );
         modified |= appSettingsComponent.getShowKeyColumnValue() != settings.isShowKeyColumn();
         modified |= appSettingsComponent.getDisplayLockIcon() != settings.isDisplayLockItem();
+        modified |= appSettingsComponent.getFixedColumnsValue() != settings.isFixedColumns();
         modified |= appSettingsComponent.getMaxHistorySizeValue( ) != settings.getMaxHistorySize( );
         modified |= appSettingsComponent.getMaxResultSizeValue( ) != settings.getMaxResultSize( );
         modified |= appSettingsComponent.getFontSizeValue( ) != settings.getFontSize( );
@@ -81,6 +82,7 @@ public class AppSettingsConfigurable implements Configurable {
         settings.setShowIdColumn( appSettingsComponent.getShowIdColumnValue( ) );
         settings.setShowKeyColumn(appSettingsComponent.getShowKeyColumnValue());
         settings.setDisplayLockItem(appSettingsComponent.getDisplayLockIcon());
+        settings.setFixedColumns(appSettingsComponent.getFixedColumnsValue());
         settings.setMaxHistorySize( appSettingsComponent.getMaxHistorySizeValue( ) );
         settings.setMaxResultSize( appSettingsComponent.getMaxResultSizeValue( ) );
         settings.setFontFace( appSettingsComponent.getFontFaceValue( ) );
@@ -96,6 +98,7 @@ public class AppSettingsConfigurable implements Configurable {
         appSettingsComponent.setShowIdColumnValue( settings.isShowIdColumn( ) );
         appSettingsComponent.setShowKeyColumnValue( settings.isShowKeyColumn( ) );
         appSettingsComponent.setDisplayLockIcon(settings.isDisplayLockItem());
+        appSettingsComponent.setFixedColumnsValue(settings.isFixedColumns());
         appSettingsComponent.setMaxHistorySizeValue(settings.getMaxHistorySize());
         appSettingsComponent.setMaxResultSizeValue( settings.getMaxResultSize( ) );
         appSettingsComponent.setFontSizeValue( settings.getFontSize( ) );

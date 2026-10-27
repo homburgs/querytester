@@ -75,7 +75,7 @@ public final class PropertyUpdateService {
      * only single value, non system properties with a simple type can be edited
      */
     public static boolean isEditable(PropertyDefinition definition) {
-        if (definition == null || definition.isSystem() || definition.isMultiValue()) {
+        if (definition == null || definition.isMultiValue()) {
             return false;
         }
         PropertyType type = definition.getType();

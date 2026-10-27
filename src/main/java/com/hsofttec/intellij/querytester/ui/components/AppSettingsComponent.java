@@ -60,6 +60,7 @@ public class AppSettingsComponent {
     private JPanel panelConnections;
     private JTextField inputFieldSeparator;
     private JCheckBox inputDisplayLockIcon;
+    private JCheckBox inputFixedColumns;
 
     public AppSettingsComponent(Project project) {
         this.project = project;
@@ -156,6 +157,14 @@ public class AppSettingsComponent {
 
     public void setDisplayLockIcon(boolean displayLockIcon) {
         this.inputDisplayLockIcon.setSelected(displayLockIcon);
+    }
+
+    public boolean getFixedColumnsValue() {
+        return inputFixedColumns.isSelected();
+    }
+
+    public void setFixedColumnsValue(boolean value) {
+        inputFixedColumns.setSelected(value);
     }
 
     private void createConnectionsToolbar() {

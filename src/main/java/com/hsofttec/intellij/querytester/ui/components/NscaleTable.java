@@ -192,12 +192,15 @@ public class NscaleTable extends JBTable {
 
     /**
      * move the fixed columns from this table to the fixed table, needed after every model change
-     * because this table recreates all columns from the model
+     * because this table recreates all columns from the model. disabled by setting "fixedColumns".
      */
     private void moveFixedColumns() {
         TableColumnModel fixedColumns = fixedTable.getColumnModel();
         for (TableColumn column : Collections.list(fixedColumns.getColumns())) {
             fixedColumns.removeColumn(column);
+        }
+        if (!SETTINGS.isFixedColumns()) {
+            return;
         }
         for (TableColumn column : Collections.list(getColumnModel().getColumns())) {
             if (DynaClassTableModel.FIXED_COLUMNS.contains(getModel().getColumnName(column.getModelIndex()))) {

@@ -6,7 +6,7 @@
 
 - Edit result cells inline by double click (repository and masterdata results); the value is saved to the server
   after confirmation.
-- Columns lineno, key and locked stay fixed when scrolling the result table horizontally.
+- Columns lineno and key stay fixed when scrolling the result table horizontally (setting, enabled by default).
 
 ### Changed
 
