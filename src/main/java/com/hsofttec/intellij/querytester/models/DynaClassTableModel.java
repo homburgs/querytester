@@ -49,8 +49,7 @@ public class DynaClassTableModel extends AbstractTableModel {
      */
     public static final Set<String> FIXED_COLUMNS = Set.of(
             QueryTesterConstants.DBEAN_PROPERTY_NAME_LINENO,
-            QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY,
-            QueryTesterConstants.DBEAN_PROPERTY_NAME_LOCKED);
+            QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY);
 
     private final SettingsState settingsState;
     private final NscaleResult result;
