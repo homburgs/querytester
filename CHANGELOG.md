@@ -6,6 +6,8 @@
 
 ### Changed
 
+- *Execute Active Query* button moved from the tool window toolbar to the query editor.
+
 ### Removed
 
 - *Add Connection* toolbar button; connections are managed in the plugin settings.

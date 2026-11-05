@@ -96,7 +96,8 @@ Download the latest release [from GitHub][3] and follow the JetBrains guide on
    timeouts. Connections are stored application-wide, so they are available in every project.
 3. Select the connection and a **document area** in the settings panel.
 4. Choose a query mode tab — *Repository*, *Masterdata* or *Principals* — and set its options.
-5. Type your NQL query and press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (or hit **Execute Active Query** in the toolbar).
+5. Type your NQL query and press <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (or hit **Execute Active Query** next to the query
+   editor).
 
 > Paging is added automatically: the plugin injects the `paging(...)` clause and the result count into the query, so
 > you write plain NQL and still get a paged table back.

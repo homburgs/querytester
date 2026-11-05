@@ -24,10 +24,16 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
+import com.hsofttec.intellij.querytester.ui.actions.ExecuteActiveQueryAction;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.components.BorderLayoutPanel;
 import lombok.Getter;
 
+import javax.swing.*;
 import java.awt.*;
 
 public class QueryTextboxPanel extends BorderLayoutPanel {
@@ -40,6 +46,15 @@ public class QueryTextboxPanel extends BorderLayoutPanel {
         this.queryTab = queryTab;
         queryTextbox = new NqlQueryTextbox(queryTab);
         add(new JBScrollPane(queryTextbox), BorderLayout.CENTER);
+        add(createToolbar(), BorderLayout.EAST);
+    }
+
+    private JComponent createToolbar() {
+        DefaultActionGroup actionGroup = new DefaultActionGroup();
+        actionGroup.add(new ExecuteActiveQueryAction(queryTab.getQueryTester()));
+        ActionToolbar actionToolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.TOOLBAR, actionGroup, false);
+        actionToolbar.setTargetComponent(queryTextbox);
+        return actionToolbar.getComponent();
     }
 
     @Override
