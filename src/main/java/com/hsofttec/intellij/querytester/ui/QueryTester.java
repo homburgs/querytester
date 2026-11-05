@@ -29,7 +29,6 @@ import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryType;
 import com.hsofttec.intellij.querytester.models.NscaleQueryInformation;
 import com.hsofttec.intellij.querytester.states.ConnectionSettings;
-import com.hsofttec.intellij.querytester.ui.actions.AddConnectionAction;
 import com.hsofttec.intellij.querytester.ui.actions.AddQueryTabAction;
 import com.hsofttec.intellij.querytester.ui.actions.ExecuteActiveQueryAction;
 import com.hsofttec.intellij.querytester.ui.actions.ShowPluginSettingsAction;
@@ -79,7 +78,6 @@ public class QueryTester extends SimpleToolWindowPanel {
         DefaultActionGroup actionGroup = new DefaultActionGroup( );
         actionGroup.add( new ExecuteActiveQueryAction( this ) );
         actionGroup.add( new AddQueryTabAction( this ) );
-        actionGroup.add(new AddConnectionAction(this));
         actionGroup.add( new ShowPluginSettingsAction( this ) );
         ActionToolbar actionToolbar = ActionManager.getInstance( ).createActionToolbar( ActionPlaces.TOOLBAR, actionGroup, true );
         actionToolbar.setTargetComponent( queryTabbedPane );

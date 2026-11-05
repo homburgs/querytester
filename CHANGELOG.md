@@ -8,6 +8,8 @@
 
 ### Removed
 
+- *Add Connection* toolbar button; connections are managed in the plugin settings.
+
 ### Fixed
 
 ### Security

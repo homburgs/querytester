@@ -91,7 +91,8 @@ Download the latest release [from GitHub][3] and follow the JetBrains guide on
 ## Getting started
 
 1. Open the **QueryTester** tool window at the bottom of the IDE.
-2. Click **Add Connection** in the toolbar and enter server, port, instance, credentials and (optionally) SSL and
+2. Open the plugin **Settings** from the toolbar, add a connection and enter server, port, instance, credentials and
+   (optionally) SSL and
    timeouts. Connections are stored application-wide, so they are available in every project.
 3. Select the connection and a **document area** in the settings panel.
 4. Choose a query mode tab — *Repository*, *Masterdata* or *Principals* — and set its options.
