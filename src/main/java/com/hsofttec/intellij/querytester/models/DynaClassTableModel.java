@@ -25,6 +25,7 @@
 package com.hsofttec.intellij.querytester.models;
 
 import com.ceyoniq.nscale.al.core.cfg.PropertyDefinition;
+import com.hsofttec.intellij.querytester.QueryMode;
 import com.hsofttec.intellij.querytester.QueryTesterConstants;
 import com.hsofttec.intellij.querytester.QueryType;
 import com.hsofttec.intellij.querytester.services.PropertyUpdateService;
@@ -105,7 +106,15 @@ public class DynaClassTableModel extends AbstractTableModel {
         if (dynaBean.get(QueryTesterConstants.DBEAN_PROPERTY_NAME_KEY) == null) {
             return false;
         }
+        if (isObjectclassColumn(columnIndex)) {
+            // possible objectclasses and permissions are checked when the editor opens
+            return queryInformation.getQueryMode() == QueryMode.REPOSITORY;
+        }
         return PropertyUpdateService.isEditable(getPropertyDefinition(columnIndex));
+    }
+
+    public boolean isObjectclassColumn(int columnIndex) {
+        return QueryTesterConstants.PROPERTY_NAME_OBJECTCLASS.equals(getColumnName(columnIndex));
     }
 
     @Override

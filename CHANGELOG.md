@@ -4,6 +4,9 @@
 
 ### Added
 
+- Change the objectclass of a repository resource inline in the result table; only objectclasses allowed by the
+  parent folder configuration and the user's permissions are offered.
+
 ### Changed
 
 - *Execute Active Query* button moved from the tool window toolbar to the query editor.

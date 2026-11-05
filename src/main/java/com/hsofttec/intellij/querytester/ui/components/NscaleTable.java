@@ -42,6 +42,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableColumnModelListener;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
@@ -59,6 +60,7 @@ public class NscaleTable extends JBTable {
     private final QueryTester queryTester;
     private final ResultTableContextMenu contextMenu;
     private final TableColumnAdjuster tableColumnAdjuster;
+    private final ObjectclassCellEditor objectclassCellEditor;
 
     /**
      * shows the fixed columns (lineno, key, locked) as row header, so they stay visible on horizontal scrolling.
@@ -89,6 +91,7 @@ public class NscaleTable extends JBTable {
 
         // cells are edited on double click only, editability is decided by DynaClassTableModel
         setDefaultEditor(Object.class, new ResultCellEditor(queryTester));
+        objectclassCellEditor = new ObjectclassCellEditor(queryTester);
         putClientProperty("JTable.autoStartsEdit", Boolean.FALSE);
 
         tableColumnAdjuster = new TableColumnAdjuster(this);
@@ -104,6 +107,14 @@ public class NscaleTable extends JBTable {
             fixedTable.setModel(model);
             moveFixedColumns();
         }
+    }
+
+    @Override
+    public TableCellEditor getCellEditor(int row, int column) {
+        if (getModel() instanceof DynaClassTableModel model && model.isObjectclassColumn(convertColumnIndexToModel(column))) {
+            return objectclassCellEditor;
+        }
+        return super.getCellEditor(row, column);
     }
 
     /**

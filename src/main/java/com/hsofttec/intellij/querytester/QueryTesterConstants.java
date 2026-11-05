@@ -29,5 +29,6 @@ public class QueryTesterConstants {
     public static final String DBEAN_PROPERTY_NAME_KEY = "<key>";
     public static final String DBEAN_PROPERTY_NAME_LINENO = "<lineno>";
     public static final String DBEAN_PROPERTY_NAME_LOCKED = "<locked>";
+    public static final String PROPERTY_NAME_OBJECTCLASS = "objectclass";
     public static final String DBEAN_PROPERTY_PRE_NAME_FOR_NQL_FUNC = "NqlFunction_";
 }
