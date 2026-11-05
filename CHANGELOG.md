@@ -9,6 +9,9 @@
 
 ### Changed
 
+- *Add Document* dialog: file (with file chooser) and displayname are mandatory, the document is created in the
+  repository root of the query, only objectclasses allowed by the folder configuration and the user's permissions
+  are offered.
 - *Execute Active Query* button moved from the tool window toolbar to the query editor.
 
 ### Removed

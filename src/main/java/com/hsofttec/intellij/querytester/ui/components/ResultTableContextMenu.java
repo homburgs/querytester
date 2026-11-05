@@ -45,6 +45,7 @@ import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.util.ui.UIUtil;
 import org.apache.commons.beanutils.BasicDynaBean;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -216,17 +217,34 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
     }
 
     /**
-     * show the create dialog and create a document or folder below the selected resource
+     * repository root of the active query tab
+     *
+     * @return resource id, null if not set
+     */
+    private String getRepositoryRoot() {
+        QueryTab queryTab = queryTester.getQueryTabbedPane().getActiveQueryTab();
+        if (queryTab == null) {
+            return null;
+        }
+        return StringUtils.trimToNull(queryTab.getQueryOptionsTabbedPane().getInputRepositoryRoot().getText());
+    }
+
+    /**
+     * show the create dialog and create a document in the repository root or a folder below the selected resource
      *
      * @param creationMode DOCUMENT or FOLDER
      */
     private void createResource(CreationMode creationMode) {
-        BaseResource baseResource = CONNECTION_SERVICE.getBaseResource(selectedResourceId);
+        boolean document = creationMode == CreationMode.DOCUMENT;
+        BaseResource baseResource = CONNECTION_SERVICE.getBaseResource(document ? getRepositoryRoot() : selectedResourceId);
+        if (document && (baseResource.getResourcetype() == null || baseResource.getResourcetype() != ResourceType.FOLDER.getId())) {
+            Notifier.error("repository root is not a folder");
+            return;
+        }
         CreateResourceDialog createResourceDialog = new CreateResourceDialog(queryTester.getProject(), creationMode);
         createResourceDialog.setData(baseResource);
         if (createResourceDialog.showAndGet()) {
             ResourceDialogModel data = createResourceDialog.getData();
-            boolean document = creationMode == CreationMode.DOCUMENT;
             ResourceKey resourceKey = document
                     ? CONNECTION_SERVICE.createDocument(data.getParentResource(), data.getObjectclassName(), data.getDisplayname(), data.getSelectedFileName())
                     : CONNECTION_SERVICE.createFolder(data.getParentResource(), data.getObjectclassName(), data.getDisplayname());
@@ -277,6 +295,12 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
         // disable all menu items
         disableAllMenuItems();
 
+        // documents are created in the repository root, independent of the selected row
+        QueryTab activeQueryTab = queryTester.getActiveQueryTab();
+        addDocumentMenuItem.setEnabled(activeQueryTab != null && activeQueryTab.getQueryInformation() != null
+                && activeQueryTab.getQueryInformation().getQueryMode() == QueryMode.REPOSITORY
+                && getRepositoryRoot() != null);
+
         selectedTable = invoker;
 
         // get selected table rows with resource id
@@ -326,7 +350,6 @@ public class ResultTableContextMenu extends JBPopupMenu implements PopupMenuList
 
             if (baseResource.getResourcetype() == ResourceType.FOLDER.getId()) {
                 addFolderMenuItem.setEnabled(true);
-                addDocumentMenuItem.setEnabled(true);
                 addLinkMenuItem.setEnabled(true);
             }
             showPathMenuItem.setEnabled(true);

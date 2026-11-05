@@ -28,20 +28,23 @@ import com.ceyoniq.nscale.al.core.common.ObjectclassName;
 import com.hsofttec.intellij.querytester.models.BaseResource;
 import com.hsofttec.intellij.querytester.models.ResourceDialogModel;
 import com.hsofttec.intellij.querytester.services.ConnectionService;
+import com.hsofttec.intellij.querytester.services.PermissionService;
 import com.hsofttec.intellij.querytester.ui.components.CreateResourceComponent;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.SimpleListCellRenderer;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.plaf.basic.BasicComboBoxRenderer;
-import java.awt.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CreateResourceDialog extends DialogWrapper {
     private static final ConnectionService CONNECTION_SERVICE = ConnectionService.getInstance( );
@@ -63,29 +66,38 @@ public class CreateResourceDialog extends DialogWrapper {
     @Nullable
     protected JComponent createCenterPanel( ) {
         dlgComponent = new CreateResourceComponent( );
-        dlgComponent.getInputObjectclass( ).requestFocus( );
         dlgComponent.getInputContent().addBrowseFolderListener(project, new FileChooserDescriptor(true, false, true, true, false, false));
         return dlgComponent.getMainPanel( );
     }
 
     @Override
+    public @Nullable JComponent getPreferredFocusedComponent() {
+        return creationMode == CreationMode.DOCUMENT ? dlgComponent.getInputContent().getTextField() : dlgComponent.getInputDisplayname();
+    }
+
+    @Override
     @Nullable
     protected ValidationInfo doValidate( ) {
-        ObjectclassName objectclassName = ( ObjectclassName ) dlgComponent.getInputObjectclass( ).getSelectedItem( );
-        String displayName = dlgComponent.getInputDisplayname( ).getText( );
-
-        if ( objectclassName == null ) {
-            return new ValidationInfo( "No objectclass selected", dlgComponent.getInputObjectclass( ) );
-        }
-        if ( StringUtils.isBlank( displayName ) ) {
-            return new ValidationInfo( "DisplayName is mandatory", dlgComponent.getInputDisplayname( ) );
-        }
-
         if ( creationMode == CreationMode.DOCUMENT ) {
             String fileName = dlgComponent.getInputContent( ).getText( );
             if ( StringUtils.isBlank( fileName ) ) {
-                return new ValidationInfo( "Content is mandatory", dlgComponent.getInputDisplayname( ) );
+                return new ValidationInfo("File is mandatory", dlgComponent.getInputContent().getTextField());
             }
+            if (!Files.isRegularFile(Paths.get(fileName))) {
+                return new ValidationInfo("File does not exist", dlgComponent.getInputContent().getTextField());
+            }
+        }
+
+        if (StringUtils.isBlank(dlgComponent.getInputDisplayname().getText())) {
+            return new ValidationInfo("DisplayName is mandatory", dlgComponent.getInputDisplayname());
+        }
+
+        JComboBox<ObjectclassName> inputObjectclass = dlgComponent.getInputObjectclass();
+        if (inputObjectclass.getItemCount() == 0) {
+            return new ValidationInfo("No objectclass allowed for this folder", inputObjectclass);
+        }
+        if (inputObjectclass.getSelectedItem() == null) {
+            return new ValidationInfo("No objectclass selected", inputObjectclass);
         }
 
         return null;
@@ -112,7 +124,11 @@ public class CreateResourceDialog extends DialogWrapper {
         switch ( creationMode ) {
             case DOCUMENT:
                 titlePatten = "Create document in %s";
-                possibleObjectclasses = CONNECTION_SERVICE.getPossibleObjectclassesForDocumentCreation( parentFolder );
+                if (PermissionService.canCreateDocumentIn(parentFolder.getObjectclass())) {
+                    possibleObjectclasses = CONNECTION_SERVICE.getPossibleObjectclassesForDocumentCreation(parentFolder).stream()
+                            .filter(PermissionService::canWriteDocument)
+                            .collect(Collectors.toList());
+                }
                 break;
             case LINK:
                 titlePatten = "Create link in %s";
@@ -125,13 +141,7 @@ public class CreateResourceDialog extends DialogWrapper {
         setTitle( String.format( titlePatten, parentFolder.getDisplayname( ) ) );
 
         dlgComponent.getInputObjectclass( ).setModel( new CollectionComboBoxModel<>( possibleObjectclasses ) );
-        dlgComponent.getInputObjectclass( ).setRenderer( new BasicComboBoxRenderer( ) {
-            @Override
-            public Component getListCellRendererComponent( JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus ) {
-                ObjectclassName value1 = ( ObjectclassName ) value;
-                return super.getListCellRendererComponent( list, value1.getName( ), index, isSelected, cellHasFocus );
-            }
-        } );
+        dlgComponent.getInputObjectclass().setRenderer(SimpleListCellRenderer.create("", ObjectclassName::getName));
 
         dlgComponent.getInputParentFolder( ).setText( parentFolder.getDisplayname( ) );
 
