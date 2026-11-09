@@ -4,6 +4,18 @@
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+### Security
+
+## [1.5.2] - 2026-11-09
+
+### Added
+
 - Change the objectclass of a repository resource inline in the result table; only objectclasses allowed by the
   parent folder configuration and the user's permissions are offered.
 
@@ -18,11 +30,7 @@
 
 - *Add Connection* toolbar button; connections are managed in the plugin settings.
 
-### Fixed
-
-### Security
-
-## [1.5.1] - 2026-10-29
+## 1.5.1 - 2026-10-29
 
 ### Added
 
