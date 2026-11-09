@@ -60,7 +60,7 @@ public class ObjectclassCellEditor extends DefaultCellEditor {
         this.queryTester = queryTester;
         //noinspection unchecked
         comboBox = (ComboBox<ObjectclassName>) getComponent();
-        comboBox.setRenderer(SimpleListCellRenderer.create("", ObjectclassName::getName));
+        comboBox.setRenderer(SimpleListCellRenderer.create((label, value, index) -> label.setText(value == null ? "" : value.getName())));
         setClickCountToStart(2);
     }
 

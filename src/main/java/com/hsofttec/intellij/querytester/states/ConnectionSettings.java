@@ -25,113 +25,51 @@
 package com.hsofttec.intellij.querytester.states;
 
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
+@NoArgsConstructor
 public class ConnectionSettings {
+    @Setter
     private String id;
+    @Setter
+    @Getter
     private boolean active;
+    @Setter
+    @Getter
     private String connectionName;
+    @Setter
+    @Getter
     private boolean ssl;
+    @Setter
+    @Getter
     private String server;
+    @Setter
+    @Getter
     private int port;
+    @Setter
+    @Getter
     private int timeout;
+    @Setter
+    @Getter
     private int connectTimeout;
+    @Setter
+    @Getter
     private String instance;
+    @Setter
+    @Getter
     private String username;
+    @Setter
+    @Getter
     private String password;
 
-    public ConnectionSettings( ) {
-    }
-
-    public String getId( ) {
-        if ( StringUtils.isBlank( id ) ) {
-            id = RandomStringUtils.randomAlphanumeric( 20 );
+    public String getId() {
+        if (StringUtils.isBlank(id)) {
+            id = RandomStringUtils.secure().nextAlphabetic(20);
         }
         return id;
-    }
-
-    public void setId( String id ) {
-        this.id = id;
-    }
-
-    public String getConnectionName( ) {
-        return connectionName;
-    }
-
-    public void setConnectionName( final String connectionName ) {
-        this.connectionName = connectionName;
-    }
-
-    public boolean isSsl( ) {
-        return ssl;
-    }
-
-    public void setSsl( final boolean ssl ) {
-        this.ssl = ssl;
-    }
-
-    public String getServer( ) {
-        return server;
-    }
-
-    public void setServer( final String server ) {
-        this.server = server;
-    }
-
-    public int getPort( ) {
-        return port;
-    }
-
-    public void setPort( final int port ) {
-        this.port = port;
-    }
-
-    public String getInstance( ) {
-        return instance;
-    }
-
-    public void setInstance( final String instance ) {
-        this.instance = instance;
-    }
-
-    public String getUsername( ) {
-        return username;
-    }
-
-    public void setUsername( final String username ) {
-        this.username = username;
-    }
-
-    public String getPassword( ) {
-        return password;
-    }
-
-    public void setPassword( final String password ) {
-        this.password = password;
-    }
-
-    public int getTimeout( ) {
-        return timeout;
-    }
-
-    public void setTimeout( int timeout ) {
-        this.timeout = timeout;
-    }
-
-    public boolean isActive( ) {
-        return active;
-    }
-
-    public void setActive( boolean active ) {
-        this.active = active;
-    }
-
-    public int getConnectTimeout( ) {
-        return connectTimeout;
-    }
-
-    public void setConnectTimeout( int connectTimeout ) {
-        this.connectTimeout = connectTimeout;
     }
 }

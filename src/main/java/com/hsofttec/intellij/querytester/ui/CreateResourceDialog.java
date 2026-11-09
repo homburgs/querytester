@@ -141,7 +141,7 @@ public class CreateResourceDialog extends DialogWrapper {
         setTitle( String.format( titlePatten, parentFolder.getDisplayname( ) ) );
 
         dlgComponent.getInputObjectclass( ).setModel( new CollectionComboBoxModel<>( possibleObjectclasses ) );
-        dlgComponent.getInputObjectclass().setRenderer(SimpleListCellRenderer.create("", ObjectclassName::getName));
+        dlgComponent.getInputObjectclass().setRenderer(SimpleListCellRenderer.create((label, value, index) -> label.setText(value == null ? "" : value.getName())));
 
         dlgComponent.getInputParentFolder( ).setText( parentFolder.getDisplayname( ) );
 

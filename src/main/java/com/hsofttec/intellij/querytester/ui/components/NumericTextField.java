@@ -24,13 +24,18 @@
 
 package com.hsofttec.intellij.querytester.ui.components;
 
-import org.jdesktop.swingx.text.NumberFormatExt;
-
 import javax.swing.*;
+import java.text.NumberFormat;
 
 public class NumericTextField extends JFormattedTextField {
     public NumericTextField( ) {
-        super( new NumberFormatExt( ) );
+        super(createFormat());
         setColumns( 10 );
+    }
+
+    private static NumberFormat createFormat() {
+        NumberFormat format = NumberFormat.getIntegerInstance();
+        format.setGroupingUsed(false);
+        return format;
     }
 }
