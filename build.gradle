@@ -37,7 +37,7 @@ intellijPlatform {
         }
         ideaVersion {
             sinceBuild = '243'
-            untilBuild = '262.*'
+            untilBuild = '263.*'
         }
         changeNotes = provider {
             changelog.renderItem(
